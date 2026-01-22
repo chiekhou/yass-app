@@ -1,154 +1,92 @@
-const jwt = require("jsonwebtoken");
-const { User } = require("../models");
 const ApiError = require("../utils/ApiError");
 const config = require("../config/app");
 
 /**
- * Middleware to authenticate JWT token
+ * Convert non-ApiError to ApiError
  */
-const authenticate = async (req, res, next) => {
-  try {
-    // Get token from header
-    const authHeader = req.headers.authorization;
+const errorConverter = (err, req, res, next) => {
+  let error = err;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw ApiError.unauthorized("Access token is required");
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    // Verify token
-    let decoded;
-    try {
-      decoded = jwt.verify(token, config.jwt.secret);
-    } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        throw ApiError.unauthorized("Token has expired");
-      }
-      throw ApiError.unauthorized("Invalid token");
-    }
-
-    // Find user
-    const user = await User.findByPk(decoded.id);
-
-    if (!user) {
-      throw ApiError.unauthorized("User not found");
-    }
-
-    if (user.status !== "active") {
-      throw ApiError.forbidden("Account is not active");
-    }
-
-    // Attach user to request
-    req.user = user;
-    req.userId = user.id;
-
-    next();
-  } catch (error) {
-    next(error);
+  if (!(error instanceof ApiError)) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    error = new ApiError(statusCode, message, false, err.stack);
   }
+
+  next(error);
 };
 
 /**
- * Optional authentication - doesn't fail if no token
+ * Handle errors and send response
  */
-const optionalAuth = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
+const errorHandler = (err, req, res, next) => {
+  let { statusCode, message } = err;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return next();
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    try {
-      const decoded = jwt.verify(token, config.jwt.secret);
-      const user = await User.findByPk(decoded.id);
-
-      if (user && user.status === "active") {
-        req.user = user;
-        req.userId = user.id;
-      }
-    } catch (error) {
-      // Ignore token errors for optional auth
-    }
-
-    next();
-  } catch (error) {
-    next(error);
+  // In production, don't leak error details for non-operational errors
+  if (config.env === "production" && !err.isOperational) {
+    statusCode = 500;
+    message = "Internal Server Error";
   }
-};
 
-/**
- * Middleware to check if user has required role(s)
- */
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return next(ApiError.unauthorized("Authentication required"));
-    }
+  // Log error in development
+  if (config.env === "development") {
+    console.error("Error:", err);
+  }
 
-    if (!roles.includes(req.user.role)) {
-      return next(
-        ApiError.forbidden("You do not have permission to perform this action")
-      );
-    }
-
-    next();
+  const response = {
+    success: false,
+    message,
+    ...(config.env === "development" && { stack: err.stack }),
   };
+
+  res.status(statusCode).json(response);
 };
 
 /**
- * Middleware to check if user is admin
+ * Handle 404 Not Found
  */
-const isAdmin = (req, res, next) => {
-  if (!req.user) {
-    return next(ApiError.unauthorized("Authentication required"));
-  }
-
-  if (!["admin", "super_admin"].includes(req.user.role)) {
-    return next(ApiError.forbidden("Admin access required"));
-  }
-
-  next();
+const notFound = (req, res, next) => {
+  next(ApiError.notFound(`Route ${req.originalUrl} not found`));
 };
 
 /**
- * Middleware to check if user is partner
+ * Handle Sequelize errors
  */
-const isPartner = (req, res, next) => {
-  if (!req.user) {
-    return next(ApiError.unauthorized("Authentication required"));
+const sequelizeErrorHandler = (err, req, res, next) => {
+  let error = err;
+
+  // Sequelize validation error
+  if (err.name === "SequelizeValidationError") {
+    const messages = err.errors.map((e) => e.message).join(", ");
+    error = ApiError.badRequest(messages);
   }
 
-  if (!["partner", "admin", "super_admin"].includes(req.user.role)) {
-    return next(ApiError.forbidden("Partner access required"));
+  // Sequelize unique constraint error
+  if (err.name === "SequelizeUniqueConstraintError") {
+    const field = err.errors[0]?.path || "field";
+    error = ApiError.conflict(`${field} already exists`);
   }
 
-  next();
-};
-
-/**
- * Middleware to check if user is super admin
- */
-const isSuperAdmin = (req, res, next) => {
-  if (!req.user) {
-    return next(ApiError.unauthorized("Authentication required"));
+  // Sequelize foreign key constraint error
+  if (err.name === "SequelizeForeignKeyConstraintError") {
+    error = ApiError.badRequest("Invalid reference to related resource");
   }
 
-  if (req.user.role !== "super_admin") {
-    return next(ApiError.forbidden("Super admin access required"));
+  // Sequelize database error
+  if (err.name === "SequelizeDatabaseError") {
+    if (config.env === "development") {
+      error = ApiError.internal(err.message);
+    } else {
+      error = ApiError.internal("Database error");
+    }
   }
 
-  next();
+  next(error);
 };
 
 module.exports = {
-  authenticate,
-  optionalAuth,
-  authorize,
-  isAdmin,
-  isPartner,
-  isSuperAdmin,
+  errorConverter,
+  errorHandler,
+  notFound,
+  sequelizeErrorHandler,
 };

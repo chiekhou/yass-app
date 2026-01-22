@@ -12,26 +12,38 @@ const {
 
 /**
  * @route   POST /api/v1/auth/register
- * @desc    Register a new user
+ * @desc    Register a new user (standard user)
  * @access  Public
  */
 router.post(
   "/register",
   registrationLimiter,
   validate(authValidation.register),
-  authController.register
+  authController.register,
+);
+
+/**
+ * @route   POST /api/v1/auth/register/partner
+ * @desc    Register a new partner (prestataire)
+ * @access  Public
+ */
+router.post(
+  "/register/partner",
+  registrationLimiter,
+  validate(authValidation.registerPartner),
+  authController.registerPartner,
 );
 
 /**
  * @route   POST /api/v1/auth/login
- * @desc    Login user
+ * @desc    Login user (user or partner)
  * @access  Public
  */
 router.post(
   "/login",
   authLimiter,
   validate(authValidation.login),
-  authController.login
+  authController.login,
 );
 
 /**
@@ -42,7 +54,7 @@ router.post(
 router.post(
   "/refresh",
   validate(authValidation.refreshToken),
-  authController.refreshToken
+  authController.refreshToken,
 );
 
 /**
@@ -68,7 +80,7 @@ router.post(
   "/forgot-password",
   passwordResetLimiter,
   validate(authValidation.forgotPassword),
-  authController.forgotPassword
+  authController.forgotPassword,
 );
 
 /**
@@ -79,7 +91,7 @@ router.post(
 router.post(
   "/reset-password",
   validate(authValidation.resetPassword),
-  authController.resetPassword
+  authController.resetPassword,
 );
 
 /**
@@ -91,7 +103,7 @@ router.post(
   "/change-password",
   authenticate,
   validate(authValidation.changePassword),
-  authController.changePassword
+  authController.changePassword,
 );
 
 /**
@@ -100,6 +112,17 @@ router.post(
  * @access  Public
  */
 router.get("/verify-email/:token", authController.verifyEmail);
+
+/**
+ * @route   POST /api/v1/auth/resend-verification
+ * @desc    Resend verification email
+ * @access  Private
+ */
+router.post(
+  "/resend-verification",
+  authenticate,
+  authController.resendVerificationEmail,
+);
 
 /**
  * @route   GET /api/v1/auth/me
@@ -117,7 +140,7 @@ router.put(
   "/me",
   authenticate,
   validate(authValidation.updateProfile),
-  authController.updateProfile
+  authController.updateProfile,
 );
 
 /**

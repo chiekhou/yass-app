@@ -1,0 +1,250 @@
+const adminService = require("../services/admin.service");
+const { ApiResponse } = require("../utils");
+
+class AdminController {
+  /**
+   * Get dashboard statistics
+   * GET /api/v1/admin/dashboard
+   */
+  async getDashboard(req, res, next) {
+    try {
+      const stats = await adminService.getDashboardStats();
+      ApiResponse.success(stats, "Dashboard statistics retrieved").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==================== USER MANAGEMENT ====================
+
+  /**
+   * Get all users
+   * GET /api/v1/admin/users
+   */
+  async getUsers(req, res, next) {
+    try {
+      const { page, limit, role, status, search } = req.query;
+      const result = await adminService.getUsers({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+        role,
+        status,
+        search,
+      });
+      ApiResponse.success(result, "Users retrieved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get user by ID
+   * GET /api/v1/admin/users/:id
+   */
+  async getUserById(req, res, next) {
+    try {
+      const user = await adminService.getUserById(req.params.id);
+      ApiResponse.success(user, "User retrieved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update user status
+   * PATCH /api/v1/admin/users/:id/status
+   */
+  async updateUserStatus(req, res, next) {
+    try {
+      const { status } = req.body;
+      const user = await adminService.updateUserStatus(
+        req.params.id,
+        status,
+        req.userId,
+      );
+      ApiResponse.success(user, "User status updated successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Delete user
+   * DELETE /api/v1/admin/users/:id
+   */
+  async deleteUser(req, res, next) {
+    try {
+      const result = await adminService.deleteUser(req.params.id, req.userId);
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==================== PARTNER MANAGEMENT ====================
+
+  /**
+   * Get all partners
+   * GET /api/v1/admin/partners
+   */
+  async getPartners(req, res, next) {
+    try {
+      const { page, limit, status, search } = req.query;
+      const result = await adminService.getPartners({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+        status,
+        search,
+      });
+      ApiResponse.success(result, "Partners retrieved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get pending partners
+   * GET /api/v1/admin/partners/pending
+   */
+  async getPendingPartners(req, res, next) {
+    try {
+      const { page, limit } = req.query;
+      const result = await adminService.getPendingPartners({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+      });
+      ApiResponse.success(
+        result,
+        "Pending partners retrieved successfully",
+      ).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get partner by ID
+   * GET /api/v1/admin/partners/:id
+   */
+  async getPartnerById(req, res, next) {
+    try {
+      const partner = await adminService.getPartnerById(req.params.id);
+      ApiResponse.success(partner, "Partner retrieved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Approve partner
+   * POST /api/v1/admin/partners/:id/approve
+   */
+  async approvePartner(req, res, next) {
+    try {
+      const partner = await adminService.approvePartner(
+        req.params.id,
+        req.userId,
+      );
+      ApiResponse.success(partner, "Partner approved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Reject partner
+   * POST /api/v1/admin/partners/:id/reject
+   */
+  async rejectPartner(req, res, next) {
+    try {
+      const { reason } = req.body;
+      const partner = await adminService.rejectPartner(
+        req.params.id,
+        reason,
+        req.userId,
+      );
+      ApiResponse.success(partner, "Partner rejected").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Suspend partner
+   * POST /api/v1/admin/partners/:id/suspend
+   */
+  async suspendPartner(req, res, next) {
+    try {
+      const { reason } = req.body;
+      const partner = await adminService.suspendPartner(
+        req.params.id,
+        reason,
+        req.userId,
+      );
+      ApiResponse.success(partner, "Partner suspended").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==================== ESTABLISHMENT MANAGEMENT ====================
+
+  /**
+   * Get pending establishments
+   * GET /api/v1/admin/establishments/pending
+   */
+  async getPendingEstablishments(req, res, next) {
+    try {
+      const { page, limit } = req.query;
+      const result = await adminService.getPendingEstablishments({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+      });
+      ApiResponse.success(
+        result,
+        "Pending establishments retrieved successfully",
+      ).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Approve establishment
+   * POST /api/v1/admin/establishments/:id/approve
+   */
+  async approveEstablishment(req, res, next) {
+    try {
+      const establishment = await adminService.approveEstablishment(
+        req.params.id,
+        req.userId,
+      );
+      ApiResponse.success(
+        establishment,
+        "Establishment approved successfully",
+      ).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Reject establishment
+   * POST /api/v1/admin/establishments/:id/reject
+   */
+  async rejectEstablishment(req, res, next) {
+    try {
+      const { reason } = req.body;
+      const establishment = await adminService.rejectEstablishment(
+        req.params.id,
+        reason,
+        req.userId,
+      );
+      ApiResponse.success(establishment, "Establishment rejected").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new AdminController();

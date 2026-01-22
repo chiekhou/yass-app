@@ -64,6 +64,10 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
+      email_verification_expires: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       password_reset_token: {
         type: DataTypes.STRING(255),
         allowNull: true,
@@ -98,7 +102,7 @@ module.exports = (sequelize) => {
           if (user.password) {
             user.password = await bcrypt.hash(
               user.password,
-              config.bcrypt.saltRounds
+              config.bcrypt.saltRounds,
             );
           }
         },
@@ -106,12 +110,12 @@ module.exports = (sequelize) => {
           if (user.changed("password")) {
             user.password = await bcrypt.hash(
               user.password,
-              config.bcrypt.saltRounds
+              config.bcrypt.saltRounds,
             );
           }
         },
       },
-    }
+    },
   );
 
   // Instance methods
@@ -123,6 +127,7 @@ module.exports = (sequelize) => {
     const values = { ...this.get() };
     delete values.password;
     delete values.email_verification_token;
+    delete values.email_verification_expires;
     delete values.password_reset_token;
     delete values.password_reset_expires;
     return values;

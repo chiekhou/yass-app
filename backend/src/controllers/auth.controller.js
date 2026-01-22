@@ -18,7 +18,44 @@ class AuthController {
         device_info: deviceInfo,
       });
 
-      ApiResponse.created(result, "Registration successful").send(res);
+      ApiResponse.created(result, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Register new partner (prestataire)
+   * POST /api/v1/auth/register/partner
+   */
+  async registerPartner(req, res, next) {
+    try {
+      const deviceInfo = {
+        user_agent: req.headers["user-agent"],
+        platform: req.body.platform || "unknown",
+      };
+
+      // Separate user data from partner data
+      const userData = {
+        email: req.body.email,
+        password: req.body.password,
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        phone: req.body.phone,
+        language: req.body.language,
+        wilaya_id: req.body.wilaya_id,
+        device_info: deviceInfo,
+      };
+
+      const partnerData = {
+        company_name: req.body.company_name,
+        registration_number: req.body.registration_number,
+        tax_id: req.body.tax_id,
+      };
+
+      const result = await authService.registerPartner(userData, partnerData);
+
+      ApiResponse.created(result, result.message).send(res);
     } catch (error) {
       next(error);
     }
@@ -41,7 +78,7 @@ class AuthController {
         email,
         password,
         deviceInfo,
-        ipAddress
+        ipAddress,
       );
 
       ApiResponse.success(result, "Login successful").send(res);
@@ -104,12 +141,9 @@ class AuthController {
     try {
       const { email } = req.body;
 
-      await authService.forgotPassword(email);
+      const result = await authService.forgotPassword(email);
 
-      ApiResponse.success(
-        null,
-        "If your email is registered, you will receive a password reset link"
-      ).send(res);
+      ApiResponse.success(null, result.message).send(res);
     } catch (error) {
       next(error);
     }
@@ -123,9 +157,9 @@ class AuthController {
     try {
       const { token, password } = req.body;
 
-      await authService.resetPassword(token, password);
+      const result = await authService.resetPassword(token, password);
 
-      ApiResponse.success(null, "Password reset successful").send(res);
+      ApiResponse.success(null, result.message).send(res);
     } catch (error) {
       next(error);
     }
@@ -139,13 +173,13 @@ class AuthController {
     try {
       const { current_password, new_password } = req.body;
 
-      await authService.changePassword(
+      const result = await authService.changePassword(
         req.userId,
         current_password,
-        new_password
+        new_password,
       );
 
-      ApiResponse.success(null, "Password changed successfully").send(res);
+      ApiResponse.success(null, result.message).send(res);
     } catch (error) {
       next(error);
     }
@@ -159,9 +193,23 @@ class AuthController {
     try {
       const { token } = req.params;
 
-      await authService.verifyEmail(token);
+      const result = await authService.verifyEmail(token);
 
-      ApiResponse.success(null, "Email verified successfully").send(res);
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Resend verification email
+   * POST /api/v1/auth/resend-verification
+   */
+  async resendVerificationEmail(req, res, next) {
+    try {
+      const result = await authService.resendVerificationEmail(req.userId);
+
+      ApiResponse.success(null, result.message).send(res);
     } catch (error) {
       next(error);
     }
@@ -173,9 +221,9 @@ class AuthController {
    */
   async getProfile(req, res, next) {
     try {
-      const user = await authService.getProfile(req.userId);
+      const result = await authService.getProfile(req.userId);
 
-      ApiResponse.success(user, "Profile retrieved successfully").send(res);
+      ApiResponse.success(result, "Profile retrieved successfully").send(res);
     } catch (error) {
       next(error);
     }
@@ -203,9 +251,9 @@ class AuthController {
     try {
       const { fcm_token } = req.body;
 
-      await authService.updateFcmToken(req.userId, fcm_token);
+      const result = await authService.updateFcmToken(req.userId, fcm_token);
 
-      ApiResponse.success(null, "FCM token updated successfully").send(res);
+      ApiResponse.success(null, result.message).send(res);
     } catch (error) {
       next(error);
     }

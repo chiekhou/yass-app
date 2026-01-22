@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
-const { User, RefreshToken } = require("../models");
+const { User, Partner, RefreshToken } = require("../models");
 const ApiError = require("../utils/ApiError");
 const { generateToken } = require("../utils/helpers");
 const config = require("../config/app");
+const emailService = require("./email.service");
 
 class AuthService {
   /**
@@ -51,7 +52,7 @@ class AuthService {
     const refreshToken = await this.generateRefreshToken(
       user,
       deviceInfo,
-      ipAddress
+      ipAddress,
     );
 
     return {
@@ -63,7 +64,7 @@ class AuthService {
   }
 
   /**
-   * Register new user
+   * Register new user (standard user)
    */
   async register(userData) {
     // Check if email already exists
@@ -86,7 +87,12 @@ class AuthService {
       }
     }
 
-    // Create user
+    // Generate email verification token with expiration
+    const emailVerificationToken = generateToken(32);
+    const emailVerificationExpires = new Date();
+    emailVerificationExpires.setHours(emailVerificationExpires.getHours() + 24); // 24 hours
+
+    // Create user with role 'user'
     const user = await User.create({
       email: userData.email,
       password: userData.password,
@@ -95,17 +101,103 @@ class AuthService {
       phone: userData.phone || null,
       language: userData.language || "fr",
       wilaya_id: userData.wilaya_id || null,
-      email_verification_token: generateToken(32),
+      role: "user", // Always 'user' for standard registration
+      status: "active", // Active but email not verified
+      email_verification_token: emailVerificationToken,
+      email_verification_expires: emailVerificationExpires,
     });
 
     // Generate tokens
     const tokens = await this.generateTokens(user, userData.device_info);
 
-    // TODO: Send verification email
+    // Send verification email
+    await emailService.sendVerificationEmail(user, emailVerificationToken);
 
     return {
       user: user.toJSON(),
       tokens,
+      message:
+        "Registration successful. Please check your email to verify your account.",
+    };
+  }
+
+  /**
+   * Register new partner (prestataire)
+   */
+  async registerPartner(userData, partnerData) {
+    // Check if email already exists
+    const existingUser = await User.findOne({
+      where: { email: userData.email },
+    });
+
+    if (existingUser) {
+      throw ApiError.conflict("Email already registered");
+    }
+
+    // Check if phone already exists (if provided)
+    if (userData.phone) {
+      const existingPhone = await User.findOne({
+        where: { phone: userData.phone },
+      });
+
+      if (existingPhone) {
+        throw ApiError.conflict("Phone number already registered");
+      }
+    }
+
+    // Generate email verification token
+    const emailVerificationToken = generateToken(32);
+    const emailVerificationExpires = new Date();
+    emailVerificationExpires.setHours(emailVerificationExpires.getHours() + 24);
+
+    // Create user with role 'partner'
+    const user = await User.create({
+      email: userData.email,
+      password: userData.password,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      phone: userData.phone || null,
+      language: userData.language || "fr",
+      wilaya_id: userData.wilaya_id || null,
+      role: "partner",
+      status: "pending", // Pending until admin approves
+      email_verification_token: emailVerificationToken,
+      email_verification_expires: emailVerificationExpires,
+    });
+
+    // Create partner profile
+    const partner = await Partner.create({
+      user_id: user.id,
+      company_name: partnerData.company_name,
+      registration_number: partnerData.registration_number || null,
+      tax_id: partnerData.tax_id || null,
+      status: "pending",
+      subscription_plan: "free",
+    });
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user, userData.device_info);
+
+    // Send verification email
+    await emailService.sendVerificationEmail(user, emailVerificationToken);
+
+    // Send partner pending email
+    await emailService.sendPartnerPendingEmail(user, partner);
+
+    // Notify admin about new partner registration
+    const adminEmail = "admin@annuaire-dz.com"; // Could be from config
+    await emailService.sendAdminNewPartnerNotification(
+      adminEmail,
+      user,
+      partner,
+    );
+
+    return {
+      user: user.toJSON(),
+      partner: partner.toJSON(),
+      tokens,
+      message:
+        "Partner registration successful. Your account is pending approval. Please check your email.",
     };
   }
 
@@ -116,6 +208,12 @@ class AuthService {
     // Find user by email
     const user = await User.findOne({
       where: { email },
+      include: [
+        {
+          model: Partner,
+          as: "partner_profile",
+        },
+      ],
     });
 
     if (!user) {
@@ -129,10 +227,23 @@ class AuthService {
       throw ApiError.unauthorized("Invalid email or password");
     }
 
-    // Check if user is active
-    if (user.status !== "active") {
+    // Check user status
+    if (user.status === "suspended") {
       throw ApiError.forbidden(
-        "Your account is not active. Please contact support."
+        "Your account has been suspended. Please contact support.",
+      );
+    }
+
+    if (user.status === "inactive") {
+      throw ApiError.forbidden(
+        "Your account is inactive. Please contact support.",
+      );
+    }
+
+    // For partners, check if approved
+    if (user.role === "partner" && user.status === "pending") {
+      throw ApiError.forbidden(
+        "Your partner account is pending approval. Please wait for admin validation.",
       );
     }
 
@@ -142,10 +253,18 @@ class AuthService {
     // Generate tokens
     const tokens = await this.generateTokens(user, deviceInfo, ipAddress);
 
-    return {
+    // Prepare response
+    const response = {
       user: user.toJSON(),
       tokens,
     };
+
+    // Add partner info if applicable
+    if (user.partner_profile) {
+      response.partner = user.partner_profile.toJSON();
+    }
+
+    return response;
   }
 
   /**
@@ -223,7 +342,7 @@ class AuthService {
           user_id: userId,
           is_revoked: false,
         },
-      }
+      },
     );
 
     return true;
@@ -237,7 +356,10 @@ class AuthService {
 
     if (!user) {
       // Don't reveal that user doesn't exist
-      return true;
+      return {
+        message:
+          "If your email is registered, you will receive a password reset link.",
+      };
     }
 
     // Generate reset token
@@ -250,9 +372,13 @@ class AuthService {
       password_reset_expires: resetExpires,
     });
 
-    // TODO: Send password reset email
+    // Send password reset email
+    await emailService.sendPasswordResetEmail(user, resetToken);
 
-    return true;
+    return {
+      message:
+        "If your email is registered, you will receive a password reset link.",
+    };
   }
 
   /**
@@ -283,7 +409,10 @@ class AuthService {
     // Revoke all refresh tokens
     await this.logoutAll(user.id);
 
-    return true;
+    return {
+      message:
+        "Password reset successful. Please login with your new password.",
+    };
   }
 
   /**
@@ -309,7 +438,7 @@ class AuthService {
     // Revoke all refresh tokens
     await this.logoutAll(userId);
 
-    return true;
+    return { message: "Password changed successfully. Please login again." };
   }
 
   /**
@@ -324,12 +453,56 @@ class AuthService {
       throw ApiError.badRequest("Invalid verification token");
     }
 
+    // Check if token has expired (if expiration is set)
+    if (
+      user.email_verification_expires &&
+      new Date() > user.email_verification_expires
+    ) {
+      throw ApiError.badRequest(
+        "Verification token has expired. Please request a new one.",
+      );
+    }
+
     await user.update({
       email_verified: true,
       email_verification_token: null,
+      email_verification_expires: null,
     });
 
-    return true;
+    // Send welcome email
+    await emailService.sendWelcomeEmail(user);
+
+    return { message: "Email verified successfully. Welcome to Annuaire DZ!" };
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(userId) {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (user.email_verified) {
+      throw ApiError.badRequest("Email is already verified");
+    }
+
+    // Generate new token
+    const emailVerificationToken = generateToken(32);
+    const emailVerificationExpires = new Date();
+    emailVerificationExpires.setHours(emailVerificationExpires.getHours() + 24);
+
+    await user.update({
+      email_verification_token: emailVerificationToken,
+      email_verification_expires: emailVerificationExpires,
+    });
+
+    // Send verification email
+    await emailService.sendVerificationEmail(user, emailVerificationToken);
+
+    return { message: "Verification email sent. Please check your inbox." };
   }
 
   /**
@@ -342,6 +515,10 @@ class AuthService {
           association: "wilaya",
           attributes: ["id", "name", "name_ar"],
         },
+        {
+          model: Partner,
+          as: "partner_profile",
+        },
       ],
     });
 
@@ -349,7 +526,15 @@ class AuthService {
       throw ApiError.notFound("User not found");
     }
 
-    return user.toJSON();
+    const response = {
+      user: user.toJSON(),
+    };
+
+    if (user.partner_profile) {
+      response.partner = user.partner_profile.toJSON();
+    }
+
+    return response;
   }
 
   /**
@@ -373,8 +558,25 @@ class AuthService {
       }
     }
 
+    // Fields that can be updated
+    const allowedFields = [
+      "first_name",
+      "last_name",
+      "phone",
+      "language",
+      "wilaya_id",
+      "avatar",
+    ];
+    const filteredData = {};
+
+    allowedFields.forEach((field) => {
+      if (updateData[field] !== undefined) {
+        filteredData[field] = updateData[field];
+      }
+    });
+
     // Update user
-    await user.update(updateData);
+    await user.update(filteredData);
 
     return user.toJSON();
   }
@@ -391,7 +593,7 @@ class AuthService {
 
     await user.update({ fcm_token: fcmToken });
 
-    return true;
+    return { message: "FCM token updated successfully" };
   }
 }
 

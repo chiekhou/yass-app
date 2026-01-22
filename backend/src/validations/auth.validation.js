@@ -12,7 +12,7 @@ const register = [
     .withMessage("Password must be at least 8 characters long")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
     ),
 
   body("first_name")
@@ -32,13 +32,80 @@ const register = [
   body("phone")
     .optional()
     .trim()
-    .isMobilePhone("ar-DZ")
-    .withMessage("Please provide a valid Algerian phone number"),
+    .matches(/^(\+?213|0)(5|6|7)\d{8}$/)
+    .withMessage("Please provide a valid Algerian mobile phone number"),
 
   body("language")
     .optional()
     .isIn(["fr", "ar", "en"])
     .withMessage("Language must be fr, ar, or en"),
+
+  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+];
+
+const registerPartner = [
+  // User fields
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage(
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+    ),
+
+  body("first_name")
+    .trim()
+    .notEmpty()
+    .withMessage("First name is required")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("First name must be between 2 and 100 characters"),
+
+  body("last_name")
+    .trim()
+    .notEmpty()
+    .withMessage("Last name is required")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Last name must be between 2 and 100 characters"),
+
+  body("phone")
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required for partners")
+    .matches(/^(\+?213|0)(5|6|7)\d{8}$/)
+    .withMessage("Please provide a valid Algerian mobile phone number"),
+
+  body("language")
+    .optional()
+    .isIn(["fr", "ar", "en"])
+    .withMessage("Language must be fr, ar, or en"),
+
+  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+
+  // Partner fields
+  body("company_name")
+    .trim()
+    .notEmpty()
+    .withMessage("Company name is required")
+    .isLength({ min: 2, max: 255 })
+    .withMessage("Company name must be between 2 and 255 characters"),
+
+  body("registration_number")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Registration number must be less than 100 characters"),
+
+  body("tax_id")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Tax ID must be less than 100 characters"),
 ];
 
 const login = [
@@ -67,7 +134,7 @@ const resetPassword = [
     .withMessage("Password must be at least 8 characters long")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
     ),
 ];
 
@@ -81,7 +148,7 @@ const changePassword = [
     .withMessage("New password must be at least 8 characters long")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "New password must contain at least one uppercase letter, one lowercase letter, and one number"
+      "New password must contain at least one uppercase letter, one lowercase letter, and one number",
     ),
 ];
 
@@ -105,8 +172,8 @@ const updateProfile = [
   body("phone")
     .optional()
     .trim()
-    .isMobilePhone("ar-DZ")
-    .withMessage("Please provide a valid Algerian phone number"),
+    .matches(/^(\+?213|0)(5|6|7)\d{8}$/)
+    .withMessage("Please provide a valid Algerian mobile phone number"),
 
   body("language")
     .optional()
@@ -118,6 +185,7 @@ const updateProfile = [
 
 module.exports = {
   register,
+  registerPartner,
   login,
   forgotPassword,
   resetPassword,

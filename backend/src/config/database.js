@@ -2,8 +2,8 @@ require("dotenv").config();
 
 module.exports = {
   development: {
-    username: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "postgres",
+    username: process.env.DB_USER || "yass_app_user",
+    password: process.env.DB_PASSWORD || "yass_app_password_2025",
     database: process.env.DB_NAME || "annuaire_dz",
     host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 5432,
@@ -24,10 +24,9 @@ module.exports = {
     },
   },
   test: {
-    username: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "postgres",
-    database: process.env.DB_NAME + "_test" || "annuaire_dz_test",
-    host: process.env.DB_HOST || "localhost",
+    username: process.env.DB_USER || "yass_app_user",
+    password: process.env.DB_PASSWORD || "yass_app_password_2025",
+    database: process.env.DB_NAME || "annuaire_dz",
     port: process.env.DB_PORT || 5432,
     dialect: "postgres",
     logging: false,

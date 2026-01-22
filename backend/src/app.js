@@ -1,67 +1,74 @@
-require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const path = require("path");
 
-const app = require("./app");
 const config = require("./config/app");
-const { sequelize } = require("./models");
+const routes = require("./routes");
+const {
+  errorConverter,
+  errorHandler,
+  notFound,
+  sequelizeErrorHandler,
+  generalLimiter,
+} = require("./middlewares");
 
-const PORT = config.port;
+// Initialize express app
+const app = express();
 
-// Database connection and server start
-const startServer = async () => {
-  try {
-    // Test database connection
-    await sequelize.authenticate();
-    console.log("✅ Database connection established successfully.");
+// Trust proxy (for rate limiting behind reverse proxy)
+app.set("trust proxy", 1);
 
-    // Sync models (in development only)
-    if (config.env === "development") {
-      await sequelize.sync({ alter: true });
-      console.log("✅ Database models synchronized.");
-    }
+// Security middleware
+app.use(helmet());
 
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`
-╔═══════════════════════════════════════════════════╗
-║                                                   ║
-║   🚀 Server is running!                           ║
-║                                                   ║
-║   Environment: ${config.env.padEnd(33)}║
-║   Port: ${PORT.toString().padEnd(40)}║
-║   API: http://localhost:${PORT}/api/${config.apiVersion}             ║
-║                                                   ║
-╚═══════════════════════════════════════════════════╝
-      `);
-    });
-  } catch (error) {
-    console.error("❌ Unable to start server:", error.message);
-    process.exit(1);
-  }
-};
+// CORS configuration
+app.use(
+  cors({
+    origin: config.env === "production" ? [config.urls.frontend] : "*",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept-Language"],
+  })
+);
 
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+// Request logging
+if (config.env === "development") {
+  app.use(morgan("dev"));
+} else {
+  app.use(morgan("combined"));
+}
+
+// Body parsing
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Static files (uploads)
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Rate limiting
+app.use(generalLimiter);
+
+// API routes
+app.use(`/api/${config.apiVersion}`, routes);
+
+// Root route
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Welcome to Annuaire DZ API",
+    version: config.apiVersion,
+    documentation: `/api/${config.apiVersion}/docs`,
+  });
 });
 
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
-  process.exit(1);
-});
+// Handle 404
+app.use(notFound);
 
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-  console.log("SIGTERM received. Shutting down gracefully...");
-  await sequelize.close();
-  process.exit(0);
-});
+// Error handling
+app.use(sequelizeErrorHandler);
+app.use(errorConverter);
+app.use(errorHandler);
 
-process.on("SIGINT", async () => {
-  console.log("SIGINT received. Shutting down gracefully...");
-  await sequelize.close();
-  process.exit(0);
-});
-
-// Start the server
-startServer();
+module.exports = app;

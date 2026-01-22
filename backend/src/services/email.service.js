@@ -1,0 +1,557 @@
+const nodemailer = require("nodemailer");
+const handlebars = require("handlebars");
+const fs = require("fs");
+const path = require("path");
+const config = require("../config/app");
+
+class EmailService {
+  constructor() {
+    this.transporter = null;
+    this.templates = {};
+    this.init();
+  }
+
+  /**
+   * Initialize email transporter
+   */
+  init() {
+    // Create transporter based on environment
+    if (config.env === "production") {
+      this.transporter = nodemailer.createTransport({
+        host: config.email.host,
+        port: config.email.port,
+        secure: config.email.port === 465,
+        auth: {
+          user: config.email.user,
+          pass: config.email.password,
+        },
+      });
+    } else {
+      // For development, use Ethereal (fake SMTP) or console logging
+      this.transporter = nodemailer.createTransport({
+        host: config.email.host || "smtp.ethereal.email",
+        port: config.email.port || 587,
+        secure: false,
+        auth: {
+          user: config.email.user,
+          pass: config.email.password,
+        },
+      });
+    }
+
+    // Load email templates
+    this.loadTemplates();
+  }
+
+  /**
+   * Load email templates from files
+   */
+  loadTemplates() {
+    const templatesDir = path.join(__dirname, "../templates/emails");
+
+    const templateFiles = [
+      "verify-email",
+      "reset-password",
+      "welcome",
+      "partner-pending",
+      "partner-approved",
+      "partner-rejected",
+    ];
+
+    templateFiles.forEach((name) => {
+      const filePath = path.join(templatesDir, `${name}.hbs`);
+      if (fs.existsSync(filePath)) {
+        const source = fs.readFileSync(filePath, "utf-8");
+        this.templates[name] = handlebars.compile(source);
+      }
+    });
+  }
+
+  /**
+   * Send email
+   */
+  async send(options) {
+    const { to, subject, template, context, html, text } = options;
+
+    let htmlContent = html;
+    let textContent = text;
+
+    // Use template if provided
+    if (template && this.templates[template]) {
+      htmlContent = this.templates[template](context);
+    }
+
+    const mailOptions = {
+      from: `"Annuaire DZ" <${config.email.from}>`,
+      to,
+      subject,
+      html: htmlContent,
+      text: textContent,
+    };
+
+    try {
+      // In development, log instead of sending
+      if (config.env === "development" && !config.email.user) {
+        console.log("📧 Email would be sent:");
+        console.log("To:", to);
+        console.log("Subject:", subject);
+        console.log("Template:", template);
+        console.log("Context:", context);
+        return { success: true, messageId: "dev-mode" };
+      }
+
+      const info = await this.transporter.sendMail(mailOptions);
+
+      console.log("📧 Email sent:", info.messageId);
+
+      // For Ethereal, log preview URL
+      if (config.env === "development") {
+        console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+      }
+
+      return { success: true, messageId: info.messageId };
+    } catch (error) {
+      console.error("❌ Email error:", error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send verification email
+   */
+  async sendVerificationEmail(user, token) {
+    const verificationUrl = `${config.urls.frontend}/verify-email?token=${token}`;
+
+    // Use API URL if no frontend URL
+    const apiVerificationUrl = `${config.urls.app}/api/${config.apiVersion}/auth/verify-email/${token}`;
+
+    const context = {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      verificationUrl: verificationUrl || apiVerificationUrl,
+      appName: "Annuaire DZ",
+      year: new Date().getFullYear(),
+    };
+
+    // Fallback HTML if template not loaded
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1B4F72; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .button { display: inline-block; padding: 12px 30px; background: #27AE60; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Annuaire DZ</h1>
+          </div>
+          <div class="content">
+            <h2>Bienvenue ${context.firstName} !</h2>
+            <p>Merci de vous être inscrit sur Annuaire DZ.</p>
+            <p>Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :</p>
+            <p style="text-align: center;">
+              <a href="${context.verificationUrl}" class="button">Vérifier mon email</a>
+            </p>
+            <p>Ou copiez ce lien dans votre navigateur :</p>
+            <p style="word-break: break-all; color: #666;">${context.verificationUrl}</p>
+            <p>Ce lien expire dans 24 heures.</p>
+          </div>
+          <div class="footer">
+            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject: "Vérifiez votre adresse email - Annuaire DZ",
+      template: "verify-email",
+      context,
+      html: this.templates["verify-email"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(user, token) {
+    const resetUrl = `${config.urls.frontend}/reset-password?token=${token}`;
+
+    const context = {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      resetUrl,
+      appName: "Annuaire DZ",
+      year: new Date().getFullYear(),
+      expiresIn: "1 heure",
+    };
+
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1B4F72; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .button { display: inline-block; padding: 12px 30px; background: #E74C3C; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          .warning { background: #FFF3CD; border: 1px solid #FFEEBA; padding: 10px; border-radius: 5px; margin: 15px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Annuaire DZ</h1>
+          </div>
+          <div class="content">
+            <h2>Réinitialisation de mot de passe</h2>
+            <p>Bonjour ${context.firstName},</p>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+            <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</p>
+            <p style="text-align: center;">
+              <a href="${context.resetUrl}" class="button">Réinitialiser mon mot de passe</a>
+            </p>
+            <p>Ou copiez ce lien dans votre navigateur :</p>
+            <p style="word-break: break-all; color: #666;">${context.resetUrl}</p>
+            <div class="warning">
+              <strong>⚠️ Ce lien expire dans ${context.expiresIn}.</strong>
+            </div>
+            <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+          </div>
+          <div class="footer">
+            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject: "Réinitialisation de votre mot de passe - Annuaire DZ",
+      template: "reset-password",
+      context,
+      html: this.templates["reset-password"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send welcome email after verification
+   */
+  async sendWelcomeEmail(user) {
+    const context = {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      appName: "Annuaire DZ",
+      appUrl: config.urls.frontend,
+      year: new Date().getFullYear(),
+    };
+
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1B4F72; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .button { display: inline-block; padding: 12px 30px; background: #27AE60; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          .features { margin: 20px 0; }
+          .features li { margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Bienvenue sur Annuaire DZ !</h1>
+          </div>
+          <div class="content">
+            <h2>Votre compte est activé, ${context.firstName} !</h2>
+            <p>Merci d'avoir vérifié votre adresse email. Votre compte est maintenant actif.</p>
+            <p>Avec Annuaire DZ, vous pouvez :</p>
+            <ul class="features">
+              <li>🔍 Découvrir les meilleurs services près de chez vous</li>
+              <li>⭐ Lire et publier des avis</li>
+              <li>❤️ Sauvegarder vos établissements favoris</li>
+              <li>🎁 Profiter de promotions exclusives</li>
+            </ul>
+            <p style="text-align: center;">
+              <a href="${context.appUrl}" class="button">Commencer l'exploration</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject: "Bienvenue sur Annuaire DZ ! 🎉",
+      template: "welcome",
+      context,
+      html: this.templates["welcome"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send partner registration pending email
+   */
+  async sendPartnerPendingEmail(user, partner) {
+    const context = {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      companyName: partner.company_name,
+      appName: "Annuaire DZ",
+      year: new Date().getFullYear(),
+    };
+
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1B4F72; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          .status { background: #FFF3CD; border: 1px solid #FFEEBA; padding: 15px; border-radius: 5px; margin: 15px 0; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Annuaire DZ - Espace Partenaire</h1>
+          </div>
+          <div class="content">
+            <h2>Demande d'inscription reçue</h2>
+            <p>Bonjour ${context.firstName},</p>
+            <p>Nous avons bien reçu votre demande d'inscription en tant que partenaire pour <strong>${context.companyName}</strong>.</p>
+            <div class="status">
+              <strong>⏳ Statut : En attente de validation</strong>
+            </div>
+            <p>Notre équipe va examiner votre demande dans les plus brefs délais. Vous recevrez un email dès que votre compte sera validé.</p>
+            <p>Ce processus prend généralement 24 à 48 heures ouvrées.</p>
+          </div>
+          <div class="footer">
+            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject:
+        "Votre demande de partenariat est en cours de traitement - Annuaire DZ",
+      template: "partner-pending",
+      context,
+      html: this.templates["partner-pending"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send partner approved email
+   */
+  async sendPartnerApprovedEmail(user, partner) {
+    const context = {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      companyName: partner.company_name,
+      dashboardUrl: `${config.urls.frontend}/partner/dashboard`,
+      appName: "Annuaire DZ",
+      year: new Date().getFullYear(),
+    };
+
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #27AE60; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .button { display: inline-block; padding: 12px 30px; background: #1B4F72; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          .status { background: #D4EDDA; border: 1px solid #C3E6CB; padding: 15px; border-radius: 5px; margin: 15px 0; text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Félicitations !</h1>
+          </div>
+          <div class="content">
+            <h2>Votre compte partenaire est activé</h2>
+            <p>Bonjour ${context.firstName},</p>
+            <div class="status">
+              <strong>✅ Statut : Approuvé</strong>
+            </div>
+            <p>Votre demande de partenariat pour <strong>${context.companyName}</strong> a été approuvée !</p>
+            <p>Vous pouvez maintenant :</p>
+            <ul>
+              <li>📝 Créer et gérer vos établissements</li>
+              <li>🎁 Publier des promotions</li>
+              <li>📊 Suivre vos statistiques</li>
+              <li>💬 Répondre aux avis clients</li>
+            </ul>
+            <p style="text-align: center;">
+              <a href="${context.dashboardUrl}" class="button">Accéder à mon espace</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject: "✅ Votre compte partenaire est activé - Annuaire DZ",
+      template: "partner-approved",
+      context,
+      html: this.templates["partner-approved"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send partner rejected email
+   */
+  async sendPartnerRejectedEmail(user, partner, reason) {
+    const context = {
+      firstName: user.first_name,
+      lastName: user.last_name,
+      companyName: partner.company_name,
+      reason: reason || "Informations incomplètes ou non conformes",
+      contactEmail: "support@annuaire-dz.com",
+      appName: "Annuaire DZ",
+      year: new Date().getFullYear(),
+    };
+
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #E74C3C; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          .status { background: #F8D7DA; border: 1px solid #F5C6CB; padding: 15px; border-radius: 5px; margin: 15px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Annuaire DZ</h1>
+          </div>
+          <div class="content">
+            <h2>Demande de partenariat non approuvée</h2>
+            <p>Bonjour ${context.firstName},</p>
+            <p>Nous avons examiné votre demande de partenariat pour <strong>${context.companyName}</strong>.</p>
+            <div class="status">
+              <strong>❌ Statut : Non approuvé</strong>
+              <p><strong>Motif :</strong> ${context.reason}</p>
+            </div>
+            <p>Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez fournir des informations complémentaires, veuillez nous contacter.</p>
+            <p style="text-align: center;">
+              <a href="mailto:${context.contactEmail}">${context.contactEmail}</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject: "Mise à jour de votre demande de partenariat - Annuaire DZ",
+      template: "partner-rejected",
+      context,
+      html: this.templates["partner-rejected"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send notification to admin for new partner registration
+   */
+  async sendAdminNewPartnerNotification(adminEmail, user, partner) {
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #F39C12; color: white; padding: 20px; text-align: center; }
+          .content { padding: 20px; background: #f9f9f9; }
+          .button { display: inline-block; padding: 12px 30px; background: #1B4F72; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+          .info { background: #fff; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #F39C12; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔔 Nouvelle demande de partenariat</h1>
+          </div>
+          <div class="content">
+            <p>Une nouvelle demande de partenariat a été soumise.</p>
+            <div class="info">
+              <p><strong>Nom :</strong> ${user.first_name} ${user.last_name}</p>
+              <p><strong>Entreprise :</strong> ${partner.company_name}</p>
+              <p><strong>Email :</strong> ${user.email}</p>
+              <p><strong>Téléphone :</strong> ${user.phone || "Non renseigné"}</p>
+            </div>
+            <p style="text-align: center;">
+              <a href="${config.urls.frontend}/admin/partners/pending" class="button">Examiner la demande</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Annuaire DZ - Administration</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: adminEmail,
+      subject: "🔔 Nouvelle demande de partenariat - Annuaire DZ",
+      html: fallbackHtml,
+    });
+  }
+}
+
+module.exports = new EmailService();
