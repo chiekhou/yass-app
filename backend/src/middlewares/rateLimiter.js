@@ -59,7 +59,7 @@ const passwordResetLimiter = rateLimit({
  */
 const registrationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 registrations per hour per IP
+  max: process.env.NODE_ENV === "development" ? 1000 : 5, // unlimited in dev, 5 in production
   message: {
     success: false,
     message: "Too many registration attempts, please try again later",

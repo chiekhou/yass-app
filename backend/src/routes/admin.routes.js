@@ -56,6 +56,17 @@ router.delete("/users/:id", adminController.deleteUser);
 // ==================== PARTNER ROUTES ====================
 
 /**
+ * @route   POST /api/v1/admin/partners
+ * @desc    Create a new partner (admin-driven, auto-approved)
+ * @access  Admin
+ */
+router.post(
+  "/partners",
+  validate(adminValidation.createPartner),
+  adminController.createPartner,
+);
+
+/**
  * @route   GET /api/v1/admin/partners
  * @desc    Get all partners with pagination
  * @access  Admin
@@ -109,6 +120,17 @@ router.post(
 // ==================== ESTABLISHMENT ROUTES ====================
 
 /**
+ * @route   POST /api/v1/admin/establishments
+ * @desc    Create a new establishment (admin-driven, auto-approved)
+ * @access  Admin
+ */
+router.post(
+  "/establishments",
+  validate(adminValidation.createEstablishment),
+  adminController.createEstablishment,
+);
+
+/**
  * @route   GET /api/v1/admin/establishments/pending
  * @desc    Get pending establishments
  * @access  Admin
@@ -135,6 +157,29 @@ router.post(
   validate(adminValidation.rejectEstablishment),
   adminController.rejectEstablishment,
 );
+
+/**
+ * @route   DELETE /api/v1/admin/establishments/:id
+ * @desc    Delete establishment
+ * @access  Admin
+ */
+router.delete("/establishments/:id", adminController.deleteEstablishment);
+
+// ==================== PAYMENT ROUTES ====================
+
+/**
+ * @route   GET /api/v1/admin/payments/pending
+ * @desc    Liste des paiements manuels en attente de validation
+ * @access  Admin
+ */
+router.get("/payments/pending", adminController.getPendingPayments);
+
+/**
+ * @route   POST /api/v1/admin/payments/:invoiceId/validate
+ * @desc    Valider un paiement manuel et activer l'abonnement
+ * @access  Admin
+ */
+router.post("/payments/:invoiceId/validate", adminController.validatePayment);
 
 // ==================== REVIEW ROUTES ====================
 

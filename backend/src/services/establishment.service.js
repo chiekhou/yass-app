@@ -80,6 +80,33 @@ class EstablishmentService {
   }
 
   /**
+   * Include filter: only establishments from partners with active subscription or trial
+   */
+  getSubscriptionInclude() {
+    const now = new Date();
+    return {
+      model: Partner,
+      as: "partner",
+      attributes: [],
+      required: true,
+      where: {
+        [Op.or]: [
+          // Active paid subscription
+          {
+            subscription_plan: { [Op.ne]: "free" },
+            subscription_expires_at: { [Op.gt]: now },
+          },
+          // Within 14-day trial
+          {
+            subscription_plan: "free",
+            trial_ends_at: { [Op.gt]: now },
+          },
+        ],
+      },
+    };
+  }
+
+  /**
    * Public attributes (hide sensitive data)
    */
   getPublicAttributes() {
@@ -179,7 +206,7 @@ class EstablishmentService {
 
     const { count, rows } = await Establishment.findAndCountAll({
       where,
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getSubscriptionInclude()],
       attributes: this.getPublicAttributes(),
       order,
       limit: Math.min(limit, 100),
@@ -298,7 +325,7 @@ class EstablishmentService {
   async getFeatured(limit = 10) {
     const establishments = await Establishment.findAll({
       where: { status: "active", is_featured: true },
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getSubscriptionInclude()],
       attributes: this.getPublicAttributes(),
       order: [
         ["average_rating", "DESC"],
@@ -325,7 +352,7 @@ class EstablishmentService {
         latitude: { [Op.ne]: null },
         longitude: { [Op.ne]: null },
       },
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getSubscriptionInclude()],
       attributes: this.getPublicAttributes(),
     });
 
@@ -362,7 +389,7 @@ class EstablishmentService {
 
     const { count, rows } = await Establishment.findAndCountAll({
       where,
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getSubscriptionInclude()],
       attributes: this.getPublicAttributes(),
       order: [
         ["average_rating", "DESC"],
@@ -370,6 +397,7 @@ class EstablishmentService {
       ],
       limit,
       offset,
+      distinct: true,
     });
 
     return {
@@ -395,7 +423,7 @@ class EstablishmentService {
 
     const { count, rows } = await Establishment.findAndCountAll({
       where,
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getSubscriptionInclude()],
       attributes: this.getPublicAttributes(),
       order: [
         ["average_rating", "DESC"],
@@ -403,6 +431,7 @@ class EstablishmentService {
       ],
       limit,
       offset,
+      distinct: true,
     });
 
     return {

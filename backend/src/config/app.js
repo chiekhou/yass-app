@@ -61,6 +61,29 @@ module.exports = {
     from: process.env.EMAIL_FROM || "noreply@annuaire-dz.com",
   },
 
+  // Twilio SMS
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID,
+    authToken: process.env.TWILIO_AUTH_TOKEN,
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER,
+  },
+
+  // Chargily Pay
+  chargily: {
+    apiKey: process.env.CHARGILY_API_KEY || "",
+    mode: process.env.CHARGILY_MODE || "test", // 'test' | 'live'
+    trialDays: 14,
+    plans: {
+      monthly: { amount: 2000, days: 30, label: "Mensuel" },
+      yearly: { amount: 18000, days: 365, label: "Annuel" },
+    },
+    bankDetails: {
+      ccp: process.env.BANK_CCP || "0012345678 clé 12",
+      rib: process.env.BANK_RIB || "00200 00001 0000000000 12",
+      accountName: "Win-وين",
+    },
+  },
+
   // Pagination defaults
   pagination: {
     defaultLimit: 20,

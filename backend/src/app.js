@@ -6,6 +6,7 @@ const path = require("path");
 
 const config = require("./config/app");
 const routes = require("./routes");
+const subscriptionController = require("./controllers/subscription.controller");
 const {
   errorConverter,
   errorHandler,
@@ -39,6 +40,13 @@ if (config.env === "development") {
 } else {
   app.use(morgan("combined"));
 }
+
+// Chargily webhook — must be registered BEFORE body parsers (needs raw body)
+app.post(
+  `/api/${config.apiVersion}/chargily/webhook`,
+  express.raw({ type: "application/json" }),
+  subscriptionController.webhook
+);
 
 // Body parsing
 app.use(express.json({ limit: "10mb" }));

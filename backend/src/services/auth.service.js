@@ -4,6 +4,7 @@ const ApiError = require("../utils/ApiError");
 const { generateToken } = require("../utils/helpers");
 const config = require("../config/app");
 const emailService = require("./email.service");
+const smsService = require("./sms.service");
 
 class AuthService {
   /**
@@ -87,12 +88,7 @@ class AuthService {
       }
     }
 
-    // Generate email verification token with expiration
-    const emailVerificationToken = generateToken(32);
-    const emailVerificationExpires = new Date();
-    emailVerificationExpires.setHours(emailVerificationExpires.getHours() + 24); // 24 hours
-
-    // Create user with role 'user'
+    // Create user — status pending until email OTP is verified
     const user = await User.create({
       email: userData.email,
       password: userData.password,
@@ -101,23 +97,22 @@ class AuthService {
       phone: userData.phone || null,
       language: userData.language || "fr",
       wilaya_id: userData.wilaya_id || null,
-      role: "user", // Always 'user' for standard registration
-      status: "active", // Active but email not verified
-      email_verification_token: emailVerificationToken,
-      email_verification_expires: emailVerificationExpires,
+      role: "user",
+      status: "pending",
+      email_verified: false,
     });
 
     // Generate tokens
     const tokens = await this.generateTokens(user, userData.device_info);
 
-    // Send verification email
-    await emailService.sendVerificationEmail(user, emailVerificationToken);
+    // Send OTP to email
+    await this._generateAndSendEmailOtp(user);
 
     return {
       user: user.toJSON(),
       tokens,
       message:
-        "Registration successful. Please check your email to verify your account.",
+        "Registration successful. Please check your email for the verification code.",
     };
   }
 
@@ -472,7 +467,7 @@ class AuthService {
     // Send welcome email
     await emailService.sendWelcomeEmail(user);
 
-    return { message: "Email verified successfully. Welcome to Annuaire DZ!" };
+    return { message: "Email verified successfully. Welcome to Win!" };
   }
 
   /**
@@ -594,6 +589,312 @@ class AuthService {
     await user.update({ fcm_token: fcmToken });
 
     return { message: "FCM token updated successfully" };
+  }
+
+  /**
+   * Register new user with phone number (no email required)
+   */
+  async registerWithPhone(userData) {
+    // Phone is mandatory for this flow
+    if (!userData.phone) {
+      throw ApiError.badRequest("Phone number is required");
+    }
+
+    const existingPhone = await User.findOne({
+      where: { phone: userData.phone },
+    });
+    if (existingPhone) {
+      throw ApiError.conflict("Phone number already registered");
+    }
+
+    // Check email uniqueness if provided
+    if (userData.email) {
+      const existingEmail = await User.findOne({
+        where: { email: userData.email },
+      });
+      if (existingEmail) {
+        throw ApiError.conflict("Email already registered");
+      }
+    }
+
+    const user = await User.create({
+      email: userData.email || null,
+      password: userData.password,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      phone: userData.phone,
+      language: userData.language || "fr",
+      wilaya_id: userData.wilaya_id || null,
+      role: "user",
+      status: "pending",
+      phone_verified: false,
+    });
+
+    // Send OTP to verify phone
+    await this._generateAndSendOtp(user);
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user, userData.device_info);
+
+    return {
+      user: user.toJSON(),
+      tokens,
+      message: `Registration successful. An OTP has been sent to ${userData.phone} to verify your number.`,
+    };
+  }
+
+  /**
+   * Login with phone number + password
+   */
+  async loginWithPhone(phone, password, deviceInfo = null, ipAddress = null) {
+    const user = await User.findOne({
+      where: { phone },
+      include: [{ model: Partner, as: "partner_profile" }],
+    });
+
+    if (!user) {
+      throw ApiError.unauthorized("Invalid phone number or password");
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      throw ApiError.unauthorized("Invalid phone number or password");
+    }
+
+    if (user.status === "suspended") {
+      throw ApiError.forbidden(
+        "Your account has been suspended. Please contact support.",
+      );
+    }
+
+    if (user.status === "inactive") {
+      throw ApiError.forbidden(
+        "Your account is inactive. Please contact support.",
+      );
+    }
+
+    if (user.role === "partner" && user.status === "pending") {
+      throw ApiError.forbidden("Your partner account is pending approval.");
+    }
+
+    await user.update({ last_login: new Date() });
+
+    const tokens = await this.generateTokens(user, deviceInfo, ipAddress);
+
+    const response = { user: user.toJSON(), tokens };
+    if (user.partner_profile) {
+      response.partner = user.partner_profile.toJSON();
+    }
+
+    return response;
+  }
+
+  /**
+   * Send OTP to the authenticated user's phone
+   */
+  async sendPhoneOtp(userId) {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (!user.phone) {
+      throw ApiError.badRequest("No phone number associated with this account");
+    }
+
+    if (user.phone_verified) {
+      throw ApiError.badRequest("Phone number is already verified");
+    }
+
+    await this._generateAndSendOtp(user);
+
+    return { message: `OTP sent to ${user.phone}` };
+  }
+
+  /**
+   * Verify the OTP submitted by the user
+   */
+  async verifyPhoneOtp(userId, otp) {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (user.phone_verified) {
+      throw ApiError.badRequest("Phone number is already verified");
+    }
+
+    if (!user.phone_otp || !user.phone_otp_expires) {
+      throw ApiError.badRequest(
+        "No OTP was requested. Please request a new one.",
+      );
+    }
+
+    if (new Date() > user.phone_otp_expires) {
+      await user.update({ phone_otp: null, phone_otp_expires: null });
+      throw ApiError.badRequest("OTP has expired. Please request a new one.");
+    }
+
+    if (user.phone_otp !== otp) {
+      throw ApiError.badRequest("Invalid OTP");
+    }
+
+    await user.update({
+      phone_verified: true,
+      phone_otp: null,
+      phone_otp_expires: null,
+      status: "active",
+    });
+
+    return {
+      message:
+        "Phone number verified successfully. Your account is now active.",
+    };
+  }
+
+  /**
+   * Send OTP to the authenticated user's email
+   */
+  async sendEmailOtp(userId) {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (!user.email) {
+      throw ApiError.badRequest(
+        "No email address associated with this account",
+      );
+    }
+
+    if (user.email_verified) {
+      throw ApiError.badRequest("Email is already verified");
+    }
+
+    await this._generateAndSendEmailOtp(user);
+
+    return { message: `Verification code sent to ${user.email}` };
+  }
+
+  /**
+   * Verify the email OTP submitted by the user
+   */
+  async verifyEmailOtp(userId, otp) {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (user.email_verified) {
+      throw ApiError.badRequest("Email is already verified");
+    }
+
+    if (!user.email_otp || !user.email_otp_expires) {
+      throw ApiError.badRequest(
+        "No verification code was requested. Please request a new one.",
+      );
+    }
+
+    if (new Date() > user.email_otp_expires) {
+      await user.update({ email_otp: null, email_otp_expires: null });
+      throw ApiError.badRequest(
+        "Verification code has expired. Please request a new one.",
+      );
+    }
+
+    if (user.email_otp !== otp) {
+      throw ApiError.badRequest("Invalid verification code");
+    }
+
+    await user.update({
+      email_verified: true,
+      email_otp: null,
+      email_otp_expires: null,
+      status: "active",
+    });
+
+    // Send welcome email
+    await emailService.sendWelcomeEmail(user);
+
+    return {
+      message: "Email verified successfully. Your account is now active.",
+    };
+  }
+
+  /**
+   * Internal helper: generate a 6-digit OTP, save it, and send via email
+   */
+  async _generateAndSendEmailOtp(user) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 10); // 10 minutes
+
+    await user.update({ email_otp: otp, email_otp_expires: expires });
+    await emailService.sendEmailOtp(user, otp);
+
+    return { otp };
+  }
+
+  /**
+   * Internal helper: generate a 6-digit OTP, save it, and send via SMS
+   */
+  async _generateAndSendOtp(user) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 10); // 10 minutes
+
+    await user.update({ phone_otp: otp, phone_otp_expires: expires });
+    await smsService.sendOtp(user.phone, otp);
+
+    return { otp };
+  }
+
+  /**
+   * Update partner profile (company info)
+   */
+  async updatePartnerProfile(userId, partnerData) {
+    const user = await User.findByPk(userId, {
+      include: [
+        {
+          model: Partner,
+          as: "partner_profile",
+        },
+      ],
+    });
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (user.role !== "partner") {
+      throw ApiError.forbidden("Only partners can update partner profile");
+    }
+
+    if (!user.partner_profile) {
+      throw ApiError.notFound("Partner profile not found");
+    }
+
+    // Fields that can be updated
+    const allowedFields = ["company_name", "registration_number", "tax_id"];
+    const filteredData = {};
+
+    allowedFields.forEach((field) => {
+      if (partnerData[field] !== undefined) {
+        filteredData[field] = partnerData[field];
+      }
+    });
+
+    // Update partner profile
+    await user.partner_profile.update(filteredData);
+
+    return {
+      partner: user.partner_profile.toJSON(),
+      message: "Partner profile updated successfully",
+    };
   }
 }
 

@@ -3,6 +3,8 @@ const router = express.Router();
 const establishmentController = require("../controllers/establishment.controller");
 const reviewController = require("../controllers/review.controller");
 const uploadController = require("../controllers/upload.controller");
+const subscriptionController = require("../controllers/subscription.controller");
+const invoiceController = require("../controllers/invoice.controller");
 const { authenticate } = require("../middlewares/auth");
 const { loadPartner } = require("../middlewares/partner");
 const validate = require("../middlewares/validate");
@@ -137,6 +139,54 @@ router.put(
   "/establishments/:id/gallery/reorder",
   uploadController.reorderGallery,
 );
+
+// ==================== SUBSCRIPTION ROUTES ====================
+
+/**
+ * @route   GET /api/v1/partner/subscription/status
+ * @desc    Get partner subscription status
+ * @access  Partner
+ */
+router.get("/subscription/status", subscriptionController.getStatus);
+
+/**
+ * @route   POST /api/v1/partner/subscription/checkout
+ * @desc    Créer une session Chargily (paiement en ligne CIB/EDAHABIA)
+ * @access  Partner
+ * @body    { plan: "monthly" | "yearly" }
+ */
+router.post("/subscription/checkout", subscriptionController.createCheckout);
+
+/**
+ * @route   POST /api/v1/partner/subscription/manual
+ * @desc    Demande de paiement manuel (virement/CCP)
+ * @access  Partner
+ * @body    { plan: "monthly" | "yearly", transfer_reference?: string }
+ */
+router.post("/subscription/manual", subscriptionController.requestManualPayment);
+
+/**
+ * @route   POST /api/v1/partner/subscription/cancel
+ * @desc    Annuler l'abonnement actif
+ * @access  Partner
+ */
+router.post("/subscription/cancel", subscriptionController.cancelSubscription);
+
+// ==================== INVOICE ROUTES ====================
+
+/**
+ * @route   GET /api/v1/partner/invoices
+ * @desc    Liste des factures du partenaire
+ * @access  Partner
+ */
+router.get("/invoices", invoiceController.getInvoices);
+
+/**
+ * @route   GET /api/v1/partner/invoices/:id
+ * @desc    Détail d'une facture
+ * @access  Partner
+ */
+router.get("/invoices/:id", invoiceController.getInvoice);
 
 // ==================== REVIEW ROUTES ====================
 

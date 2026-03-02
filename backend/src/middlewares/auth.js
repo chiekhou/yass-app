@@ -50,6 +50,50 @@ const authenticate = async (req, res, next) => {
 };
 
 /**
+ * Middleware for routes that require auth but allow pending accounts
+ * Used specifically for OTP verification routes
+ */
+const authenticatePending = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw ApiError.unauthorized("Access token is required");
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, config.jwt.secret);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        throw ApiError.unauthorized("Token has expired");
+      }
+      throw ApiError.unauthorized("Invalid token");
+    }
+
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      throw ApiError.unauthorized("User not found");
+    }
+
+    // Allow active AND pending — pending users need to reach the OTP verification endpoint
+    if (!["active", "pending"].includes(user.status)) {
+      throw ApiError.forbidden("Account is suspended or inactive");
+    }
+
+    req.user = user;
+    req.userId = user.id;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Optional authentication - doesn't fail if no token
  */
 const optionalAuth = async (req, res, next) => {
@@ -146,6 +190,7 @@ const isSuperAdmin = (req, res, next) => {
 
 module.exports = {
   authenticate,
+  authenticatePending,
   optionalAuth,
   authorize,
   isAdmin,

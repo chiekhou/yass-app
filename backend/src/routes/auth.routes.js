@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { authController } = require("../controllers");
-const { authenticate } = require("../middlewares/auth");
+const { authenticate, authenticatePending } = require("../middlewares/auth");
 const validate = require("../middlewares/validate");
 const { authValidation } = require("../validations");
 const {
@@ -35,6 +35,18 @@ router.post(
 );
 
 /**
+ * @route   POST /api/v1/auth/register/phone
+ * @desc    Register a new user with phone number (no email required)
+ * @access  Public
+ */
+router.post(
+  "/register/phone",
+  registrationLimiter,
+  validate(authValidation.registerWithPhone),
+  authController.registerWithPhone,
+);
+
+/**
  * @route   POST /api/v1/auth/login
  * @desc    Login user (user or partner)
  * @access  Public
@@ -44,6 +56,56 @@ router.post(
   authLimiter,
   validate(authValidation.login),
   authController.login,
+);
+
+/**
+ * @route   POST /api/v1/auth/login/phone
+ * @desc    Login with phone number + password
+ * @access  Public
+ */
+router.post(
+  "/login/phone",
+  authLimiter,
+  validate(authValidation.loginWithPhone),
+  authController.loginWithPhone,
+);
+
+/**
+ * @route   POST /api/v1/auth/email/send-otp
+ * @desc    Send OTP to the authenticated user's email
+ * @access  Private
+ */
+router.post("/email/send-otp", authenticatePending, authController.sendEmailOtp);
+
+/**
+ * @route   POST /api/v1/auth/email/verify-otp
+ * @desc    Verify email OTP code to confirm email ownership
+ * @access  Private (pending allowed)
+ */
+router.post(
+  "/email/verify-otp",
+  authenticatePending,
+  validate(authValidation.verifyEmailOtp),
+  authController.verifyEmailOtp,
+);
+
+/**
+ * @route   POST /api/v1/auth/phone/send-otp
+ * @desc    Send OTP to the authenticated user's phone
+ * @access  Private (pending allowed)
+ */
+router.post("/phone/send-otp", authenticatePending, authController.sendPhoneOtp);
+
+/**
+ * @route   POST /api/v1/auth/phone/verify-otp
+ * @desc    Verify OTP code to confirm phone ownership
+ * @access  Private (pending allowed)
+ */
+router.post(
+  "/phone/verify-otp",
+  authenticatePending,
+  validate(authValidation.verifyPhoneOtp),
+  authController.verifyPhoneOtp,
 );
 
 /**
@@ -149,5 +211,17 @@ router.put(
  * @access  Private
  */
 router.put("/fcm-token", authenticate, authController.updateFcmToken);
+
+/**
+ * @route   PUT /api/v1/auth/partner-profile
+ * @desc    Update partner profile (company info)
+ * @access  Private (Partner only)
+ */
+router.put(
+  "/partner-profile",
+  authenticate,
+  validate(authValidation.updatePartnerProfile),
+  authController.updatePartnerProfile
+);
 
 module.exports = router;

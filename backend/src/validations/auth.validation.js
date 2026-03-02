@@ -1,4 +1,4 @@
-const { body, param, query } = require("express-validator");
+const { body } = require("express-validator");
 
 const register = [
   body("email")
@@ -32,8 +32,8 @@ const register = [
   body("phone")
     .optional()
     .trim()
-    .matches(/^(\+?213|0)(5|6|7)\d{8}$/)
-    .withMessage("Please provide a valid Algerian mobile phone number"),
+    .matches(/^\+?[0-9]\d{6,14}$/)
+    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
 
   body("language")
     .optional()
@@ -77,8 +77,8 @@ const registerPartner = [
     .trim()
     .notEmpty()
     .withMessage("Phone number is required for partners")
-    .matches(/^(\+?213|0)(5|6|7)\d{8}$/)
-    .withMessage("Please provide a valid Algerian mobile phone number"),
+    .matches(/^\+?[0-9]\d{6,14}$/)
+    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
 
   body("language")
     .optional()
@@ -172,8 +172,8 @@ const updateProfile = [
   body("phone")
     .optional()
     .trim()
-    .matches(/^(\+?213|0)(5|6|7)\d{8}$/)
-    .withMessage("Please provide a valid Algerian mobile phone number"),
+    .matches(/^\+?[0-9]\d{6,14}$/)
+    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
 
   body("language")
     .optional()
@@ -183,13 +183,108 @@ const updateProfile = [
   body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
 ];
 
+const updatePartnerProfile = [
+  body("company_name")
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 255 })
+    .withMessage("Company name must be between 2 and 255 characters"),
+
+  body("registration_number")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Registration number must be less than 100 characters"),
+
+  body("tax_id")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Tax ID must be less than 100 characters"),
+];
+
+const registerWithPhone = [
+  body("phone")
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required")
+    .matches(/^\+?[0-9]\d{6,14}$/)
+    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage(
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+    ),
+
+  body("first_name")
+    .trim()
+    .notEmpty()
+    .withMessage("First name is required")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("First name must be between 2 and 100 characters"),
+
+  body("last_name")
+    .trim()
+    .notEmpty()
+    .withMessage("Last name is required")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Last name must be between 2 and 100 characters"),
+
+  body("email")
+    .optional({ nullable: true, checkFalsy: true })
+    .trim()
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+
+  body("language")
+    .optional()
+    .isIn(["fr", "ar", "en"])
+    .withMessage("Language must be fr, ar, or en"),
+
+  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+];
+
+const loginWithPhone = [
+  body("phone")
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required")
+    .matches(/^\+?[0-9]\d{6,14}$/)
+    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
+const verifyPhoneOtp = [
+  body("otp")
+    .trim()
+    .notEmpty()
+    .withMessage("OTP is required")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("OTP must be exactly 6 digits")
+    .isNumeric()
+    .withMessage("OTP must contain only digits"),
+];
+
+// Email OTP uses the same 6-digit validation rules as phone OTP
+const verifyEmailOtp = verifyPhoneOtp;
+
 module.exports = {
   register,
   registerPartner,
+  registerWithPhone,
   login,
+  loginWithPhone,
   forgotPassword,
   resetPassword,
   changePassword,
   refreshToken,
   updateProfile,
+  updatePartnerProfile,
+  verifyPhoneOtp,
+  verifyEmailOtp,
 };

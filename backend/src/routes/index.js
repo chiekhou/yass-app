@@ -11,6 +11,7 @@ const partnerRoutes = require("./partner.routes");
 const favoriteRoutes = require("./favorite.routes");
 const reviewRoutes = require("./review.routes");
 const uploadRoutes = require("./upload.routes");
+const notificationRoutes = require("./notification.routes");
 
 // Health check
 router.get("/health", (req, res) => {
@@ -33,8 +34,33 @@ router.use("/partner", partnerRoutes);
 router.use("/favorites", favoriteRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/upload", uploadRoutes);
+router.use("/notifications", notificationRoutes);
 
-// Future routes will be added here:
-// router.use('/promotions', promotionRoutes);
+// ── DEV ONLY: Simulate Chargily webhook (activate subscription manually) ──────
+// This endpoint is disabled in production and is for local testing only.
+if (process.env.NODE_ENV !== "production") {
+  router.post("/dev/activate-subscription", async (req, res, next) => {
+    try {
+      const { partner_id, plan } = req.body;
+      if (!partner_id || !plan) {
+        return res
+          .status(400)
+          .json({ success: false, message: "partner_id et plan requis" });
+      }
+      const subscriptionService = require("../services/subscription.service");
+      await subscriptionService._activateSubscription(
+        partner_id,
+        plan,
+        `dev-test-${Date.now()}`
+      );
+      res.json({
+        success: true,
+        message: `Abonnement "${plan}" activé pour le partenaire ${partner_id}`,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+}
 
 module.exports = router;

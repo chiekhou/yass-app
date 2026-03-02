@@ -44,6 +44,14 @@ module.exports = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      chargily_checkout_id: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      trial_ends_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       documents: {
         type: DataTypes.JSONB,
         allowNull: true,
@@ -91,6 +99,10 @@ module.exports = (sequelize) => {
     Partner.hasMany(models.Establishment, {
       foreignKey: "partner_id",
       as: "establishments",
+    });
+    Partner.hasMany(models.Invoice, {
+      foreignKey: "partner_id",
+      as: "invoices",
     });
   };
 

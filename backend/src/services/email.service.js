@@ -82,7 +82,7 @@ class EmailService {
     }
 
     const mailOptions = {
-      from: `"Annuaire DZ" <${config.email.from}>`,
+      from: `"Win" <${config.email.from}>`,
       to,
       subject,
       html: htmlContent,
@@ -129,7 +129,7 @@ class EmailService {
       firstName: user.first_name,
       lastName: user.last_name,
       verificationUrl: verificationUrl || apiVerificationUrl,
-      appName: "Annuaire DZ",
+      appName: "Win",
       year: new Date().getFullYear(),
     };
 
@@ -151,11 +151,11 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Annuaire DZ</h1>
+            <h1>Win</h1>
           </div>
           <div class="content">
             <h2>Bienvenue ${context.firstName} !</h2>
-            <p>Merci de vous être inscrit sur Annuaire DZ.</p>
+            <p>Merci de vous être inscrit sur Win.</p>
             <p>Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :</p>
             <p style="text-align: center;">
               <a href="${context.verificationUrl}" class="button">Vérifier mon email</a>
@@ -165,7 +165,7 @@ class EmailService {
             <p>Ce lien expire dans 24 heures.</p>
           </div>
           <div class="footer">
-            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+            <p>© ${context.year} Win. Tous droits réservés.</p>
           </div>
         </div>
       </body>
@@ -174,10 +174,65 @@ class EmailService {
 
     return this.send({
       to: user.email,
-      subject: "Vérifiez votre adresse email - Annuaire DZ",
+      subject: "Vérifiez votre adresse email - Win",
       template: "verify-email",
       context,
       html: this.templates["verify-email"] ? undefined : fallbackHtml,
+    });
+  }
+
+  /**
+   * Send OTP code via email for account verification
+   */
+  async sendEmailOtp(user, otp) {
+    const fallbackHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f4f4f4; }
+          .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+          .header { background: linear-gradient(135deg, #006233 50%, #D21034 100%); color: white; padding: 30px 20px; text-align: center; }
+          .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+          .header p { margin: 6px 0 0; font-size: 13px; opacity: 0.85; }
+          .content { padding: 30px; }
+          .otp-box { font-size: 40px; font-weight: bold; letter-spacing: 12px; text-align: center; padding: 20px; background: #f9f9f9; border-left: 5px solid #006233; border-radius: 6px; margin: 24px 0; color: #006233; }
+          .warning { background: #fff8e1; border: 1px solid #ffe082; padding: 12px 16px; border-radius: 5px; margin: 20px 0; font-size: 13px; color: #795548; }
+          .footer { background: #006233; padding: 16px; text-align: center; color: rgba(255,255,255,0.75); font-size: 12px; }
+          .flag-bar { height: 6px; background: linear-gradient(to right, #006233 50%, #D21034 50%); }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="flag-bar"></div>
+          <div class="header">
+            <h1>Win</h1>
+            <p>Le répertoire des services en Algérie</p>
+          </div>
+          <div class="content">
+            <h2 style="color:#006233; margin-top:0;">Vérification de votre compte</h2>
+            <p>Bonjour <strong>${user.first_name}</strong>,</p>
+            <p>Voici votre code de vérification pour activer votre compte Win :</p>
+            <div class="otp-box">${otp}</div>
+            <div class="warning">
+              <strong>⏱ Ce code expire dans 10 minutes.</strong><br>
+              Ne le partagez avec personne. Notre équipe ne vous demandera jamais ce code.
+            </div>
+            <p style="color:#666; font-size:13px;">Si vous n'avez pas créé de compte, ignorez simplement cet email.</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} Win — Tous droits réservés</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.send({
+      to: user.email,
+      subject: "Votre code de vérification - Win",
+      html: fallbackHtml,
     });
   }
 
@@ -191,7 +246,7 @@ class EmailService {
       firstName: user.first_name,
       lastName: user.last_name,
       resetUrl,
-      appName: "Annuaire DZ",
+      appName: "Win",
       year: new Date().getFullYear(),
       expiresIn: "1 heure",
     };
@@ -214,7 +269,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Annuaire DZ</h1>
+            <h1>Win</h1>
           </div>
           <div class="content">
             <h2>Réinitialisation de mot de passe</h2>
@@ -232,7 +287,7 @@ class EmailService {
             <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
           </div>
           <div class="footer">
-            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+            <p>© ${context.year} Win. Tous droits réservés.</p>
           </div>
         </div>
       </body>
@@ -241,7 +296,7 @@ class EmailService {
 
     return this.send({
       to: user.email,
-      subject: "Réinitialisation de votre mot de passe - Annuaire DZ",
+      subject: "Réinitialisation de votre mot de passe - Win",
       template: "reset-password",
       context,
       html: this.templates["reset-password"] ? undefined : fallbackHtml,
@@ -255,7 +310,7 @@ class EmailService {
     const context = {
       firstName: user.first_name,
       lastName: user.last_name,
-      appName: "Annuaire DZ",
+      appName: "Win",
       appUrl: config.urls.frontend,
       year: new Date().getFullYear(),
     };
@@ -279,12 +334,12 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🎉 Bienvenue sur Annuaire DZ !</h1>
+            <h1>🎉 Bienvenue sur Win !</h1>
           </div>
           <div class="content">
             <h2>Votre compte est activé, ${context.firstName} !</h2>
             <p>Merci d'avoir vérifié votre adresse email. Votre compte est maintenant actif.</p>
-            <p>Avec Annuaire DZ, vous pouvez :</p>
+            <p>Avec Win, vous pouvez :</p>
             <ul class="features">
               <li>🔍 Découvrir les meilleurs services près de chez vous</li>
               <li>⭐ Lire et publier des avis</li>
@@ -296,7 +351,7 @@ class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+            <p>© ${context.year} Win. Tous droits réservés.</p>
           </div>
         </div>
       </body>
@@ -305,7 +360,7 @@ class EmailService {
 
     return this.send({
       to: user.email,
-      subject: "Bienvenue sur Annuaire DZ ! 🎉",
+      subject: "Bienvenue sur Win ! 🎉",
       template: "welcome",
       context,
       html: this.templates["welcome"] ? undefined : fallbackHtml,
@@ -320,7 +375,7 @@ class EmailService {
       firstName: user.first_name,
       lastName: user.last_name,
       companyName: partner.company_name,
-      appName: "Annuaire DZ",
+      appName: "Win",
       year: new Date().getFullYear(),
     };
 
@@ -341,7 +396,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Annuaire DZ - Espace Partenaire</h1>
+            <h1>Win - Espace Partenaire</h1>
           </div>
           <div class="content">
             <h2>Demande d'inscription reçue</h2>
@@ -354,7 +409,7 @@ class EmailService {
             <p>Ce processus prend généralement 24 à 48 heures ouvrées.</p>
           </div>
           <div class="footer">
-            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+            <p>© ${context.year} Win. Tous droits réservés.</p>
           </div>
         </div>
       </body>
@@ -363,8 +418,7 @@ class EmailService {
 
     return this.send({
       to: user.email,
-      subject:
-        "Votre demande de partenariat est en cours de traitement - Annuaire DZ",
+      subject: "Votre demande de partenariat est en cours de traitement - Win",
       template: "partner-pending",
       context,
       html: this.templates["partner-pending"] ? undefined : fallbackHtml,
@@ -380,7 +434,7 @@ class EmailService {
       lastName: user.last_name,
       companyName: partner.company_name,
       dashboardUrl: `${config.urls.frontend}/partner/dashboard`,
-      appName: "Annuaire DZ",
+      appName: "Win",
       year: new Date().getFullYear(),
     };
 
@@ -423,7 +477,7 @@ class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+            <p>© ${context.year} Win. Tous droits réservés.</p>
           </div>
         </div>
       </body>
@@ -432,7 +486,7 @@ class EmailService {
 
     return this.send({
       to: user.email,
-      subject: "✅ Votre compte partenaire est activé - Annuaire DZ",
+      subject: "✅ Votre compte partenaire est activé - Win",
       template: "partner-approved",
       context,
       html: this.templates["partner-approved"] ? undefined : fallbackHtml,
@@ -449,7 +503,7 @@ class EmailService {
       companyName: partner.company_name,
       reason: reason || "Informations incomplètes ou non conformes",
       contactEmail: "support@annuaire-dz.com",
-      appName: "Annuaire DZ",
+      appName: "Win",
       year: new Date().getFullYear(),
     };
 
@@ -470,7 +524,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Annuaire DZ</h1>
+            <h1>Win</h1>
           </div>
           <div class="content">
             <h2>Demande de partenariat non approuvée</h2>
@@ -486,7 +540,7 @@ class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>© ${context.year} Annuaire DZ. Tous droits réservés.</p>
+            <p>© ${context.year} Win. Tous droits réservés.</p>
           </div>
         </div>
       </body>
@@ -495,7 +549,7 @@ class EmailService {
 
     return this.send({
       to: user.email,
-      subject: "Mise à jour de votre demande de partenariat - Annuaire DZ",
+      subject: "Mise à jour de votre demande de partenariat - Win",
       template: "partner-rejected",
       context,
       html: this.templates["partner-rejected"] ? undefined : fallbackHtml,
@@ -539,7 +593,7 @@ class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>© ${new Date().getFullYear()} Annuaire DZ - Administration</p>
+            <p>© ${new Date().getFullYear()} Win - Administration</p>
           </div>
         </div>
       </body>
@@ -548,7 +602,7 @@ class EmailService {
 
     return this.send({
       to: adminEmail,
-      subject: "🔔 Nouvelle demande de partenariat - Annuaire DZ",
+      subject: "🔔 Nouvelle demande de partenariat - Win",
       html: fallbackHtml,
     });
   }

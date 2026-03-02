@@ -1,0 +1,400 @@
+import 'package:equatable/equatable.dart';
+import 'package:win_app/features/home/data/models/category_model.dart';
+
+/// Helper function to parse double from dynamic value (String or num)
+double? _parseDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+class Establishment extends Equatable {
+  final String id;
+  final String name;
+  final String? nameAr;
+  final String slug;
+  final String? description;
+  final String? descriptionAr;
+  final String? logo;
+  final String? coverImage;
+  final List<String>? images;
+  final String address;
+  final String? addressAr;
+  final double? latitude;
+  final double? longitude;
+  final String phone;
+  final String? phoneSecondary;
+  final String? whatsapp;
+  final String? email;
+  final String? website;
+  final String? facebook;
+  final String? instagram;
+  final String? tiktok;
+  final Map<String, dynamic>? openingHours;
+  final String? priceRange;
+  final List<String>? services;
+  final List<String>? amenities;
+  final List<String>? tags;
+  final double averageRating;
+  final int totalReviews;
+  final int totalViews;
+  final int totalFavorites;
+  final bool isVerified;
+  final bool isFeatured;
+  final String status;
+  final Category? category;
+  final SubCategory? subcategory;
+  final Wilaya? wilaya;
+  final Commune? commune;
+  final double? distance;
+  final bool? isFavorited;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const Establishment({
+    required this.id,
+    required this.name,
+    this.nameAr,
+    required this.slug,
+    this.description,
+    this.descriptionAr,
+    this.logo,
+    this.coverImage,
+    this.images,
+    required this.address,
+    this.addressAr,
+    this.latitude,
+    this.longitude,
+    required this.phone,
+    this.phoneSecondary,
+    this.whatsapp,
+    this.email,
+    this.website,
+    this.facebook,
+    this.instagram,
+    this.tiktok,
+    this.openingHours,
+    this.priceRange,
+    this.services,
+    this.amenities,
+    this.tags,
+    this.averageRating = 0,
+    this.totalReviews = 0,
+    this.totalViews = 0,
+    this.totalFavorites = 0,
+    this.isVerified = false,
+    this.isFeatured = false,
+    this.status = 'active',
+    this.category,
+    this.subcategory,
+    this.wilaya,
+    this.commune,
+    this.distance,
+    this.isFavorited,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+  bool get hasWhatsApp => whatsapp != null && whatsapp!.isNotEmpty;
+  bool get hasEmail => email != null && email!.isNotEmpty;
+  bool get hasWebsite => website != null && website!.isNotEmpty;
+
+  String get displayRating => averageRating.toStringAsFixed(1);
+
+  String get priceRangeDisplay {
+    switch (priceRange) {
+      case '\$':
+        return 'Économique';
+      case '\$\$':
+        return 'Modéré';
+      case '\$\$\$':
+        return 'Élevé';
+      case '\$\$\$\$':
+        return 'Luxe';
+      default:
+        return '';
+    }
+  }
+
+  String? get formattedPhone {
+    if (phone.isEmpty) return null;
+    // Format Algerian phone: 0551234567 -> 05 51 23 45 67
+    if (phone.length == 10) {
+      return '${phone.substring(0, 2)} ${phone.substring(2, 4)} ${phone.substring(4, 6)} ${phone.substring(6, 8)} ${phone.substring(8)}';
+    }
+    return phone;
+  }
+
+  factory Establishment.fromJson(Map<String, dynamic> json) {
+    return Establishment(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      nameAr: json['name_ar'],
+      slug: json['slug'] ?? '',
+      description: json['description'],
+      descriptionAr: json['description_ar'],
+      logo: json['logo'],
+      coverImage: json['cover_image'],
+      images: json['images'] != null ? List<String>.from(json['images']) : null,
+      address: json['address'] ?? '',
+      addressAr: json['address_ar'],
+      latitude: _parseDouble(json['latitude']),
+      longitude: _parseDouble(json['longitude']),
+      phone: json['phone'] ?? '',
+      phoneSecondary: json['phone_secondary'],
+      whatsapp: json['whatsapp'],
+      email: json['email'],
+      website: json['website'],
+      facebook: json['facebook'],
+      instagram: json['instagram'],
+      tiktok: json['tiktok'],
+      openingHours: json['opening_hours'] is Map
+          ? Map<String, dynamic>.from(json['opening_hours'])
+          : null,
+      priceRange: json['price_range'],
+      services:
+          json['services'] != null ? List<String>.from(json['services']) : null,
+      amenities: json['amenities'] != null
+          ? List<String>.from(json['amenities'])
+          : null,
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
+      averageRating: _parseDouble(json['average_rating']) ?? 0,
+      totalReviews: json['total_reviews'] ?? 0,
+      totalViews: json['total_views'] ?? 0,
+      totalFavorites: json['total_favorites'] ?? 0,
+      isVerified: json['is_verified'] ?? false,
+      isFeatured: json['is_featured'] ?? false,
+      status: json['status'] ?? 'active',
+      category:
+          json['category'] != null ? Category.fromJson(json['category']) : null,
+      subcategory: json['subcategory'] != null
+          ? SubCategory.fromJson(json['subcategory'])
+          : null,
+      wilaya: json['wilaya'] != null ? Wilaya.fromJson(json['wilaya']) : null,
+      commune:
+          json['commune'] != null ? Commune.fromJson(json['commune']) : null,
+      distance: _parseDouble(json['distance']),
+      isFavorited: json['is_favorited'],
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'name_ar': nameAr,
+      'slug': slug,
+      'description': description,
+      'description_ar': descriptionAr,
+      'logo': logo,
+      'cover_image': coverImage,
+      'images': images,
+      'address': address,
+      'address_ar': addressAr,
+      'latitude': latitude,
+      'longitude': longitude,
+      'phone': phone,
+      'phone_secondary': phoneSecondary,
+      'whatsapp': whatsapp,
+      'email': email,
+      'website': website,
+      'facebook': facebook,
+      'instagram': instagram,
+      'tiktok': tiktok,
+      'opening_hours': openingHours,
+      'price_range': priceRange,
+      'services': services,
+      'amenities': amenities,
+      'tags': tags,
+      'average_rating': averageRating,
+      'total_reviews': totalReviews,
+      'is_verified': isVerified,
+      'is_featured': isFeatured,
+      'status': status,
+    };
+  }
+
+  Establishment copyWith({
+    String? id,
+    String? name,
+    String? nameAr,
+    String? slug,
+    String? description,
+    String? descriptionAr,
+    String? logo,
+    String? coverImage,
+    List<String>? images,
+    String? address,
+    String? addressAr,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? phoneSecondary,
+    String? whatsapp,
+    String? email,
+    String? website,
+    String? facebook,
+    String? instagram,
+    String? tiktok,
+    Map<String, dynamic>? openingHours,
+    String? priceRange,
+    List<String>? services,
+    List<String>? amenities,
+    List<String>? tags,
+    double? averageRating,
+    int? totalReviews,
+    int? totalViews,
+    int? totalFavorites,
+    bool? isVerified,
+    bool? isFeatured,
+    String? status,
+    Category? category,
+    SubCategory? subcategory,
+    Wilaya? wilaya,
+    Commune? commune,
+    double? distance,
+    bool? isFavorited,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Establishment(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      nameAr: nameAr ?? this.nameAr,
+      slug: slug ?? this.slug,
+      description: description ?? this.description,
+      descriptionAr: descriptionAr ?? this.descriptionAr,
+      logo: logo ?? this.logo,
+      coverImage: coverImage ?? this.coverImage,
+      images: images ?? this.images,
+      address: address ?? this.address,
+      addressAr: addressAr ?? this.addressAr,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      phone: phone ?? this.phone,
+      phoneSecondary: phoneSecondary ?? this.phoneSecondary,
+      whatsapp: whatsapp ?? this.whatsapp,
+      email: email ?? this.email,
+      website: website ?? this.website,
+      facebook: facebook ?? this.facebook,
+      instagram: instagram ?? this.instagram,
+      tiktok: tiktok ?? this.tiktok,
+      openingHours: openingHours ?? this.openingHours,
+      priceRange: priceRange ?? this.priceRange,
+      services: services ?? this.services,
+      amenities: amenities ?? this.amenities,
+      tags: tags ?? this.tags,
+      averageRating: averageRating ?? this.averageRating,
+      totalReviews: totalReviews ?? this.totalReviews,
+      totalViews: totalViews ?? this.totalViews,
+      totalFavorites: totalFavorites ?? this.totalFavorites,
+      isVerified: isVerified ?? this.isVerified,
+      isFeatured: isFeatured ?? this.isFeatured,
+      status: status ?? this.status,
+      category: category ?? this.category,
+      subcategory: subcategory ?? this.subcategory,
+      wilaya: wilaya ?? this.wilaya,
+      commune: commune ?? this.commune,
+      distance: distance ?? this.distance,
+      isFavorited: isFavorited ?? this.isFavorited,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        slug,
+        averageRating,
+        totalReviews,
+        isVerified,
+        isFeatured,
+        isFavorited,
+      ];
+}
+
+// Opening Hours Helper
+class OpeningHoursHelper {
+  static bool isOpenNow(Map<String, dynamic>? openingHours) {
+    if (openingHours == null) return false;
+
+    final now = DateTime.now();
+    final dayNames = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
+    final todayName = dayNames[now.weekday - 1];
+    final todayHours = openingHours[todayName];
+
+    if (todayHours == null) return false;
+    if (todayHours['is_closed'] == true) return false;
+
+    final openTime = todayHours['open'];
+    final closeTime = todayHours['close'];
+
+    if (openTime == null || closeTime == null) return false;
+
+    final openParts = openTime.split(':');
+    final closeParts = closeTime.split(':');
+
+    final openDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(openParts[0]),
+      int.parse(openParts[1]),
+    );
+
+    final closeDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(closeParts[0]),
+      int.parse(closeParts[1]),
+    );
+
+    return now.isAfter(openDateTime) && now.isBefore(closeDateTime);
+  }
+
+  static String? getTodayHours(Map<String, dynamic>? openingHours) {
+    if (openingHours == null) return null;
+
+    final now = DateTime.now();
+    final dayNames = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday'
+    ];
+    final todayName = dayNames[now.weekday - 1];
+    final todayHours = openingHours[todayName];
+
+    if (todayHours == null) return null;
+    if (todayHours['is_closed'] == true) return 'Fermé';
+
+    final openTime = todayHours['open'];
+    final closeTime = todayHours['close'];
+
+    if (openTime == null || closeTime == null) return null;
+
+    return '$openTime - $closeTime';
+  }
+}
