@@ -96,6 +96,15 @@ class AdminPartnerCreate extends AdminPartnersEvent {
   List<Object?> get props => [data];
 }
 
+class AdminPartnersGoToPage extends AdminPartnersEvent {
+  final int page;
+
+  const AdminPartnersGoToPage({required this.page});
+
+  @override
+  List<Object?> get props => [page];
+}
+
 class AdminEstablishmentDelete extends AdminPartnersEvent {
   final String establishmentId;
   final String partnerId;
@@ -245,6 +254,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
     on<AdminPartnerLoadDetails>(_onLoadDetails);
     on<AdminPartnerCreate>(_onCreate);
     on<AdminEstablishmentDelete>(_onDeleteEstablishment);
+    on<AdminPartnersGoToPage>(_onGoToPage);
   }
 
   Future<void> _onLoad(
@@ -598,6 +608,32 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
         rethrow;
+      }
+    }
+  }
+
+  Future<void> _onGoToPage(
+    AdminPartnersGoToPage event,
+    Emitter<AdminPartnersState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AdminPartnersLoaded) {
+      emit(currentState.copyWith(isUpdating: true));
+      try {
+        final result = await _adminRepository.getPartners(
+          page: event.page,
+          status: currentState.statusFilter,
+          search: currentState.searchQuery,
+        );
+        emit(currentState.copyWith(
+          partners: result.partners,
+          page: result.page,
+          totalPages: result.totalPages,
+          total: result.total,
+          isUpdating: false,
+        ));
+      } catch (e) {
+        emit(currentState.copyWith(isUpdating: false));
       }
     }
   }

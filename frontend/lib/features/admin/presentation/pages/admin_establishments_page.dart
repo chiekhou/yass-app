@@ -8,7 +8,10 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/api_config.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../app_router.dart';
+import '../../../../core/widgets/pagination_bar.dart';
 import '../../data/models/admin_establishment_model.dart';
+import '../../data/models/admin_partner_model.dart';
+import '../../data/repositories/admin_repository.dart';
 import '../bloc/admin_establishments_bloc.dart';
 import '../widgets/admin_drawer.dart';
 
@@ -26,12 +29,15 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
 
   // État local synchronisé via BlocListener
   List<AdminEstablishment> _establishments = [];
-  bool _isLoadingMore = false;
   String? _processingId;
   String? _statusFilter;
   String? _searchQuery;
   bool _isInitialLoading = true;
   String? _errorMessage;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _total = 0;
+  bool _isPageLoading = false;
 
   @override
   void initState() {
@@ -39,7 +45,6 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     context
         .read<AdminEstablishmentsBloc>()
         .add(const AdminEstablishmentsLoad());
-    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -49,29 +54,21 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    if (_isLoadingMore) return;
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      context
-          .read<AdminEstablishmentsBloc>()
-          .add(AdminEstablishmentsLoadMore());
-    }
-  }
-
   void _onBlocState(BuildContext context, AdminEstablishmentsState state) {
     if (state is AdminEstablishmentsLoaded) {
       final bool resetScroll = state.statusFilter != _statusFilter ||
           state.searchQuery != _searchQuery;
       setState(() {
         _establishments = state.establishments;
-        _isLoadingMore = state.isLoadingMore;
         _processingId = state.processingId;
         _statusFilter = state.statusFilter;
         _searchQuery = state.searchQuery;
         _isInitialLoading = false;
         _errorMessage = null;
+        _currentPage = state.page;
+        _totalPages = state.totalPages;
+        _total = state.total;
+        _isPageLoading = state.isUpdating;
       });
       if (resetScroll) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -86,7 +83,6 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
         _errorMessage = state.message;
       });
     }
-    // AdminEstablishmentsLoading : on garde l'affichage actuel (pas de setState)
   }
 
   @override
@@ -113,6 +109,18 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             _buildSearchBar(context),
             _buildFilterChips(context),
             Expanded(child: _buildList(context)),
+            PaginationBar(
+              currentPage: _currentPage,
+              totalPages: _totalPages,
+              total: _total,
+              isLoading: _isPageLoading,
+              onPageChanged: (page) {
+                context.read<AdminEstablishmentsBloc>().add(
+                      AdminEstablishmentsGoToPage(page: page),
+                    );
+                _scrollController.jumpTo(0);
+              },
+            ),
           ],
         ),
       ),
@@ -283,16 +291,8 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
-        itemCount: _establishments.length + (_isLoadingMore ? 1 : 0),
+        itemCount: _establishments.length,
         itemBuilder: (context, index) {
-          if (index >= _establishments.length) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(AppDimens.paddingM),
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          }
           final e = _establishments[index];
           return Padding(
             key: ValueKey(e.id),
@@ -310,9 +310,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
               onDelete: () => _showDeleteDialog(context, e),
               onToggleFeatured:
                   e.isActive ? () => _showFeatureDialog(context, e) : null,
-              /*  onFeaturedPayment: e.isActive
-                  ? () => _showFeaturedPaymentDialog(context, e)
-                  : null,*/
+              onAssignPartner: () => _showAssignPartnerDialog(context, e),
             ),
           );
         },
@@ -794,6 +792,26 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     }
   }*/
 
+  void _showAssignPartnerDialog(BuildContext context, AdminEstablishment e) {
+    final bloc = context.read<AdminEstablishmentsBloc>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
+      ),
+      builder: (_) => _AssignPartnerSheet(
+        establishment: e,
+        onAssign: (partnerId) {
+          bloc.add(AdminEstablishmentAssignPartner(
+            establishmentId: e.id,
+            partnerId: partnerId,
+          ));
+        },
+      ),
+    );
+  }
+
   void _showDeleteDialog(BuildContext context, AdminEstablishment e) {
     showDialog(
       context: context,
@@ -939,6 +957,7 @@ class _EstablishmentCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback? onToggleFeatured;
   final VoidCallback? onFeaturedPayment;
+  final VoidCallback? onAssignPartner;
 
   const _EstablishmentCard({
     required this.establishment,
@@ -948,6 +967,7 @@ class _EstablishmentCard extends StatelessWidget {
     required this.onDelete,
     this.onToggleFeatured,
     this.onFeaturedPayment,
+    this.onAssignPartner,
   });
 
   Color get _statusColor {
@@ -1158,6 +1178,22 @@ class _EstablishmentCard extends StatelessWidget {
                               padding: EdgeInsets.zero,
                             ),
                           ),
+                          if (onAssignPartner != null) ...[
+                            const SizedBox(width: AppDimens.paddingS),
+                            IconButton(
+                              onPressed: onAssignPartner,
+                              icon: const Icon(Iconsax.link, size: 18),
+                              color: AppColors.primaryGreen,
+                              style: IconButton.styleFrom(
+                                backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
+                                minimumSize: const Size(36, 36),
+                                padding: EdgeInsets.zero,
+                              ),
+                              tooltip: establishment.partner != null
+                                  ? 'Changer de partenaire'
+                                  : 'Associer un partenaire',
+                            ),
+                          ],
                           if (onToggleFeatured != null) ...[
                             const SizedBox(width: AppDimens.paddingS),
                             IconButton(
@@ -1256,6 +1292,164 @@ class _EstablishmentCard extends StatelessWidget {
                 ],
               ),
             ),
+    );
+  }
+}
+
+// ── Assign partner sheet ──────────────────────────────────────────────────────
+
+class _AssignPartnerSheet extends StatefulWidget {
+  final AdminEstablishment establishment;
+  final void Function(String? partnerId) onAssign;
+
+  const _AssignPartnerSheet({
+    required this.establishment,
+    required this.onAssign,
+  });
+
+  @override
+  State<_AssignPartnerSheet> createState() => _AssignPartnerSheetState();
+}
+
+class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
+  final _searchController = TextEditingController();
+  final AdminRepository _repo = AdminRepository();
+
+  List<AdminPartner> _partners = [];
+  bool _isLoading = true;
+  String? _selectedId;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedId = widget.establishment.partnerId;
+    _load('');
+    _searchController.addListener(() => _load(_searchController.text));
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load(String query) async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await _repo.getPartners(
+        limit: 30,
+        status: 'approved',
+        search: query.isEmpty ? null : query,
+      );
+      if (mounted) setState(() { _partners = result.partners; _isLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (_, controller) => Column(
+        children: [
+          const SizedBox(height: AppDimens.paddingS),
+          Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.grey300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppDimens.paddingM),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Associer un partenaire',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  widget.establishment.name,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.grey500,
+                  ),
+                ),
+                const SizedBox(height: AppDimens.paddingM),
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher un partenaire...',
+                    prefixIcon: const Icon(Iconsax.search_normal, size: 18),
+                    filled: true,
+                    fillColor: AppColors.grey100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppDimens.paddingM,
+                      vertical: AppDimens.paddingS,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.establishment.partner != null)
+            ListTile(
+              leading: const Icon(Icons.link_off, color: AppColors.error),
+              title: const Text('Détacher le partenaire actuel'),
+              textColor: AppColors.error,
+              onTap: () {
+                Navigator.pop(context);
+                widget.onAssign(null);
+              },
+            ),
+          const Divider(height: 1),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+                : _partners.isEmpty
+                    ? const Center(child: Text('Aucun partenaire trouvé'))
+                    : ListView.builder(
+                        controller: controller,
+                        itemCount: _partners.length,
+                        itemBuilder: (_, i) {
+                          final p = _partners[i];
+                          final isSelected = p.id == _selectedId;
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
+                              child: Text(
+                                p.companyName.isNotEmpty ? p.companyName[0].toUpperCase() : '?',
+                                style: const TextStyle(
+                                  color: AppColors.primaryGreen,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            title: Text(p.companyName),
+                            subtitle: p.user?.email != null ? Text(p.user!.email) : null,
+                            trailing: isSelected
+                                ? const Icon(Iconsax.tick_circle, color: AppColors.primaryGreen)
+                                : null,
+                            onTap: () {
+                              Navigator.pop(context);
+                              widget.onAssign(p.id);
+                            },
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }

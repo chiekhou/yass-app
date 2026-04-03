@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/widgets/pagination_bar.dart';
 import '../../../../app_router.dart';
 import '../../../establishment/data/models/establishment_model.dart';
 import '../bloc/partner_establishments_bloc.dart';
@@ -29,22 +30,12 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
     context
         .read<PartnerEstablishmentsBloc>()
         .add(const PartnerEstablishmentsLoad());
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      context
-          .read<PartnerEstablishmentsBloc>()
-          .add(PartnerEstablishmentsLoadMore());
-    }
   }
 
   @override
@@ -223,40 +214,48 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
               await Future.delayed(const Duration(milliseconds: 500));
             },
             color: AppColors.primaryGreen,
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.only(
-                top: AppDimens.paddingM,
-                bottom: 100,
-              ),
-              itemCount:
-                  state.establishments.length + (state.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.establishments.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppDimens.paddingM),
-                      child: CircularProgressIndicator(strokeWidth: 2),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(
+                      top: AppDimens.paddingM,
+                      bottom: AppDimens.paddingM,
                     ),
-                  );
-                }
-
-                final establishment = state.establishments[index];
-                return PartnerEstablishmentCard(
-                  establishment: establishment,
-                  isProcessing: state.processingId == establishment.id,
-                  onTap: () => context.push(
-                    AppRoutes.partnerEstablishmentDetails
-                        .replaceFirst(':id', establishment.id),
+                    itemCount: state.establishments.length,
+                    itemBuilder: (context, index) {
+                      final establishment = state.establishments[index];
+                      return PartnerEstablishmentCard(
+                        establishment: establishment,
+                        isProcessing: state.processingId == establishment.id,
+                        onTap: () => context.push(
+                          AppRoutes.partnerEstablishmentDetails
+                              .replaceFirst(':id', establishment.id),
+                        ),
+                        onEditTap: () => context.push(
+                          AppRoutes.partnerEstablishmentEdit
+                              .replaceFirst(':id', establishment.id),
+                        ),
+                        onDeleteTap: () => _showDeleteDialog(context, establishment),
+                        onStatusTap: () => _showStatusDialog(context, establishment),
+                      );
+                    },
                   ),
-                  onEditTap: () => context.push(
-                    AppRoutes.partnerEstablishmentEdit
-                        .replaceFirst(':id', establishment.id),
-                  ),
-                  onDeleteTap: () => _showDeleteDialog(context, establishment),
-                  onStatusTap: () => _showStatusDialog(context, establishment),
-                );
-              },
+                ),
+                PaginationBar(
+                  currentPage: state.currentPage,
+                  totalPages: state.totalPages,
+                  total: state.total,
+                  isLoading: state.isUpdating,
+                  onPageChanged: (page) {
+                    context.read<PartnerEstablishmentsBloc>().add(
+                          PartnerEstablishmentsGoToPage(page: page),
+                        );
+                    _scrollController.jumpTo(0);
+                  },
+                ),
+              ],
             ),
           );
         }

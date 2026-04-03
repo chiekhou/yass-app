@@ -192,6 +192,13 @@ router.post("/establishments/:id/feature/checkout", adminController.featureCheck
 router.post("/establishments/:id/feature/manual", adminController.featureManual);
 
 /**
+ * @route   PATCH /api/v1/admin/establishments/:id/assign-partner
+ * @desc    Associate (or dissociate) a partner with an establishment
+ * @access  Admin
+ */
+router.patch("/establishments/:id/assign-partner", adminController.assignPartner);
+
+/**
  * @route   DELETE /api/v1/admin/establishments/:id
  * @desc    Delete establishment
  * @access  Admin

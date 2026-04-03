@@ -73,6 +73,15 @@ class AdminUserDelete extends AdminUsersEvent {
   List<Object?> get props => [userId];
 }
 
+class AdminUsersGoToPage extends AdminUsersEvent {
+  final int page;
+
+  const AdminUsersGoToPage({required this.page});
+
+  @override
+  List<Object?> get props => [page];
+}
+
 class AdminUserLoadDetails extends AdminUsersEvent {
   final String userId;
 
@@ -208,6 +217,7 @@ class AdminUsersBloc extends Bloc<AdminUsersEvent, AdminUsersState> {
     on<AdminUserUpdateStatus>(_onUpdateStatus);
     on<AdminUserDelete>(_onDelete);
     on<AdminUserLoadDetails>(_onLoadDetails);
+    on<AdminUsersGoToPage>(_onGoToPage);
   }
 
   Future<void> _onLoad(
@@ -493,6 +503,33 @@ class AdminUsersBloc extends Bloc<AdminUsersEvent, AdminUsersState> {
       emit(AdminUserDetailsLoaded(user: user));
     } catch (e) {
       emit(AdminUsersError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onGoToPage(
+    AdminUsersGoToPage event,
+    Emitter<AdminUsersState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AdminUsersLoaded) {
+      emit(currentState.copyWith(isUpdating: true));
+      try {
+        final result = await _adminRepository.getUsers(
+          page: event.page,
+          role: currentState.roleFilter,
+          status: currentState.statusFilter,
+          search: currentState.searchQuery,
+        );
+        emit(currentState.copyWith(
+          users: result.users,
+          page: result.page,
+          totalPages: result.totalPages,
+          total: result.total,
+          isUpdating: false,
+        ));
+      } catch (e) {
+        emit(currentState.copyWith(isUpdating: false));
+      }
     }
   }
 }
