@@ -186,6 +186,16 @@ class AdminRepository {
     await _apiClient.delete(ApiConfig.adminEstablishmentById(id));
   }
 
+  /// Associe (ou dissocie) un partenaire à un établissement.
+  /// partnerId = null → détacher le partenaire
+  Future<AdminEstablishment> assignPartner(String id, String? partnerId) async {
+    final response = await _apiClient.patch(
+      '${ApiConfig.adminEstablishments}/$id/assign-partner',
+      data: {'partner_id': partnerId},
+    );
+    return AdminEstablishment.fromJson(response.data['data']);
+  }
+
   /// durationDays = null → sans limite, 0 → retirer, >0 → durée en jours
   Future<AdminEstablishment> setFeatured(String id, {int? durationDays}) async {
     final response = await _apiClient.post(

@@ -11,7 +11,7 @@ double? _parseDouble(dynamic value) {
 
 class AdminEstablishment extends Equatable {
   final String id;
-  final String partnerId;
+  final String? partnerId;
   final String name;
   final String? slug;
   final String? description;
@@ -45,7 +45,7 @@ class AdminEstablishment extends Equatable {
 
   const AdminEstablishment({
     required this.id,
-    required this.partnerId,
+    this.partnerId,
     required this.name,
     this.slug,
     this.description,
@@ -103,7 +103,7 @@ class AdminEstablishment extends Equatable {
   factory AdminEstablishment.fromJson(Map<String, dynamic> json) {
     return AdminEstablishment(
       id: json['id'] ?? '',
-      partnerId: json['partner_id'] ?? json['partnerId'] ?? '',
+      partnerId: json['partner_id'] ?? json['partnerId'],
       name: json['name'] ?? '',
       slug: json['slug'],
       description: json['description'],

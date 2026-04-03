@@ -787,6 +787,27 @@ class AdminService {
    * durationDays = 0    → retirer la mise en avant
    * durationDays > 0    → mettre en avant pour N jours
    */
+  /**
+   * Assign (or unassign) a partner to an unowned establishment.
+   * partnerId = null → détacher le partenaire
+   */
+  async assignPartner(establishmentId, partnerId) {
+    const establishment = await Establishment.findByPk(establishmentId);
+    if (!establishment) {
+      throw ApiError.notFound("Establishment not found");
+    }
+
+    if (partnerId) {
+      const partner = await Partner.findByPk(partnerId);
+      if (!partner) {
+        throw ApiError.notFound("Partner not found");
+      }
+    }
+
+    await establishment.update({ partner_id: partnerId || null });
+    return establishment.reload();
+  }
+
   async setFeatured(establishmentId, durationDays) {
     const establishment = await Establishment.findByPk(establishmentId);
     if (!establishment) {

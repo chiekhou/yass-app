@@ -340,6 +340,24 @@ class AdminController {
   }
 
   /**
+   * Assign a partner to an establishment
+   * PATCH /api/v1/admin/establishments/:id/assign-partner
+   * body: { partner_id: string | null }
+   */
+  async assignPartner(req, res, next) {
+    try {
+      const { partner_id } = req.body;
+      const establishment = await adminService.assignPartner(
+        req.params.id,
+        partner_id || null,
+      );
+      ApiResponse.success(establishment, "Partenaire associé avec succès").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Set featured status (manuel gratuit)
    * POST /api/v1/admin/establishments/:id/feature
    * body: { duration_days: number | null }  — 0 = retirer

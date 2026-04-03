@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/widgets/pagination_bar.dart';
 import '../../../../app_router.dart';
 import '../../data/models/admin_partner_model.dart';
 import '../bloc/admin_partners_bloc.dart';
@@ -34,7 +35,6 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
     context.read<AdminPartnersBloc>().add(
           AdminPartnersLoad(pendingOnly: widget.pendingOnly),
         );
-    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -42,13 +42,6 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      context.read<AdminPartnersBloc>().add(AdminPartnersLoadMore());
-    }
   }
 
   @override
@@ -254,40 +247,47 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
               await Future.delayed(const Duration(milliseconds: 500));
             },
             color: AppColors.primaryGreen,
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
-              itemCount: state.partners.length + (state.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.partners.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppDimens.paddingM),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
-
-                final partner = state.partners[index];
-                return PartnerListItem(
-                  partner: partner,
-                  isProcessing: state.isUpdating &&
-                      state.partners[index].id == partner.id,
-                  onTap: () => context.push(
-                    AppRoutes.adminPartnerDetails
-                        .replaceFirst(':id', partner.id),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+                    itemCount: state.partners.length,
+                    itemBuilder: (context, index) {
+                      final partner = state.partners[index];
+                      return PartnerListItem(
+                        partner: partner,
+                        isProcessing: state.isUpdating &&
+                            state.partners[index].id == partner.id,
+                        onTap: () => context.push(
+                          AppRoutes.adminPartnerDetails
+                              .replaceFirst(':id', partner.id),
+                        ),
+                        onApproveTap: partner.isPending
+                            ? () => _approvePartner(context, partner)
+                            : null,
+                        onRejectTap: partner.isPending
+                            ? () => _showRejectDialog(context, partner)
+                            : null,
+                        onSuspendTap: partner.isApproved
+                            ? () => _showSuspendDialog(context, partner)
+                            : null,
+                      );
+                    },
                   ),
-                  onApproveTap: partner.isPending
-                      ? () => _approvePartner(context, partner)
-                      : null,
-                  onRejectTap: partner.isPending
-                      ? () => _showRejectDialog(context, partner)
-                      : null,
-                  onSuspendTap: partner.isApproved
-                      ? () => _showSuspendDialog(context, partner)
-                      : null,
-                );
-              },
+                ),
+                PaginationBar(
+                  currentPage: state.page,
+                  totalPages: state.totalPages,
+                  total: state.total,
+                  isLoading: state.isUpdating,
+                  onPageChanged: (page) {
+                    context.read<AdminPartnersBloc>().add(AdminPartnersGoToPage(page: page));
+                    _scrollController.jumpTo(0);
+                  },
+                ),
+              ],
             ),
           );
 

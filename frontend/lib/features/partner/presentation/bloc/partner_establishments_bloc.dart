@@ -71,6 +71,15 @@ class PartnerEstablishmentUpdateStatus extends PartnerEstablishmentsEvent {
   List<Object?> get props => [id, status];
 }
 
+class PartnerEstablishmentsGoToPage extends PartnerEstablishmentsEvent {
+  final int page;
+
+  const PartnerEstablishmentsGoToPage({required this.page});
+
+  @override
+  List<Object?> get props => [page];
+}
+
 // States
 abstract class PartnerEstablishmentsState extends Equatable {
   const PartnerEstablishmentsState();
@@ -191,6 +200,7 @@ class PartnerEstablishmentsBloc
     on<PartnerEstablishmentUpdate>(_onUpdate);
     on<PartnerEstablishmentDelete>(_onDelete);
     on<PartnerEstablishmentUpdateStatus>(_onUpdateStatus);
+    on<PartnerEstablishmentsGoToPage>(_onGoToPage);
   }
 
   Future<void> _onLoad(
@@ -339,6 +349,31 @@ class PartnerEstablishmentsBloc
       add(const PartnerEstablishmentsLoad());
     } catch (e) {
       emit(PartnerEstablishmentsError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onGoToPage(
+    PartnerEstablishmentsGoToPage event,
+    Emitter<PartnerEstablishmentsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is PartnerEstablishmentsLoaded) {
+      emit(currentState.copyWith(isUpdating: true));
+      try {
+        final response = await _repository.getEstablishments(
+          status: currentState.statusFilter,
+          page: event.page,
+        );
+        emit(currentState.copyWith(
+          establishments: response.items,
+          currentPage: response.pagination.page,
+          totalPages: response.pagination.totalPages,
+          total: response.pagination.total,
+          isUpdating: false,
+        ));
+      } catch (e) {
+        emit(currentState.copyWith(isUpdating: false));
+      }
     }
   }
 }

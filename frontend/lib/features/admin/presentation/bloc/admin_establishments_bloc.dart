@@ -94,6 +94,28 @@ class AdminEstablishmentSetFeatured extends AdminEstablishmentsEvent {
   List<Object?> get props => [establishmentId, durationDays];
 }
 
+class AdminEstablishmentsGoToPage extends AdminEstablishmentsEvent {
+  final int page;
+
+  const AdminEstablishmentsGoToPage({required this.page});
+
+  @override
+  List<Object?> get props => [page];
+}
+
+class AdminEstablishmentAssignPartner extends AdminEstablishmentsEvent {
+  final String establishmentId;
+  final String? partnerId; // null = détacher
+
+  const AdminEstablishmentAssignPartner({
+    required this.establishmentId,
+    this.partnerId,
+  });
+
+  @override
+  List<Object?> get props => [establishmentId, partnerId];
+}
+
 // ==================== STATES ====================
 
 abstract class AdminEstablishmentsState extends Equatable {
@@ -206,6 +228,8 @@ class AdminEstablishmentsBloc
     on<AdminEstablishmentsSearch>(_onSearch);
     on<AdminEstablishmentDelete>(_onDelete);
     on<AdminEstablishmentSetFeatured>(_onSetFeatured);
+    on<AdminEstablishmentsGoToPage>(_onGoToPage);
+    on<AdminEstablishmentAssignPartner>(_onAssignPartner);
   }
 
   // ── Pending page handlers ─────────────────────────────────────────────────
@@ -470,6 +494,62 @@ class AdminEstablishmentsBloc
         final updated = await _adminRepository.setFeatured(
           event.establishmentId,
           durationDays: event.durationDays,
+        );
+        final updatedList = currentState.establishments.map((e) {
+          return e.id == event.establishmentId ? updated : e;
+        }).toList();
+        emit(currentState.copyWith(
+          establishments: updatedList,
+          isUpdating: false,
+          processingId: null,
+        ));
+      } catch (e) {
+        emit(currentState.copyWith(isUpdating: false, processingId: null));
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> _onGoToPage(
+    AdminEstablishmentsGoToPage event,
+    Emitter<AdminEstablishmentsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AdminEstablishmentsLoaded) {
+      emit(currentState.copyWith(isUpdating: true));
+      try {
+        final result = await _adminRepository.getEstablishments(
+          page: event.page,
+          status: currentState.statusFilter,
+          search: currentState.searchQuery,
+        );
+        emit(currentState.copyWith(
+          establishments: result.establishments,
+          page: result.page,
+          totalPages: result.totalPages,
+          total: result.total,
+          isUpdating: false,
+        ));
+      } catch (e) {
+        emit(currentState.copyWith(isUpdating: false));
+      }
+    }
+  }
+
+  Future<void> _onAssignPartner(
+    AdminEstablishmentAssignPartner event,
+    Emitter<AdminEstablishmentsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AdminEstablishmentsLoaded) {
+      emit(currentState.copyWith(
+        isUpdating: true,
+        processingId: event.establishmentId,
+      ));
+      try {
+        final updated = await _adminRepository.assignPartner(
+          event.establishmentId,
+          event.partnerId,
         );
         final updatedList = currentState.establishments.map((e) {
           return e.id == event.establishmentId ? updated : e;

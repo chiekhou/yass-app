@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/widgets/pagination_bar.dart';
 import '../../../../app_router.dart';
 import '../../data/models/admin_user_model.dart';
 import '../bloc/admin_users_bloc.dart';
@@ -27,7 +28,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   void initState() {
     super.initState();
     context.read<AdminUsersBloc>().add(const AdminUsersLoad());
-    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -35,13 +35,6 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      context.read<AdminUsersBloc>().add(AdminUsersLoadMore());
-    }
   }
 
   @override
@@ -271,37 +264,44 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             return _buildEmptyState();
           }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              context.read<AdminUsersBloc>().add(AdminUsersRefresh());
-              await Future.delayed(const Duration(milliseconds: 500));
-            },
-            color: AppColors.primaryGreen,
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
-              itemCount: state.users.length + (state.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.users.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppDimens.paddingM),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
-
-                final user = state.users[index];
-                return UserListItem(
-                  user: user,
-                  onTap: () => context.push(
-                    AppRoutes.adminUserDetails.replaceFirst(':id', user.id),
+          return Column(
+            children: [
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<AdminUsersBloc>().add(AdminUsersRefresh());
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  color: AppColors.primaryGreen,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+                    itemCount: state.users.length,
+                    itemBuilder: (context, index) {
+                      final user = state.users[index];
+                      return UserListItem(
+                        user: user,
+                        onTap: () => context.push(
+                          AppRoutes.adminUserDetails.replaceFirst(':id', user.id),
+                        ),
+                        onStatusTap: () => _showStatusDialog(context, user),
+                        onDeleteTap: () => _showDeleteDialog(context, user),
+                      );
+                    },
                   ),
-                  onStatusTap: () => _showStatusDialog(context, user),
-                  onDeleteTap: () => _showDeleteDialog(context, user),
-                );
-              },
-            ),
+                ),
+              ),
+              PaginationBar(
+                currentPage: state.page,
+                totalPages: state.totalPages,
+                total: state.total,
+                isLoading: state.isUpdating,
+                onPageChanged: (page) {
+                  context.read<AdminUsersBloc>().add(AdminUsersGoToPage(page: page));
+                  _scrollController.jumpTo(0);
+                },
+              ),
+            ],
           );
         }
 
