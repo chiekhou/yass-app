@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -192,7 +193,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 foregroundColor: AppColors.primaryGreen,
               ),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -335,11 +336,7 @@ class _CategoryPageState extends State<CategoryPage> {
                       const SizedBox(height: AppDimens.paddingS),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            color: AppColors.starFilled,
-                            size: 14,
-                          ),
+                          const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                           const SizedBox(width: 2),
                           Text(
                             e.displayRating,

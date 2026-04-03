@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
@@ -46,13 +47,13 @@ class _PartnerEstablishmentFormPageState
   final _facebookController = TextEditingController();
   final _instagramController = TextEditingController();
   final _tiktokController = TextEditingController();
+  final _snapchatController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
 
   // State
   bool _isLoading = false;
   bool _isLoadingData = true;
-  String? _errorMessage;
   Establishment? _establishment;
 
   List<Category> _categories = [];
@@ -100,6 +101,7 @@ class _PartnerEstablishmentFormPageState
     _facebookController.dispose();
     _instagramController.dispose();
     _tiktokController.dispose();
+    _snapchatController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     super.dispose();
@@ -128,7 +130,6 @@ class _PartnerEstablishmentFormPageState
     } catch (e) {
       setState(() {
         _isLoadingData = false;
-        _errorMessage = 'Erreur lors du chargement des données';
       });
     }
   }
@@ -148,6 +149,7 @@ class _PartnerEstablishmentFormPageState
     _facebookController.text = establishment.facebook ?? '';
     _instagramController.text = establishment.instagram ?? '';
     _tiktokController.text = establishment.tiktok ?? '';
+    _snapchatController.text = establishment.snapchat ?? '';
     _latitudeController.text = establishment.latitude?.toString() ?? '';
     _longitudeController.text = establishment.longitude?.toString() ?? '';
 
@@ -221,7 +223,6 @@ class _PartnerEstablishmentFormPageState
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
     });
 
     try {
@@ -251,6 +252,8 @@ class _PartnerEstablishmentFormPageState
           'instagram': _instagramController.text.trim(),
         if (_tiktokController.text.isNotEmpty)
           'tiktok': _tiktokController.text.trim(),
+        if (_snapchatController.text.isNotEmpty)
+          'snapchat': _snapchatController.text.trim(),
         if (_latitudeController.text.isNotEmpty)
           'latitude': double.tryParse(_latitudeController.text),
         if (_longitudeController.text.isNotEmpty)
@@ -308,9 +311,9 @@ class _PartnerEstablishmentFormPageState
         context.go(AppRoutes.partnerEstablishments);
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
+      if (mounted) {
+        _showErrorDialog(_translateError(e.toString()));
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -441,16 +444,19 @@ class _PartnerEstablishmentFormPageState
                           color: isCompleted
                               ? AppColors.primaryGreen
                               : isActive
-                                  ? AppColors.primaryGreen.withValues(alpha: 0.2)
+                                  ? AppColors.primaryGreen
+                                      .withValues(alpha: 0.2)
                                   : AppColors.grey200,
                           shape: BoxShape.circle,
                           border: isActive
-                              ? Border.all(color: AppColors.primaryGreen, width: 2)
+                              ? Border.all(
+                                  color: AppColors.primaryGreen, width: 2)
                               : null,
                         ),
                         child: Center(
                           child: isCompleted
-                              ? const Icon(Icons.check, color: AppColors.white, size: 16)
+                              ? const Icon(Icons.check,
+                                  color: AppColors.white, size: 16)
                               : Text(
                                   '${index + 1}',
                                   style: TextStyle(
@@ -479,8 +485,10 @@ class _PartnerEstablishmentFormPageState
                     steps[index],
                     style: TextStyle(
                       fontSize: 11,
-                      color: isActive ? AppColors.primaryGreen : AppColors.grey600,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                      color:
+                          isActive ? AppColors.primaryGreen : AppColors.grey600,
+                      fontWeight:
+                          isActive ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -527,9 +535,8 @@ class _PartnerEstablishmentFormPageState
             if (_currentStep > 0)
               Expanded(
                 child: OutlinedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () => setState(() => _currentStep--),
+                  onPressed:
+                      _isLoading ? null : () => setState(() => _currentStep--),
                   child: const Text('Précédent'),
                 ),
               ),
@@ -568,30 +575,72 @@ class _PartnerEstablishmentFormPageState
     );
   }
 
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error_outline, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Erreur'),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryGreen,
+              foregroundColor: AppColors.white,
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _translateError(String error) {
+    final e = error.toLowerCase();
+    if (e.contains('phone') || e.contains('numéro')) {
+      return 'Numéro de téléphone invalide. Formats acceptés : 0555123456, +213555123456, 0770 123 456';
+    }
+    if (e.contains('name') || e.contains('nom')) {
+      return 'Le nom de l\'établissement est invalide.';
+    }
+    if (e.contains('address') || e.contains('adresse')) {
+      return 'L\'adresse est invalide.';
+    }
+    if (e.contains('category') || e.contains('catégorie')) {
+      return 'Veuillez sélectionner une catégorie.';
+    }
+    if (e.contains('wilaya')) {
+      return 'Veuillez sélectionner une wilaya.';
+    }
+    if (e.contains('email')) {
+      return 'Adresse e-mail invalide.';
+    }
+    if (e.contains('url') || e.contains('website') || e.contains('facebook')) {
+      return 'L\'URL saisie est invalide.';
+    }
+    if (e.contains('unauthorized') || e.contains('401')) {
+      return 'Session expirée. Veuillez vous reconnecter.';
+    }
+    if (e.contains('network') ||
+        e.contains('connection') ||
+        e.contains('socket')) {
+      return 'Erreur de connexion. Vérifiez votre accès internet.';
+    }
+    if (e.contains('500') || e.contains('server')) {
+      return 'Erreur serveur. Veuillez réessayer plus tard.';
+    }
+    return 'Une erreur est survenue. Veuillez réessayer.';
+  }
+
   Widget _buildGeneralInfoStep() {
     return Column(
       children: [
-        if (_errorMessage != null)
-          Container(
-            margin: const EdgeInsets.only(bottom: AppDimens.paddingM),
-            padding: const EdgeInsets.all(AppDimens.paddingM),
-            decoration: BoxDecoration(
-              color: AppColors.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-            ),
-            child: Row(
-              children: [
-                const Icon(Iconsax.warning_2, color: AppColors.error),
-                const SizedBox(width: AppDimens.paddingS),
-                Expanded(
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: AppColors.error),
-                  ),
-                ),
-              ],
-            ),
-          ),
         _buildTextField(
           controller: _nameController,
           label: 'Nom de l\'établissement *',
@@ -625,7 +674,8 @@ class _PartnerEstablishmentFormPageState
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildDropdown<Category>(
-          value: _categories.where((c) => c.id == _selectedCategoryId).firstOrNull,
+          value:
+              _categories.where((c) => c.id == _selectedCategoryId).firstOrNull,
           items: _categories,
           label: 'Catégorie *',
           icon: Iconsax.category,
@@ -778,9 +828,14 @@ class _PartnerEstablishmentFormPageState
           label: 'Téléphone *',
           icon: Iconsax.call,
           keyboardType: TextInputType.phone,
+          hintText: 'Ex: 0555123456 ou +213555123456',
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Le téléphone est requis';
+            }
+            final cleaned = value.replaceAll(RegExp(r'[\s\-().+]'), '');
+            if (cleaned.length < 6) {
+              return 'Numéro trop court';
             }
             return null;
           },
@@ -791,6 +846,7 @@ class _PartnerEstablishmentFormPageState
           label: 'Téléphone secondaire',
           icon: Iconsax.call,
           keyboardType: TextInputType.phone,
+          hintText: 'Ex: 0770123456',
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
@@ -798,6 +854,7 @@ class _PartnerEstablishmentFormPageState
           label: 'WhatsApp',
           icon: Iconsax.message,
           keyboardType: TextInputType.phone,
+          hintText: 'Ex: 0555123456 ou +213555123456',
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
@@ -845,21 +902,33 @@ class _PartnerEstablishmentFormPageState
           icon: Iconsax.video,
           keyboardType: TextInputType.url,
         ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTextField(
+          controller: _snapchatController,
+          label: 'Snapchat',
+          icon: Iconsax.ghost,
+          keyboardType: TextInputType.text,
+          hintText: 'Ex: mon.username',
+        ),
       ],
     );
   }
 
   Widget _buildImagesStep() {
     // Determine if we should show existing logo/cover (not deleted and exists)
-    final showExistingLogo = !_logoDeleted && _establishment?.logo != null && _selectedLogo == null;
-    final showExistingCover = !_coverDeleted && _establishment?.coverImage != null && _selectedCover == null;
+    final showExistingLogo =
+        !_logoDeleted && _establishment?.logo != null && _selectedLogo == null;
+    final showExistingCover = !_coverDeleted &&
+        _establishment?.coverImage != null &&
+        _selectedCover == null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Logo',
-          style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
+          style:
+              TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
         ),
         const SizedBox(height: AppDimens.paddingS),
         _buildImagePicker(
@@ -880,7 +949,8 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingL),
         const Text(
           'Image de couverture',
-          style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
+          style:
+              TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
         ),
         const SizedBox(height: AppDimens.paddingS),
         _buildImagePicker(
@@ -903,13 +973,13 @@ class _PartnerEstablishmentFormPageState
           children: [
             const Text(
               'Galerie d\'images',
-              style:
-                  TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, color: AppColors.grey700),
             ),
             TextButton.icon(
               onPressed: () => _pickImage(ImageSource.gallery, 'images'),
               icon: const Icon(Iconsax.add, size: 18),
-              label: const Text('Ajouter'),
+              label: Text(context.l10n.add),
             ),
           ],
         ),
@@ -1021,6 +1091,7 @@ class _PartnerEstablishmentFormPageState
     int maxLines = 1,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    String? hintText,
   }) {
     return TextFormField(
       controller: controller,
@@ -1029,6 +1100,8 @@ class _PartnerEstablishmentFormPageState
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
+        hintText: hintText,
+        hintStyle: const TextStyle(color: AppColors.grey400, fontSize: 13),
         prefixIcon: Icon(icon, color: AppColors.grey500),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -1056,7 +1129,7 @@ class _PartnerEstablishmentFormPageState
     required void Function(T?) onChanged,
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.grey500),
@@ -1148,7 +1221,8 @@ class _PartnerEstablishmentFormPageState
                   color: AppColors.error,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close, color: AppColors.white, size: 16),
+                child:
+                    const Icon(Icons.close, color: AppColors.white, size: 16),
               ),
             ),
           ),
@@ -1156,7 +1230,8 @@ class _PartnerEstablishmentFormPageState
     );
   }
 
-  Widget _buildImageTile({File? file, String? imageUrl, required VoidCallback onRemove}) {
+  Widget _buildImageTile(
+      {File? file, String? imageUrl, required VoidCallback onRemove}) {
     return Stack(
       children: [
         Container(
@@ -1195,7 +1270,8 @@ class _PartnerEstablishmentFormPageState
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
       ),
       builder: (context) => SafeArea(
         child: Padding(

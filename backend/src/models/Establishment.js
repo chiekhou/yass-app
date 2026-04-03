@@ -118,6 +118,10 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING(500),
         allowNull: true,
       },
+      snapchat: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+      },
       logo: {
         type: DataTypes.STRING(500),
         allowNull: true,
@@ -176,6 +180,12 @@ module.exports = (sequelize) => {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
+      featured_until: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
+        comment: "Date d'expiration de la mise en avant (null = sans limite)",
+      },
       average_rating: {
         type: DataTypes.DECIMAL(3, 2),
         defaultValue: 0,
@@ -197,6 +207,10 @@ module.exports = (sequelize) => {
         defaultValue: 0,
       },
       total_whatsapp_clicks: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
+      total_contacts: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
       },

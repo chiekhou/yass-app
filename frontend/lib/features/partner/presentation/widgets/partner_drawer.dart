@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
-class PartnerDrawer extends StatelessWidget {
+class PartnerDrawer extends StatefulWidget {
   final String currentRoute;
 
   const PartnerDrawer({
     super.key,
     required this.currentRoute,
   });
+
+  @override
+  State<PartnerDrawer> createState() => _PartnerDrawerState();
+}
+
+class _PartnerDrawerState extends State<PartnerDrawer> {
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +33,16 @@ class PartnerDrawer extends StatelessWidget {
             const Divider(height: 1),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
                 children: [
                   _buildMenuItem(
                     context,
                     icon: Iconsax.home_2,
-                    title: 'Tableau de bord',
+                    title: context.l10n.dashboard,
                     route: AppRoutes.partnerDashboard,
-                    isSelected: currentRoute == AppRoutes.partnerDashboard,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.partnerDashboard,
                   ),
                   _buildSectionTitle(context, 'Mes établissements'),
                   _buildMenuItem(
@@ -39,14 +50,16 @@ class PartnerDrawer extends StatelessWidget {
                     icon: Iconsax.building,
                     title: 'Tous les établissements',
                     route: AppRoutes.partnerEstablishments,
-                    isSelected: currentRoute == AppRoutes.partnerEstablishments,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.partnerEstablishments,
                   ),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.add_circle,
                     title: 'Ajouter un établissement',
                     route: AppRoutes.partnerEstablishmentCreate,
-                    isSelected: currentRoute == AppRoutes.partnerEstablishmentCreate,
+                    isSelected: widget.currentRoute ==
+                        AppRoutes.partnerEstablishmentCreate,
                   ),
                   _buildSectionTitle(context, 'Statistiques'),
                   _buildMenuItem(
@@ -55,6 +68,15 @@ class PartnerDrawer extends StatelessWidget {
                     title: 'Performances',
                     route: AppRoutes.partnerDashboard,
                     isSelected: false,
+                  ),
+                  _buildSectionTitle(context, 'Compte'),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.award,
+                    title: 'Mon abonnement',
+                    route: AppRoutes.partnerSubscription,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.partnerSubscription,
                   ),
                 ],
               ),
@@ -141,6 +163,7 @@ class PartnerDrawer extends StatelessWidget {
     required String title,
     required String route,
     required bool isSelected,
+    int badgeCount = 0,
   }) {
     return ListTile(
       leading: Container(
@@ -164,6 +187,26 @@ class PartnerDrawer extends StatelessWidget {
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
       ),
+      trailing: badgeCount > 0
+          ? Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+                vertical: AppDimens.paddingXS,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryRed,
+                borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+              ),
+              child: Text(
+                badgeCount > 99 ? '99+' : '$badgeCount',
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          : null,
       selected: isSelected,
       selectedTileColor: AppColors.primaryGreen.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
@@ -185,32 +228,54 @@ class PartnerDrawer extends StatelessWidget {
   Widget _buildFooter(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(AppDimens.paddingM),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(AppDimens.paddingS),
-          decoration: BoxDecoration(
-            color: AppColors.grey100,
-            borderRadius: BorderRadius.circular(AppDimens.radiusS),
-          ),
-          child: const Icon(
-            Iconsax.logout,
-            color: AppColors.grey600,
-            size: AppDimens.iconS,
-          ),
-        ),
-        title: Text(
-          'Retour à l\'accueil',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey800,
+      child: Row(
+        children: [
+          Expanded(
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(AppDimens.paddingS),
+                decoration: BoxDecoration(
+                  color: AppColors.grey100,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                ),
+                child: const Icon(
+                  Iconsax.home_2,
+                  color: AppColors.grey600,
+                  size: AppDimens.iconS,
+                ),
               ),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-          context.go(AppRoutes.main);
-        },
+              title: Text(
+                'Accueil',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.grey800,
+                    ),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.main);
+              },
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.errorLight,
+              borderRadius: BorderRadius.circular(AppDimens.radiusS),
+            ),
+            child: IconButton(
+              icon: const Icon(Iconsax.logout, color: AppColors.error),
+              onPressed: () {
+                Navigator.pop(context);
+                context.read<AuthBloc>().add(AuthLogoutRequested());
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -169,4 +169,9 @@ class EstablishmentRepository {
   Future<void> trackWhatsAppClick(String id) async {
     await _apiClient.post(ApiConfig.trackWhatsApp(id));
   }
+
+  /// Track contact form submission
+  Future<void> trackContact(String id) async {
+    await _apiClient.post(ApiConfig.trackContact(id));
+  }
 }

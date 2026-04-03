@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import 'features/onboarding/presentation/pages/onboarding_page.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -32,6 +33,7 @@ import 'features/admin/presentation/pages/admin_partners_page.dart';
 import 'features/admin/presentation/pages/admin_partner_detail_page.dart';
 import 'features/admin/presentation/pages/admin_user_detail_page.dart';
 import 'features/admin/presentation/pages/admin_pending_establishments_page.dart';
+import 'features/admin/presentation/pages/admin_establishments_page.dart';
 import 'features/admin/presentation/bloc/admin_dashboard_bloc.dart';
 import 'features/admin/presentation/bloc/admin_users_bloc.dart';
 import 'features/admin/presentation/bloc/admin_partners_bloc.dart';
@@ -54,9 +56,18 @@ import 'features/partner/presentation/bloc/partner_establishments_bloc.dart';
 import 'features/partner/presentation/bloc/partner_subscription_bloc.dart';
 import 'features/partner/presentation/bloc/partner_invoices_bloc.dart';
 
+// Map
+import 'features/map/presentation/pages/map_page.dart';
+
 // Notifications
 import 'features/notifications/presentation/pages/notifications_page.dart';
 import 'features/notifications/presentation/bloc/notifications_bloc.dart';
+
+// Suggestions
+import 'features/suggestions/presentation/pages/suggestions_list_page.dart';
+import 'features/suggestions/presentation/pages/suggest_establishment_page.dart';
+import 'features/suggestions/presentation/pages/my_suggestions_page.dart';
+import 'features/admin/presentation/pages/admin_suggestions_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -69,6 +80,7 @@ class AppRoutes {
   static const String main = '/main';
   static const String home = '/home';
   static const String search = '/search';
+  static const String map = '/map';
   static const String favorites = '/favorites';
   static const String profile = '/profile';
   static const String establishment = '/establishment/:id';
@@ -104,13 +116,20 @@ class AppRoutes {
   static const String adminPendingPartners = '/admin/partners/pending';
   static const String adminPartnerDetails = '/admin/partners/:id';
   static const String adminPendingEstablishments = '/admin/establishments/pending';
+  static const String adminEstablishments = '/admin/establishments';
   static const String adminReviews = '/admin/reviews';
   static const String adminPendingReviews = '/admin/reviews/pending';
   static const String adminReportedReviews = '/admin/reviews/reported';
   static const String adminPendingPayments = '/admin/payments/pending';
+  static const String adminSuggestions = '/admin/suggestions';
 
   // Notifications
   static const String notifications = '/notifications';
+
+  // Suggestions
+  static const String suggestions = '/suggestions';
+  static const String newSuggestion = '/suggestions/new';
+  static const String mySuggestions = '/suggestions/mine';
 }
 
 class AppRouter {
@@ -234,6 +253,20 @@ class AppRouter {
         ],
       ),
 
+      // Map (full-screen push, no bottom nav)
+      GoRoute(
+        path: AppRoutes.map,
+        name: 'map',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return MapPage(
+            initialQuery: extra['query'] as String?,
+            initialCategoryId: extra['categoryId'] as String?,
+            initialWilayaId: extra['wilayaId'] as String?,
+          );
+        },
+      ),
+
       // Establishment Details
       GoRoute(
         path: AppRoutes.establishment,
@@ -270,9 +303,11 @@ class AppRouter {
         builder: (context, state) {
           final establishmentId = state.pathParameters['establishmentId']!;
           final establishmentName = state.uri.queryParameters['name'];
+          final categoryName = state.uri.queryParameters['category'];
           return WriteReviewPage(
             establishmentId: establishmentId,
             establishmentName: establishmentName,
+            categoryName: categoryName,
           );
         },
       ),
@@ -287,6 +322,7 @@ class AppRouter {
           return AllReviewsPage(
             establishmentId: establishmentId,
             establishmentName: extra?['establishmentName'] as String?,
+            categoryName: extra?['categoryName'] as String?,
             initialData: extra?['reviewsData'] as ReviewsResponse?,
           );
         },
@@ -378,6 +414,14 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: AppRoutes.adminEstablishments,
+        name: 'adminEstablishments',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminEstablishmentsBloc(),
+          child: const AdminEstablishmentsPage(),
+        ),
+      ),
+      GoRoute(
         path: AppRoutes.adminPendingEstablishments,
         name: 'adminPendingEstablishments',
         builder: (context, state) => BlocProvider(
@@ -390,17 +434,21 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.adminReviews,
         name: 'adminReviews',
-        builder: (context, state) => BlocProvider(
-          create: (context) => AdminReviewsBloc(),
-          child: const AdminReviewsPage(),
-        ),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final initialTab = extra['initialTab'] as String? ?? 'pending';
+          return BlocProvider(
+            create: (context) => AdminReviewsBloc(),
+            child: AdminReviewsPage(initialTab: initialTab),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.adminPendingReviews,
         name: 'adminPendingReviews',
         builder: (context, state) => BlocProvider(
           create: (context) => AdminReviewsBloc(),
-          child: const AdminReviewsPage(),
+          child: const AdminReviewsPage(initialTab: 'pending'),
         ),
       ),
       GoRoute(
@@ -408,7 +456,7 @@ class AppRouter {
         name: 'adminReportedReviews',
         builder: (context, state) => BlocProvider(
           create: (context) => AdminReviewsBloc(),
-          child: const AdminReviewsPage(),
+          child: const AdminReviewsPage(initialTab: 'reported'),
         ),
       ),
 
@@ -505,6 +553,30 @@ class AppRouter {
           child: const NotificationsPage(),
         ),
       ),
+
+      // Suggestions (community)
+      GoRoute(
+        path: AppRoutes.suggestions,
+        name: 'suggestions',
+        builder: (context, state) => const SuggestionsListPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.newSuggestion,
+        name: 'newSuggestion',
+        builder: (context, state) => const SuggestEstablishmentPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.mySuggestions,
+        name: 'mySuggestions',
+        builder: (context, state) => const MySuggestionsPage(),
+      ),
+
+      // Admin suggestions
+      GoRoute(
+        path: AppRoutes.adminSuggestions,
+        name: 'adminSuggestions',
+        builder: (context, state) => const AdminSuggestionsPage(),
+      ),
     ],
 
     // Error Page
@@ -516,7 +588,7 @@ class AppRouter {
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
-              'Page non trouvée',
+              context.l10n.pageNotFound,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -524,7 +596,7 @@ class AppRouter {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.main),
-              child: const Text('Retour à l\'accueil'),
+              child: Text(context.l10n.backToHome),
             ),
           ],
         ),

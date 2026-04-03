@@ -26,6 +26,7 @@ class AdminEstablishment extends Equatable {
   final double? longitude;
   final String status;
   final bool isFeatured;
+  final DateTime? featuredUntil;
   final bool isVerified;
   final String? rejectionReason;
   final String? categoryId;
@@ -59,6 +60,7 @@ class AdminEstablishment extends Equatable {
     this.longitude,
     required this.status,
     this.isFeatured = false,
+    this.featuredUntil,
     this.isVerified = false,
     this.rejectionReason,
     this.categoryId,
@@ -116,6 +118,9 @@ class AdminEstablishment extends Equatable {
       longitude: _parseDouble(json['longitude']),
       status: json['status'] ?? 'pending',
       isFeatured: json['is_featured'] ?? json['isFeatured'] ?? false,
+      featuredUntil: json['featured_until'] != null
+          ? DateTime.tryParse(json['featured_until'])
+          : null,
       isVerified: json['is_verified'] ?? json['isVerified'] ?? false,
       rejectionReason: json['rejection_reason'] ?? json['rejectionReason'],
       categoryId: json['category_id'] ?? json['categoryId'],
@@ -160,6 +165,7 @@ class AdminEstablishment extends Equatable {
         longitude,
         status,
         isFeatured,
+        featuredUntil,
         isVerified,
         rejectionReason,
         categoryId,

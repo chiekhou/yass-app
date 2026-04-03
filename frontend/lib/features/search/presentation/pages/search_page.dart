@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../../../app_router.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../home/data/models/category_model.dart';
+import '../../../home/data/repositories/category_repository.dart';
 import '../bloc/search_bloc.dart';
-import '../widgets/establishment_list_card.dart';
 import '../widgets/filter_bottom_sheets.dart';
 import '../widgets/search_suggestion_item.dart';
 
@@ -29,46 +35,67 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
-  bool _showSuggestions = false;
 
-  // Current filter values
+  bool _overlayVisible = false;
+  LatLng? _userLocation;
+  bool _loadingLocation = false;
+  final List<String> _recentSearches = [];
+
+  static const _popularKeywords = [
+    'Restaurant',
+    'Café',
+    'Hôpital',
+    'Pharmacie',
+    'Banque',
+    'Hôtel',
+    'Coiffeur',
+    'Supermarché',
+    'École',
+    'Dentiste',
+    'Médecin',
+    'Boulangerie',
+  ];
+
+  // Filter values
   String? _selectedCategoryId;
+  String? _selectedSubcategoryId;
+  String? _selectedSubcategoryName;
+  List<SubCategory> _subcategories = [];
   String? _selectedWilayaId;
+  String? _selectedCommuneId;
+  String? _selectedCommuneName;
+  List<Commune> _communes = [];
   double? _selectedMinRating;
   String? _selectedPriceRange;
   String? _selectedSortBy;
   String? _selectedSortOrder;
-
-  // Selected filter names for display
   String? _selectedCategoryName;
   String? _selectedWilayaName;
 
   @override
   void initState() {
     super.initState();
-
-    // Load initial data (categories and wilayas)
     context.read<SearchBloc>().add(SearchLoadInitialData());
 
-    // Set initial filters from parameters
     _selectedCategoryId = widget.categoryId;
     _selectedWilayaId = widget.wilayaId;
 
-    // Set initial query and search if provided
+    // Récupérer la position en arrière-plan dès l'ouverture
+    _loadUserLocationSilently();
+
     if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
       _searchController.text = widget.initialQuery!;
-      _performSearch();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _performSearch());
     } else if (widget.categoryId != null || widget.wilayaId != null) {
-      // Search with initial filters
-      _performSearch();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _performSearch());
     }
 
-    // Listen for focus changes to show/hide suggestions
     _focusNode.addListener(() {
       setState(() {
-        _showSuggestions = _focusNode.hasFocus &&
-            _searchController.text.isNotEmpty &&
-            context.read<SearchBloc>().state.suggestions.isNotEmpty;
+        _overlayVisible = _focusNode.hasFocus;
+        if (!_focusNode.hasFocus) {
+          context.read<SearchBloc>().add(SearchClearSuggestions());
+        }
       });
     });
   }
@@ -80,46 +107,156 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
-  void _performSearch() {
-    final query = _searchController.text.trim();
-    context.read<SearchBloc>().add(SearchQuery(
-          query: query,
-          categoryId: _selectedCategoryId,
-          wilayaId: _selectedWilayaId,
-          minRating: _selectedMinRating,
-          priceRange: _selectedPriceRange,
-          sortBy: _selectedSortBy,
-          sortOrder: _selectedSortOrder,
-        ));
+  /// Récupère le GPS silencieusement sans bloquer l'UI
+  Future<void> _loadUserLocationSilently() async {
+    // Override dev : position simulée Alger (définie dans .env.dev.json)
+    final devLoc = AppConfig.devLocation;
+    if (devLoc != null) {
+      if (mounted) setState(() => _userLocation = LatLng(devLoc.lat, devLoc.lng));
+      return;
+    }
 
-    // Hide suggestions and unfocus
-    setState(() => _showSuggestions = false);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.medium),
+      ).timeout(const Duration(seconds: 10));
+
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(pos.latitude, pos.longitude);
+        });
+      }
+    } catch (_) {
+      // GPS indisponible, la recherche reste globale
+    }
+  }
+
+  /// Rafraîchit la position (appelé depuis "Emplacement actuel")
+  Future<void> _refreshLocation() async {
+    if (_loadingLocation) return;
+    setState(() => _loadingLocation = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _loadingLocation = false);
+        return;
+      }
+
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.medium),
+      ).timeout(const Duration(seconds: 10));
+
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(pos.latitude, pos.longitude);
+          _loadingLocation = false;
+        });
+        _performSearch();
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingLocation = false);
+    }
+  }
+
+  void _addToRecentSearches(String query) {
+    if (query.trim().isEmpty) return;
+    setState(() {
+      _recentSearches.remove(query);
+      _recentSearches.insert(0, query);
+      if (_recentSearches.length > 5) _recentSearches.removeLast();
+    });
+  }
+
+  /// Navigue directement vers la carte avec les paramètres de recherche
+  void _performSearch({String? keyword}) {
+    final query = keyword ?? _searchController.text.trim();
+    if (keyword != null) _searchController.text = keyword;
+
+    _addToRecentSearches(query);
+
+    setState(() => _overlayVisible = false);
     _focusNode.unfocus();
+
+    context.push(
+      AppRoutes.map,
+      extra: {
+        'query': query.isEmpty ? null : query,
+        'categoryId': _selectedCategoryId,
+        'wilayaId': _selectedWilayaId,
+        'communeId': _selectedCommuneId,
+      },
+    );
   }
 
   void _onSearchChanged(String query) {
     if (query.length >= 2) {
       context.read<SearchBloc>().add(SearchSuggestions(query: query));
-      setState(() => _showSuggestions = true);
     } else {
       context.read<SearchBloc>().add(SearchClearSuggestions());
-      setState(() => _showSuggestions = false);
     }
+    setState(() {}); // refresh overlay content
   }
 
   void _clearSearch() {
     _searchController.clear();
     context.read<SearchBloc>().add(SearchClearSuggestions());
     context.read<SearchBloc>().add(SearchClear());
-    setState(() => _showSuggestions = false);
+    setState(() {});
+  }
+
+  Future<void> _loadCommunes(String wilayaId) async {
+    try {
+      final fromCache = context.read<SearchBloc>().state.wilayas
+          .cast<Wilaya?>()
+          .firstWhere((w) => w?.id == wilayaId, orElse: () => null)
+          ?.communes;
+      if (fromCache != null && fromCache.isNotEmpty) {
+        if (mounted) setState(() => _communes = fromCache);
+        return;
+      }
+      final communes = await WilayaRepository().getCommunes(wilayaId);
+      if (mounted) setState(() => _communes = communes);
+    } catch (_) {}
+  }
+
+  Future<void> _loadSubcategories(String categoryId) async {
+    try {
+      final fromCache = context.read<SearchBloc>().state.categories
+          .cast<Category?>()
+          .firstWhere((c) => c?.id == categoryId, orElse: () => null)
+          ?.subcategories;
+      if (fromCache != null && fromCache.isNotEmpty) {
+        if (mounted) setState(() => _subcategories = fromCache);
+        return;
+      }
+      final subs = await CategoryRepository().getSubcategories(categoryId);
+      if (mounted) setState(() => _subcategories = subs);
+    } catch (_) {}
   }
 
   void _clearAllFilters() {
     setState(() {
       _selectedCategoryId = null;
       _selectedCategoryName = null;
+      _selectedSubcategoryId = null;
+      _selectedSubcategoryName = null;
+      _subcategories = [];
       _selectedWilayaId = null;
       _selectedWilayaName = null;
+      _selectedCommuneId = null;
+      _selectedCommuneName = null;
+      _communes = [];
       _selectedMinRating = null;
       _selectedPriceRange = null;
       _selectedSortBy = null;
@@ -130,7 +267,9 @@ class _SearchPageState extends State<SearchPage> {
 
   bool get _hasActiveFilters =>
       _selectedCategoryId != null ||
+      _selectedSubcategoryId != null ||
       _selectedWilayaId != null ||
+      _selectedCommuneId != null ||
       _selectedMinRating != null ||
       _selectedPriceRange != null ||
       _selectedSortBy != null;
@@ -140,19 +279,18 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: const Text(AppStrings.search),
+        title: Text(context.l10n.search),
         actions: [
           if (_hasActiveFilters)
             IconButton(
               onPressed: _clearAllFilters,
               icon: const Icon(Iconsax.filter_remove),
-              tooltip: 'Effacer les filtres',
+              tooltip: context.l10n.clearFilters,
             ),
         ],
       ),
       body: BlocConsumer<SearchBloc, SearchState>(
         listener: (context, state) {
-          // Update filter names from loaded data
           if (state.categories.isNotEmpty && _selectedCategoryId != null) {
             final category = state.categories.firstWhere(
               (c) => c.id == _selectedCategoryId,
@@ -173,36 +311,51 @@ class _SearchPageState extends State<SearchPage> {
           }
         },
         builder: (context, state) {
-          return Stack(
+          return Column(
             children: [
-              Column(
-                children: [
-                  // Search Bar
-                  Padding(
-                    padding: const EdgeInsets.all(AppDimens.paddingM),
-                    child: _buildSearchBar(state),
-                  ),
-
-                  // Filters
-                  _buildFilters(state),
-
-                  const SizedBox(height: AppDimens.paddingS),
-
-                  // Results
-                  Expanded(
-                    child: _buildContent(state),
-                  ),
-                ],
+              // Search bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppDimens.paddingM,
+                  AppDimens.paddingM,
+                  AppDimens.paddingM,
+                  AppDimens.paddingS,
+                ),
+                child: _buildSearchBar(),
               ),
 
-              // Suggestions overlay
-              if (_showSuggestions && state.suggestions.isNotEmpty)
-                Positioned(
-                  top: 70,
-                  left: AppDimens.paddingM,
-                  right: AppDimens.paddingM,
-                  child: _buildSuggestionsOverlay(state),
+              // Indicateur de localisation active
+              if (_userLocation != null && !_overlayVisible)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppDimens.paddingM, 0, AppDimens.paddingM, AppDimens.paddingS),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.my_location,
+                          size: 13, color: AppColors.primaryGreen),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Résultats près de vous',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+
+              // Filters (hidden when overlay is open)
+              if (!_overlayVisible) _buildFilters(state),
+              if (!_overlayVisible) const SizedBox(height: AppDimens.paddingS),
+
+              // Content: overlay OR results
+              Expanded(
+                child: _overlayVisible
+                    ? _buildSearchOverlay(state)
+                    : _buildContent(state),
+              ),
             ],
           );
         },
@@ -210,14 +363,14 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSearchBar(SearchState state) {
+  Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -230,13 +383,15 @@ class _SearchPageState extends State<SearchPage> {
         onSubmitted: (_) => _performSearch(),
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: AppStrings.searchHint,
+          hintText: 'Restaurants, hôpitaux, banques...',
           hintStyle: const TextStyle(color: AppColors.grey400),
-          prefixIcon: const Icon(Iconsax.search_normal, color: AppColors.grey500),
+          prefixIcon:
+              const Icon(Iconsax.search_normal, color: AppColors.grey500),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   onPressed: _clearSearch,
-                  icon: const Icon(Iconsax.close_circle, color: AppColors.grey400),
+                  icon: const Icon(Iconsax.close_circle,
+                      color: AppColors.grey400),
                 )
               : null,
           border: InputBorder.none,
@@ -249,77 +404,278 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSuggestionsOverlay(SearchState state) {
-    return Material(
-      elevation: 8,
-      borderRadius: BorderRadius.circular(AppDimens.radiusM),
-      child: Container(
-        constraints: const BoxConstraints(maxHeight: 300),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (state.isLoadingSuggestions)
-              const Padding(
-                padding: EdgeInsets.all(AppDimens.paddingM),
-                child: SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            else
-              Flexible(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
-                  itemCount: state.suggestions.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    return SearchSuggestionItem(
-                      establishment: state.suggestions[index],
-                      onTap: () {
-                        setState(() => _showSuggestions = false);
-                        _focusNode.unfocus();
-                      },
-                    );
-                  },
-                ),
+  // ── OVERLAY ────────────────────────────────────────────────────────────────
+
+  Widget _buildSearchOverlay(SearchState state) {
+    final query = _searchController.text;
+    final hasSuggestions =
+        state.suggestions.isNotEmpty || state.isLoadingSuggestions;
+
+    if (query.length >= 2 && hasSuggestions) {
+      return _buildLiveSuggestions(state);
+    }
+    if (query.length >= 2) {
+      return _buildKeywordSuggestions(query);
+    }
+    return _buildPreSearchUI();
+  }
+
+  /// Champ vide + focus → location, récents, populaires
+  Widget _buildPreSearchUI() {
+    return Container(
+      color: AppColors.white,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // Emplacement actuel
+          ListTile(
+            onTap: _refreshLocation,
+            leading: _loadingLocation
+                ? const SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primaryGreen,
+                        ),
+                      ),
+                    ),
+                  )
+                : _circleIcon(Icons.my_location, AppColors.primaryGreen,
+                    AppColors.primaryGreen.withValues(alpha: 0.1)),
+            title: Text(
+              _userLocation != null
+                  ? 'Position détectée — Actualiser'
+                  : 'Utiliser ma position actuelle',
+              style: const TextStyle(
+                color: AppColors.primaryGreen,
+                fontWeight: FontWeight.w600,
               ),
-            // Search button
-            InkWell(
-              onTap: _performSearch,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppDimens.paddingM),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: AppColors.grey200)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Iconsax.search_normal,
-                        size: 18, color: AppColors.primaryGreen),
-                    const SizedBox(width: AppDimens.paddingS),
-                    Text(
-                      'Rechercher "${_searchController.text}"',
+            ),
+            subtitle: _userLocation != null
+                ? const Text(
+                    'Les recherches incluent automatiquement votre position',
+                    style: TextStyle(fontSize: 11),
+                  )
+                : null,
+            trailing: const Icon(Iconsax.arrow_right_3,
+                size: 16, color: AppColors.grey400),
+          ),
+
+          const Divider(height: 1),
+
+          // Recent searches
+          if (_recentSearches.isNotEmpty) ...[
+            _sectionHeader(
+              'Recherches récentes',
+              action: 'Effacer',
+              onAction: () => setState(() => _recentSearches.clear()),
+            ),
+            ..._recentSearches.map(
+              (s) => ListTile(
+                dense: true,
+                leading: const Icon(Iconsax.clock,
+                    size: 18, color: AppColors.grey400),
+                title: Text(s, style: const TextStyle(fontSize: 14)),
+                trailing: const Icon(Iconsax.arrow_right_3,
+                    size: 16, color: AppColors.grey400),
+                onTap: () => _performSearch(keyword: s),
+              ),
+            ),
+            const Divider(height: 1),
+          ],
+
+          // Popular keywords
+          _sectionHeader('Recherches populaires'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _popularKeywords.map((kw) {
+                return GestureDetector(
+                  onTap: () => _performSearch(keyword: kw),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.grey200),
+                    ),
+                    child: Text(
+                      kw,
                       style: const TextStyle(
-                        color: AppColors.primaryGreen,
+                        fontSize: 13,
+                        color: AppColors.grey700,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
+  /// Typing mais pas encore de suggestions
+  Widget _buildKeywordSuggestions(String query) {
+    return Container(
+      color: AppColors.white,
+      child: Column(
+        children: [
+          if (_userLocation != null)
+            ListTile(
+              leading: _circleIcon(Icons.my_location, AppColors.primaryGreen,
+                  AppColors.primaryGreen.withValues(alpha: 0.1)),
+              title: Text.rich(TextSpan(children: [
+                const TextSpan(text: 'Rechercher "'),
+                TextSpan(
+                    text: query,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                const TextSpan(text: '" près de moi'),
+              ])),
+              trailing: const Icon(Iconsax.arrow_right_3,
+                  size: 16, color: AppColors.grey400),
+              onTap: () => _performSearch(),
+            ),
+          ListTile(
+            leading: _circleIcon(
+                Iconsax.search_normal, AppColors.grey500, AppColors.grey100),
+            title: Text.rich(TextSpan(children: [
+              const TextSpan(text: 'Rechercher "'),
+              TextSpan(
+                  text: query,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              const TextSpan(text: '"'),
+            ])),
+            trailing: const Icon(Iconsax.arrow_right_3,
+                size: 16, color: AppColors.grey400),
+            onTap: () => _performSearch(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Suggestions live avec distances
+  Widget _buildLiveSuggestions(SearchState state) {
+    final query = _searchController.text;
+
+    return Container(
+      color: AppColors.white,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          // Rechercher X (avec position si dispo)
+          ListTile(
+            leading: _userLocation != null
+                ? _circleIcon(Icons.my_location, AppColors.primaryGreen,
+                    AppColors.primaryGreen.withValues(alpha: 0.1))
+                : _circleIcon(Iconsax.search_normal, AppColors.grey500,
+                    AppColors.grey100),
+            title: Text.rich(TextSpan(children: [
+              const TextSpan(text: 'Voir tous les résultats pour "'),
+              TextSpan(
+                  text: query,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              const TextSpan(text: '"'),
+              if (_userLocation != null)
+                const TextSpan(
+                  text: ' près de moi',
+                  style: TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.w500),
+                ),
+            ])),
+            trailing: const Icon(Iconsax.arrow_right_3,
+                size: 16, color: AppColors.grey400),
+            onTap: () => _performSearch(),
+          ),
+
+          const Divider(height: 1),
+
+          if (state.isLoadingSuggestions)
+            const Padding(
+              padding: EdgeInsets.all(AppDimens.paddingM),
+              child: Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primaryGreen,
+                ),
+              ),
+            )
+          else
+            ...state.suggestions.map(
+              (e) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SearchSuggestionItem(
+                    establishment: e,
+                    userLocation: _userLocation,
+                    onTap: () {
+                      setState(() => _overlayVisible = false);
+                      _focusNode.unfocus();
+                      context.push('/e/${e.slug}');
+                    },
+                  ),
+                  const Divider(height: 1, indent: 72),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── HELPERS ────────────────────────────────────────────────────────────────
+
+  Widget _circleIcon(IconData icon, Color iconColor, Color bgColor) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+      child: Icon(icon, color: iconColor, size: 18),
+    );
+  }
+
+  Widget _sectionHeader(String title,
+      {String? action, VoidCallback? onAction}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.grey600,
+            ),
+          ),
+          if (action != null && onAction != null)
+            GestureDetector(
+              onTap: onAction,
+              child: Text(
+                action,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.primaryGreen),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── FILTERS ────────────────────────────────────────────────────────────────
 
   Widget _buildFilters(SearchState state) {
     return SingleChildScrollView(
@@ -328,27 +684,43 @@ class _SearchPageState extends State<SearchPage> {
       child: Row(
         children: [
           _FilterChip(
-            label: _selectedCategoryName ?? 'Catégorie',
+            label: _selectedCategoryName ?? context.l10n.categoryFilter,
             isSelected: _selectedCategoryId != null,
             onTap: () => _showCategoryFilter(state),
           ),
+          if (_selectedCategoryId != null && _subcategories.isNotEmpty) ...[
+            const SizedBox(width: AppDimens.paddingS),
+            _FilterChip(
+              label: _selectedSubcategoryName ?? 'Sous-catégorie',
+              isSelected: _selectedSubcategoryId != null,
+              onTap: _showSubcategoryFilter,
+            ),
+          ],
           const SizedBox(width: AppDimens.paddingS),
           _FilterChip(
-            label: _selectedWilayaName ?? 'Wilaya',
+            label: _selectedWilayaName ?? context.l10n.wilayaFilter,
             isSelected: _selectedWilayaId != null,
             onTap: () => _showWilayaFilter(state),
           ),
+          if (_selectedWilayaId != null && _communes.isNotEmpty) ...[
+            const SizedBox(width: AppDimens.paddingS),
+            _FilterChip(
+              label: _selectedCommuneName ?? 'Commune',
+              isSelected: _selectedCommuneId != null,
+              onTap: _showCommuneFilter,
+            ),
+          ],
           const SizedBox(width: AppDimens.paddingS),
           _FilterChip(
             label: _selectedMinRating != null
                 ? '${_selectedMinRating!.toStringAsFixed(1)}+'
-                : 'Note',
+                : context.l10n.rating,
             isSelected: _selectedMinRating != null,
             onTap: _showRatingFilter,
           ),
           const SizedBox(width: AppDimens.paddingS),
           _FilterChip(
-            label: _selectedPriceRange ?? 'Prix',
+            label: _selectedPriceRange ?? context.l10n.priceFilter,
             isSelected: _selectedPriceRange != null,
             onTap: _showPriceFilter,
           ),
@@ -367,29 +739,48 @@ class _SearchPageState extends State<SearchPage> {
   String get _sortLabel {
     switch (_selectedSortBy) {
       case 'average_rating':
-        return 'Mieux noté';
+        return context.l10n.sortBestRated;
       case 'name':
-        return 'A → Z';
+        return context.l10n.sortAlphabetical;
       case 'created_at':
-        return 'Récent';
+        return context.l10n.recent;
       default:
-        return 'Trier';
+        return context.l10n.sortBy;
     }
   }
 
   Future<void> _showCategoryFilter(SearchState state) async {
     if (state.categories.isEmpty) return;
-
     final selected = await CategoryFilterSheet.show(
       context,
       categories: state.categories,
       selectedCategoryId: _selectedCategoryId,
     );
-
     if (selected != null || _selectedCategoryId != null) {
       setState(() {
         _selectedCategoryId = selected?.id;
         _selectedCategoryName = selected?.name;
+        // Réinitialiser la sous-catégorie si la catégorie change
+        _selectedSubcategoryId = null;
+        _selectedSubcategoryName = null;
+        _subcategories = [];
+      });
+      if (selected != null) _loadSubcategories(selected.id);
+      _performSearch();
+    }
+  }
+
+  Future<void> _showSubcategoryFilter() async {
+    if (_subcategories.isEmpty) return;
+    final selected = await SubcategoryFilterSheet.show(
+      context,
+      subcategories: _subcategories,
+      selectedSubcategoryId: _selectedSubcategoryId,
+    );
+    if (selected != null || _selectedSubcategoryId != null) {
+      setState(() {
+        _selectedSubcategoryId = selected?.id;
+        _selectedSubcategoryName = selected?.name;
       });
       _performSearch();
     }
@@ -397,17 +788,36 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _showWilayaFilter(SearchState state) async {
     if (state.wilayas.isEmpty) return;
-
     final selected = await WilayaFilterSheet.show(
       context,
       wilayas: state.wilayas,
       selectedWilayaId: _selectedWilayaId,
     );
-
     if (selected != null || _selectedWilayaId != null) {
       setState(() {
         _selectedWilayaId = selected?.id;
         _selectedWilayaName = selected?.name;
+        // Réinitialiser la commune si la wilaya change
+        _selectedCommuneId = null;
+        _selectedCommuneName = null;
+        _communes = [];
+      });
+      if (selected != null) _loadCommunes(selected.id);
+      _performSearch();
+    }
+  }
+
+  Future<void> _showCommuneFilter() async {
+    if (_communes.isEmpty) return;
+    final selected = await CommuneFilterSheet.show(
+      context,
+      communes: _communes,
+      selectedCommuneId: _selectedCommuneId,
+    );
+    if (selected != null || _selectedCommuneId != null) {
+      setState(() {
+        _selectedCommuneId = selected?.id;
+        _selectedCommuneName = selected?.name;
       });
       _performSearch();
     }
@@ -418,11 +828,8 @@ class _SearchPageState extends State<SearchPage> {
       context,
       selectedRating: _selectedMinRating,
     );
-
     if (selected != null || _selectedMinRating != null) {
-      setState(() {
-        _selectedMinRating = selected;
-      });
+      setState(() => _selectedMinRating = selected);
       _performSearch();
     }
   }
@@ -432,11 +839,8 @@ class _SearchPageState extends State<SearchPage> {
       context,
       selectedPriceRange: _selectedPriceRange,
     );
-
     if (selected != null || _selectedPriceRange != null) {
-      setState(() {
-        _selectedPriceRange = selected;
-      });
+      setState(() => _selectedPriceRange = selected);
       _performSearch();
     }
   }
@@ -447,7 +851,6 @@ class _SearchPageState extends State<SearchPage> {
       selectedSortBy: _selectedSortBy,
       selectedSortOrder: _selectedSortOrder,
     );
-
     if (result != null) {
       setState(() {
         _selectedSortBy = result.sortBy;
@@ -457,150 +860,41 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  Widget _buildContent(SearchState state) {
-    if (state is SearchLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.white),
-      );
-    }
+  // ── ÉTAT VIDE ──────────────────────────────────────────────────────────────
 
-    if (state is SearchError) {
-      return Center(
+  Widget _buildContent(SearchState state) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimens.paddingXL),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Iconsax.warning_2, size: 48, color: AppColors.redLight),
+            const Icon(Iconsax.map_1, size: 64, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Une erreur est survenue',
+              'Recherchez un établissement',
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
                   ?.copyWith(color: AppColors.white),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimens.paddingS),
-            ElevatedButton(
-              onPressed: _performSearch,
-              child: const Text('Réessayer'),
+            Text(
+              'Les résultats s\'affichent directement sur la carte',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.white.withValues(alpha: 0.7),
+                  ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-      );
-    }
-
-    if (state is SearchLoaded) {
-      if (state.results.isEmpty) {
-        return _buildNoResults();
-      }
-      return _buildResults(state);
-    }
-
-    // Initial state
-    return _buildEmptyState();
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Iconsax.search_normal_1,
-            size: 64,
-            color: AppColors.white,
-          ),
-          const SizedBox(height: AppDimens.paddingM),
-          Text(
-            'Recherchez un établissement',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.white,
-                ),
-          ),
-          const SizedBox(height: AppDimens.paddingS),
-          Text(
-            'Restaurant, hôtel, pharmacie...',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.7),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoResults() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Iconsax.search_status,
-            size: 64,
-            color: AppColors.white,
-          ),
-          const SizedBox(height: AppDimens.paddingM),
-          Text(
-            'Aucun résultat trouvé',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.white,
-                ),
-          ),
-          const SizedBox(height: AppDimens.paddingS),
-          Text(
-            'Essayez avec d\'autres termes ou filtres',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.7),
-                ),
-          ),
-          if (_hasActiveFilters) ...[
-            const SizedBox(height: AppDimens.paddingL),
-            OutlinedButton.icon(
-              onPressed: _clearAllFilters,
-              icon: const Icon(Iconsax.filter_remove),
-              label: const Text('Effacer les filtres'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.white,
-                side: const BorderSide(color: AppColors.white),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResults(SearchLoaded state) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollEndNotification &&
-            notification.metrics.extentAfter < 200 &&
-            state.hasMore &&
-            !state.isLoadingMore) {
-          context.read<SearchBloc>().add(SearchLoadMore());
-        }
-        return false;
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(AppDimens.paddingM),
-        itemCount: state.results.length + (state.isLoadingMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == state.results.length) {
-            return const Padding(
-              padding: EdgeInsets.all(AppDimens.paddingM),
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.white),
-              ),
-            );
-          }
-
-          return EstablishmentListCard(
-            establishment: state.results[index],
-          );
-        },
       ),
     );
   }
 }
+
+// ── FILTER CHIP ────────────────────────────────────────────────────────────────
 
 class _FilterChip extends StatelessWidget {
   final String label;
@@ -627,9 +921,7 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(AppDimens.radiusRound),
-          border: Border.all(
-            color: AppColors.white,
-          ),
+          border: Border.all(color: AppColors.white),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -637,7 +929,9 @@ class _FilterChip extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isSelected ? AppColors.primaryGreen : AppColors.white,
+                    color: isSelected
+                        ? AppColors.primaryGreen
+                        : AppColors.white,
                     fontWeight: FontWeight.w500,
                   ),
             ),

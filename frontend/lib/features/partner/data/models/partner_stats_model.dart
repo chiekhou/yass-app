@@ -10,6 +10,7 @@ class PartnerStats extends Equatable {
   final double averageRating;
   final int phoneClicks;
   final int whatsappClicks;
+  final int totalContacts;
   final List<EstablishmentStats>? topEstablishments;
 
   const PartnerStats({
@@ -22,20 +23,24 @@ class PartnerStats extends Equatable {
     required this.averageRating,
     required this.phoneClicks,
     required this.whatsappClicks,
+    required this.totalContacts,
     this.topEstablishments,
   });
 
   factory PartnerStats.fromJson(Map<String, dynamic> json) {
+    final totals = json['totals'] as Map<String, dynamic>?;
+    final byStatus = json['by_status'] as Map<String, dynamic>?;
     return PartnerStats(
       totalEstablishments: json['total_establishments'] ?? 0,
-      activeEstablishments: json['active_establishments'] ?? 0,
-      pendingEstablishments: json['pending_establishments'] ?? 0,
-      totalViews: json['total_views'] ?? 0,
-      totalFavorites: json['total_favorites'] ?? 0,
-      totalReviews: json['total_reviews'] ?? 0,
+      activeEstablishments: byStatus?['active'] ?? json['active_establishments'] ?? 0,
+      pendingEstablishments: byStatus?['pending'] ?? json['pending_establishments'] ?? 0,
+      totalViews: totals?['views'] ?? json['total_views'] ?? 0,
+      totalFavorites: totals?['favorites'] ?? json['total_favorites'] ?? 0,
+      totalReviews: totals?['reviews'] ?? json['total_reviews'] ?? 0,
       averageRating: double.tryParse(json['average_rating']?.toString() ?? '0') ?? 0.0,
-      phoneClicks: json['phone_clicks'] ?? 0,
-      whatsappClicks: json['whatsapp_clicks'] ?? 0,
+      phoneClicks: totals?['calls'] ?? json['phone_clicks'] ?? 0,
+      whatsappClicks: totals?['whatsapp_clicks'] ?? json['whatsapp_clicks'] ?? 0,
+      totalContacts: totals?['contacts'] ?? json['total_contacts'] ?? 0,
       topEstablishments: json['top_establishments'] != null
           ? (json['top_establishments'] as List)
               .map((e) => EstablishmentStats.fromJson(e))
@@ -55,6 +60,7 @@ class PartnerStats extends Equatable {
         averageRating,
         phoneClicks,
         whatsappClicks,
+        totalContacts,
         topEstablishments,
       ];
 }

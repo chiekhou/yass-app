@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
 import '../../data/repositories/admin_repository.dart';
+import '../../data/models/admin_stats_model.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class AdminDrawer extends StatefulWidget {
   final String currentRoute;
@@ -24,6 +28,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
   int _pendingReviews = 0;
   int _reportedReviews = 0;
   int _pendingPayments = 0;
+  int _pendingSuggestions = 0;
 
   @override
   void initState() {
@@ -32,20 +37,30 @@ class _AdminDrawerState extends State<AdminDrawer> {
   }
 
   Future<void> _loadCounts() async {
-    try {
-      final repo = AdminRepository();
-      final stats = await repo.getDashboardStats();
-      final payments = await repo.getPendingPayments();
-      if (mounted) {
-        setState(() {
-          _pendingPartners = stats.pendingPartners;
-          _pendingEstablishments = stats.pendingEstablishments;
-          _pendingReviews = stats.pendingReviews;
-          _reportedReviews = stats.reportedReviews;
-          _pendingPayments = payments.length;
-        });
+    if (!mounted) return;
+    final repo = AdminRepository();
+
+    // Chaque appel est indépendant — une erreur n'annule pas les autres
+    final statsFuture = repo.getDashboardStats().then<AdminStats?>((v) => v).catchError((_) => null);
+    final paymentsFuture = repo.getPendingPayments().catchError((_) => <Map<String, dynamic>>[]);
+    final suggestionsFuture = repo.getPendingSuggestionsCount().catchError((_) => 0);
+
+    final results = await Future.wait([statsFuture, paymentsFuture, suggestionsFuture]);
+
+    if (!mounted) return;
+    setState(() {
+      final stats = results[0] as AdminStats?;
+      final payments = results[1] as List<Map<String, dynamic>>;
+      final suggestions = results[2] as int;
+      if (stats != null) {
+        _pendingPartners = stats.pendingPartners;
+        _pendingEstablishments = stats.pendingEstablishments;
+        _pendingReviews = stats.pendingReviews;
+        _reportedReviews = stats.reportedReviews;
       }
-    } catch (_) {}
+      _pendingPayments = payments.length;
+      _pendingSuggestions = suggestions;
+    });
   }
 
   @override
@@ -65,7 +80,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
                   _buildMenuItem(
                     context,
                     icon: Iconsax.home_2,
-                    title: 'Tableau de bord',
+                    title: context.l10n.dashboard,
                     route: AppRoutes.adminDashboard,
                     isSelected: widget.currentRoute == AppRoutes.adminDashboard,
                   ),
@@ -103,6 +118,14 @@ class _AdminDrawerState extends State<AdminDrawer> {
                   ),
                   _buildMenuItem(
                     context,
+                    icon: Iconsax.buildings,
+                    title: 'Gestion Établissements',
+                    route: AppRoutes.adminEstablishments,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.adminEstablishments,
+                  ),
+                  _buildMenuItem(
+                    context,
                     icon: Iconsax.building,
                     title: 'Établissements en attente',
                     route: AppRoutes.adminPendingEstablishments,
@@ -111,6 +134,14 @@ class _AdminDrawerState extends State<AdminDrawer> {
                     badgeCount: _pendingEstablishments,
                   ),
                   _buildSectionTitle(context, 'Modération'),
+                  _buildMenuItemWithExtra(
+                    context,
+                    icon: Iconsax.star,
+                    title: 'Gestion Avis',
+                    route: AppRoutes.adminReviews,
+                    extra: {'initialTab': 'all'},
+                    isSelected: widget.currentRoute == AppRoutes.adminReviews,
+                  ),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.message_text,
@@ -138,6 +169,16 @@ class _AdminDrawerState extends State<AdminDrawer> {
                     isSelected:
                         widget.currentRoute == AppRoutes.adminPendingPayments,
                     badgeCount: _pendingPayments,
+                  ),
+                  _buildSectionTitle(context, 'Communauté'),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.shop_add,
+                    title: 'Suggestions',
+                    route: AppRoutes.adminSuggestions,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.adminSuggestions,
+                    badgeCount: _pendingSuggestions,
                   ),
                 ],
               ),
@@ -218,6 +259,73 @@ class _AdminDrawerState extends State<AdminDrawer> {
     );
   }
 
+  Widget _buildMenuItemWithExtra(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String route,
+    required Map<String, dynamic> extra,
+    required bool isSelected,
+    int badgeCount = 0,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(AppDimens.paddingS),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryGreen.withValues(alpha: 0.1)
+              : AppColors.grey100,
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? AppColors.primaryGreen : AppColors.grey600,
+          size: AppDimens.iconS,
+        ),
+      ),
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isSelected ? AppColors.primaryGreen : AppColors.grey800,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+      ),
+      trailing: badgeCount > 0
+          ? Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+                vertical: AppDimens.paddingXS,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryRed,
+                borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+              ),
+              child: Text(
+                badgeCount > 99 ? '99+' : '$badgeCount',
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          : null,
+      selected: isSelected,
+      selectedTileColor: AppColors.primaryGreen.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingM,
+        vertical: AppDimens.paddingXS,
+      ),
+      onTap: () {
+        Navigator.pop(context);
+        context.go(route, extra: extra);
+      },
+    );
+  }
+
   Widget _buildMenuItem(
     BuildContext context, {
     required IconData icon,
@@ -289,32 +397,54 @@ class _AdminDrawerState extends State<AdminDrawer> {
   Widget _buildFooter(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(AppDimens.paddingM),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(AppDimens.paddingS),
-          decoration: BoxDecoration(
-            color: AppColors.grey100,
-            borderRadius: BorderRadius.circular(AppDimens.radiusS),
-          ),
-          child: const Icon(
-            Iconsax.logout,
-            color: AppColors.grey600,
-            size: AppDimens.iconS,
-          ),
-        ),
-        title: Text(
-          'Retour à l\'accueil',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey800,
+      child: Row(
+        children: [
+          Expanded(
+            child: ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(AppDimens.paddingS),
+                decoration: BoxDecoration(
+                  color: AppColors.grey100,
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                ),
+                child: const Icon(
+                  Iconsax.home_2,
+                  color: AppColors.grey600,
+                  size: AppDimens.iconS,
+                ),
               ),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-          context.go(AppRoutes.main);
-        },
+              title: Text(
+                'Accueil',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.grey800,
+                    ),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.main);
+              },
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.errorLight,
+              borderRadius: BorderRadius.circular(AppDimens.radiusS),
+            ),
+            child: IconButton(
+              icon: const Icon(Iconsax.logout, color: AppColors.error),
+              onPressed: () {
+                Navigator.pop(context);
+                context.read<AuthBloc>().add(AuthLogoutRequested());
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

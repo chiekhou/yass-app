@@ -22,9 +22,24 @@ module.exports = (sequelize) => {
           key: "id",
         },
       },
-      plan: {
-        type: DataTypes.ENUM("monthly", "yearly"),
+      type: {
+        type: DataTypes.ENUM("subscription", "featured"),
         allowNull: false,
+        defaultValue: "subscription",
+      },
+      plan: {
+        type: DataTypes.ENUM("monthly", "yearly", "featured_7", "featured_15", "featured_30"),
+        allowNull: false,
+      },
+      establishment_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        references: { model: "establishments", key: "id" },
+      },
+      featured_duration_days: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: "Durée de la mise à la une en jours",
       },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
@@ -36,7 +51,7 @@ module.exports = (sequelize) => {
         defaultValue: "DZD",
       },
       payment_method: {
-        type: DataTypes.ENUM("chargily", "manual"),
+        type: DataTypes.ENUM("chargily", "manual", "cash"),
         allowNull: false,
       },
       status: {
@@ -101,6 +116,10 @@ module.exports = (sequelize) => {
     Invoice.belongsTo(models.User, {
       foreignKey: "validated_by",
       as: "validator",
+    });
+    Invoice.belongsTo(models.Establishment, {
+      foreignKey: "establishment_id",
+      as: "establishment",
     });
   };
 

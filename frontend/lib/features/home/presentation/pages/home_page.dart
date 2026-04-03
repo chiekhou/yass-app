@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -29,18 +30,15 @@ class _HomePageState extends State<HomePage> {
     if (state is HomeInitial || state is HomeError) {
       context.read<HomeBloc>().add(HomeLoadData());
     } else if (state is HomeLoaded && state.nearby.isEmpty) {
-      _fetchByWilaya();
+      _fetchNearby();
     }
   }
 
-  void _fetchByWilaya() {
+  void _fetchNearby() {
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated) {
-      final wilayaId = authState.user.wilayaId;
-      if (wilayaId != null) {
-        context.read<HomeBloc>().add(HomeLoadByWilaya(wilayaId: wilayaId));
-      }
-    }
+    final wilayaId =
+        authState is AuthAuthenticated ? authState.user.wilayaId : null;
+    context.read<HomeBloc>().add(HomeLoadNearby(fallbackWilayaId: wilayaId));
   }
 
   @override
@@ -51,7 +49,7 @@ class _HomePageState extends State<HomePage> {
         child: BlocListener<HomeBloc, HomeState>(
           // Déclenche le chargement par wilaya dès que les données principales sont chargées
           listenWhen: (prev, curr) => prev is! HomeLoaded && curr is HomeLoaded,
-          listener: (context, state) => _fetchByWilaya(),
+          listener: (context, state) => _fetchNearby(),
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
               if (state is HomeLoading) {
@@ -85,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: AppDimens.paddingL),
                         child: _buildSectionHeader(context,
-                            title: AppStrings.categories, onSeeAll: () {}),
+                            title: context.l10n.categories, onSeeAll: () {}),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -97,7 +95,7 @@ class _HomePageState extends State<HomePage> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: AppDimens.paddingL),
                         child: _buildSectionHeader(context,
-                            title: AppStrings.featured,
+                            title: context.l10n.featured,
                             onSeeAll: () => context
                                 .push('${AppRoutes.search}?featured=true')),
                       ),
@@ -111,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: AppDimens.paddingL),
                         child: _buildSectionHeader(context,
-                            title: AppStrings.nearMe,
+                            title: context.l10n.nearMe,
                             onSeeAll: () => context.push(AppRoutes.search)),
                       ),
                     ),
@@ -163,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                 foregroundColor: AppColors.primaryGreen,
               ),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -207,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                             fontWeight: FontWeight.bold)),
                   ],
                 ),
-                Text(AppStrings.appTagline,
+                Text(context.l10n.appTagline,
                     style: Theme.of(context)
                         .textTheme
                         .bodySmall
@@ -237,7 +235,7 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               onPressed: onSeeAll,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(AppStrings.seeAll),
+                Text(context.l10n.seeAll),
                 const SizedBox(width: AppDimens.paddingXS),
                 const Icon(Iconsax.arrow_right_3, size: 16)
               ]),

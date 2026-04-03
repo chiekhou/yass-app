@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -10,15 +11,30 @@ import '../../../establishment/data/models/establishment_model.dart';
 class SearchSuggestionItem extends StatelessWidget {
   final Establishment establishment;
   final VoidCallback? onTap;
+  final LatLng? userLocation;
 
   const SearchSuggestionItem({
     super.key,
     required this.establishment,
     this.onTap,
+    this.userLocation,
   });
+
+  String? _formatDistance() {
+    if (userLocation == null || !establishment.hasCoordinates) return null;
+    final dist = const Distance().as(
+      LengthUnit.Kilometer,
+      userLocation!,
+      LatLng(establishment.latitude!, establishment.longitude!),
+    );
+    if (dist < 1) return '${(dist * 1000).round()} m';
+    return '${dist.toStringAsFixed(1)} km';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final distance = _formatDistance();
+
     return ListTile(
       onTap: onTap ??
           () => context.push(
@@ -64,8 +80,27 @@ class SearchSuggestionItem extends StatelessWidget {
             ),
             const SizedBox(width: AppDimens.paddingXS),
             Container(
-              width: 4,
-              height: 4,
+              width: 3,
+              height: 3,
+              decoration: const BoxDecoration(
+                color: AppColors.grey400,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: AppDimens.paddingXS),
+          ],
+          if (distance != null) ...[
+            Text(
+              distance,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            const SizedBox(width: AppDimens.paddingXS),
+            Container(
+              width: 3,
+              height: 3,
               decoration: const BoxDecoration(
                 color: AppColors.grey400,
                 shape: BoxShape.circle,

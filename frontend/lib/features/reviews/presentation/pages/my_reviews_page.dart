@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -30,7 +31,7 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
           icon: const Icon(Iconsax.arrow_left),
           onPressed: () => context.pop(),
         ),
-        title: const Text(AppStrings.myReviews),
+        title: Text(context.l10n.myReviews),
       ),
       body: BlocConsumer<ReviewBloc, ReviewState>(
         listener: (context, state) {
@@ -194,13 +195,7 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                   children: [
                     ...List.generate(
                       5,
-                      (i) => Icon(
-                        Icons.star_rounded,
-                        size: 18,
-                        color: i < review.rating
-                            ? AppColors.starFilled
-                            : AppColors.starEmpty,
-                      ),
+                      (i) => const Text('🇩🇿', style: TextStyle(fontSize: 14)),
                     ),
                     const SizedBox(width: AppDimens.paddingS),
                     Text(
@@ -371,11 +366,11 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
         break;
       case 'pending':
         color = AppColors.warning;
-        label = 'En attente';
+        label = context.l10n.statusPending;
         break;
       case 'rejected':
         color = AppColors.error;
-        label = 'Rejeté';
+        label = context.l10n.statusRejected;
         break;
       default:
         color = AppColors.grey500;

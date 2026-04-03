@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -19,7 +20,7 @@ class NotificationsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.primaryGreen,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(context.l10n.notifications),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -31,9 +32,9 @@ class NotificationsPage extends StatelessWidget {
                   onPressed: () => context
                       .read<NotificationsBloc>()
                       .add(const MarkAllNotificationsRead()),
-                  child: const Text(
-                    'Tout lire',
-                    style: TextStyle(color: AppColors.white),
+                  child: Text(
+                    context.l10n.markAllRead,
+                    style: const TextStyle(color: AppColors.white),
                   ),
                 );
               }
@@ -113,7 +114,7 @@ class NotificationsPage extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Connectez-vous pour voir vos notifications',
+              context.l10n.loginToSeeNotifications,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,
@@ -135,7 +136,7 @@ class NotificationsPage extends StatelessWidget {
                 backgroundColor: AppColors.white,
                 foregroundColor: AppColors.primaryGreen,
               ),
-              child: const Text(AppStrings.login),
+              child: Text(context.l10n.login),
             ),
           ],
         ),
@@ -164,7 +165,7 @@ class NotificationsPage extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Aucune notification',
+              context.l10n.noNotifications,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
@@ -206,7 +207,7 @@ class NotificationsPage extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -227,7 +228,7 @@ class NotificationsPage extends StatelessWidget {
                   .read<NotificationsBloc>()
                   .add(const LoadNotifications()),
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text(context.l10n.retry),
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen),
             ),

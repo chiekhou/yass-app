@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -14,7 +15,7 @@ class MainPage extends StatelessWidget {
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
     if (location.startsWith('/search')) return 1;
-    if (location.startsWith('/favorites')) return 2;
+    if (location.startsWith('/suggestions')) return 2;
     if (location.startsWith('/profile')) return 3;
     return 0;
   }
@@ -28,7 +29,7 @@ class MainPage extends StatelessWidget {
         context.go(AppRoutes.search);
         break;
       case 2:
-        context.go(AppRoutes.favorites);
+        context.go(AppRoutes.suggestions);
         break;
       case 3:
         context.go(AppRoutes.profile);
@@ -47,7 +48,7 @@ class MainPage extends StatelessWidget {
           color: AppColors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -65,28 +66,28 @@ class MainPage extends StatelessWidget {
                 _NavItem(
                   icon: Iconsax.home_2,
                   activeIcon: Iconsax.home_25,
-                  label: AppStrings.home,
+                  label: context.l10n.home,
                   isSelected: selectedIndex == 0,
                   onTap: () => _onItemTapped(context, 0),
                 ),
                 _NavItem(
                   icon: Iconsax.search_normal_1,
                   activeIcon: Iconsax.search_normal,
-                  label: AppStrings.search,
+                  label: context.l10n.search,
                   isSelected: selectedIndex == 1,
                   onTap: () => _onItemTapped(context, 1),
                 ),
                 _NavItem(
-                  icon: Iconsax.heart,
-                  activeIcon: Iconsax.heart5,
-                  label: AppStrings.favorites,
+                  icon: Iconsax.shop_add,
+                  activeIcon: Iconsax.shop_add,
+                  label: 'Suggestions',
                   isSelected: selectedIndex == 2,
                   onTap: () => _onItemTapped(context, 2),
                 ),
                 _NavItem(
                   icon: Iconsax.user,
                   activeIcon: Iconsax.user,
-                  label: AppStrings.profile,
+                  label: context.l10n.profile,
                   isSelected: selectedIndex == 3,
                   onTap: () => _onItemTapped(context, 3),
                 ),
@@ -127,7 +128,7 @@ class _NavItem extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryGreen.withOpacity(0.1)
+              ? AppColors.primaryGreen.withValues(alpha: 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),

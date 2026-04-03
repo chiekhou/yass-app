@@ -148,6 +148,56 @@ class NotificationService {
     );
   }
 
+  /**
+   * Notifie tous les admins/super_admins qu'une nouvelle suggestion est en attente.
+   */
+  async notifyAdminNewSuggestion(suggestion, suggesterName) {
+    const { Op } = require('sequelize');
+    const admins = await User.findAll({
+      where: { role: { [Op.in]: ['admin', 'super_admin'] }, status: 'active' },
+      attributes: ['id'],
+    });
+
+    const promises = admins.map((admin) =>
+      this.create(
+        admin.id,
+        'suggestion_pending',
+        'Nouvelle suggestion en attente',
+        `${suggesterName} a suggéré l'établissement "${suggestion.name}". En attente de validation.`,
+        { suggestion_id: suggestion.id }
+      )
+    );
+
+    await Promise.allSettled(promises);
+  }
+
+  /**
+   * Notifie tous les admins/super_admins qu'un nouveau paiement manuel est en attente.
+   */
+  async notifyAdminNewPayment(invoice, partnerCompanyName) {
+    const { Op } = require('sequelize');
+    const admins = await User.findAll({
+      where: { role: { [Op.in]: ['admin', 'super_admin'] }, status: 'active' },
+      attributes: ['id'],
+    });
+
+    const methodLabel =
+      invoice.payment_method === 'cash' ? 'Espèces' :
+      invoice.payment_method === 'manual' ? 'Virement bancaire' : 'Chargily';
+
+    const promises = admins.map((admin) =>
+      this.create(
+        admin.id,
+        'payment_pending',
+        'Nouveau paiement en attente',
+        `${partnerCompanyName} a soumis un paiement (${invoice.invoice_number}) — ${methodLabel}. En attente de validation.`,
+        { invoice_id: invoice.id, invoice_number: invoice.invoice_number }
+      )
+    );
+
+    await Promise.allSettled(promises);
+  }
+
   async notifyReviewReply(review, reviewAuthorUserId) {
     return this.create(
       reviewAuthorUserId,
@@ -155,6 +205,40 @@ class NotificationService {
       'Nouvelle réponse à votre avis',
       'Le partenaire a répondu à votre avis.',
       { review_id: review.id }
+    );
+  }
+
+
+  async notifySuggestionApproved(suggestion, suggestedByUserId) {
+    return this.create(
+      suggestedByUserId,
+      'suggestion_approved',
+      'Suggestion approuvée ✅',
+      `Votre suggestion "${suggestion.name}" a été approuvée par l'équipe.  Elle sera bientôt ajoutée à l'annuaire.`,
+      { suggestion_id: suggestion.id }
+    );
+  }
+
+  async notifySuggestionRejected(suggestion, suggestedByUserId, note = null) {
+    const body = note
+      ? `Votre suggestion "${suggestion.name}" a été refusée. Note : ${note}`
+      : `Votre suggestion "${suggestion.name}" a été refusée.`;
+    return this.create(
+      suggestedByUserId,
+      'suggestion_rejected',
+      'Suggestion refusée',
+      body,
+      { suggestion_id: suggestion.id }
+    );
+  }
+
+  async notifyPartnerNewContact(partnerUserId, establishmentName, senderName, senderEmail) {
+    await this.create(
+      partnerUserId,
+      'contact_message',
+      'Nouveau message de contact',
+      `${senderName} (${senderEmail}) vous a envoyé un message pour "${establishmentName}".`,
+      { sender_name: senderName, sender_email: senderEmail }
     );
   }
 

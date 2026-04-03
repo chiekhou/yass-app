@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -53,7 +54,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: const Text(AppStrings.favorites),
+        title: Text(context.l10n.favorites),
         actions: [
           BlocBuilder<FavoriteBloc, FavoriteState>(
             builder: (context, state) {
@@ -307,8 +308,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     const SizedBox(height: AppDimens.paddingXS),
                     Row(
                       children: [
-                        const Icon(Icons.star_rounded,
-                            color: AppColors.starFilled, size: 14),
+                        const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                         const SizedBox(width: 2),
                         Text(
                           e.displayRating,
@@ -403,7 +403,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 backgroundColor: AppColors.white,
                 foregroundColor: AppColors.primaryGreen,
               ),
-              child: const Text(AppStrings.login),
+              child: Text(context.l10n.login),
             ),
           ],
         ),

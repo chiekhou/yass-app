@@ -59,7 +59,9 @@ class Invoice extends Equatable {
       case 'chargily':
         return 'CIB / EDAHABIA';
       case 'manual':
-        return 'Virement manuel';
+        return 'Virement bancaire';
+      case 'cash':
+        return 'Espèces';
       default:
         return paymentMethod;
     }
@@ -67,15 +69,18 @@ class Invoice extends Equatable {
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     const planLabels = {
-      'monthly': 'Mensuel',
-      'yearly': 'Annuel',
+      'monthly': 'Premium Mensuel',
+      'yearly': 'Gold Annuel',
+      'featured_7': 'Mise à la une – 7 jours',
+      'featured_15': 'Mise à la une – 15 jours',
+      'featured_30': 'Mise à la une – 30 jours',
     };
 
     return Invoice(
       id: json['id'] ?? '',
       invoiceNumber: json['invoice_number'] ?? '',
       plan: json['plan'] ?? 'monthly',
-      planLabel: planLabels[json['plan']] ?? json['plan'] ?? 'Mensuel',
+      planLabel: planLabels[json['plan']] ?? json['plan'] ?? '',
       amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
       currency: json['currency'] ?? 'DZD',
       paymentMethod: json['payment_method'] ?? 'manual',

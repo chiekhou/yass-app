@@ -73,10 +73,11 @@ class AppStrings {
 
   // Profile
   static const String editProfile = 'Modifier le profil';
+  static const String myFavorites = 'Mes Favoris';
   static const String myReviews = 'Mes avis';
   static const String settings = 'Paramètres';
   static const String language = 'Langue';
-  static const String notifications = 'Notifications';
+  static const String notifications = 'Mes Notifications';
   static const String darkMode = 'Mode sombre';
   static const String about_ = 'À propos';
   static const String privacyPolicy = 'Politique de confidentialité';

@@ -77,6 +77,11 @@ module.exports = {
       monthly: { amount: 2000, days: 30, label: "Mensuel" },
       yearly: { amount: 18000, days: 365, label: "Annuel" },
     },
+    featuredPlans: {
+      featured_7:  { amount: 500,  days: 7,  label: "7 jours" },
+      featured_15: { amount: 800,  days: 15, label: "15 jours" },
+      featured_30: { amount: 1400, days: 30, label: "30 jours" },
+    },
     bankDetails: {
       ccp: process.env.BANK_CCP || "0012345678 clé 12",
       rib: process.env.BANK_RIB || "00200 00001 0000000000 12",

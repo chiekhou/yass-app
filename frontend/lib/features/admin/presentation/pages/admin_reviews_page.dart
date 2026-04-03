@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -10,7 +11,8 @@ import '../bloc/admin_reviews_bloc.dart';
 import '../widgets/admin_drawer.dart';
 
 class AdminReviewsPage extends StatefulWidget {
-  const AdminReviewsPage({super.key});
+  final String initialTab;
+  const AdminReviewsPage({super.key, this.initialTab = 'pending'});
 
   @override
   State<AdminReviewsPage> createState() => _AdminReviewsPageState();
@@ -19,11 +21,14 @@ class AdminReviewsPage extends StatefulWidget {
 class _AdminReviewsPageState extends State<AdminReviewsPage> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
-  bool _isReportedTab = false;
+  // 'pending' | 'reported' | 'all'
+  late String _activeTab;
+  String _statusFilter = 'all';
 
   @override
   void initState() {
     super.initState();
+    _activeTab = widget.initialTab;
     _loadReviews();
     _scrollController.addListener(_onScroll);
   }
@@ -36,8 +41,11 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
   }
 
   void _loadReviews() {
-    if (_isReportedTab) {
+    _searchController.clear();
+    if (_activeTab == 'reported') {
       context.read<AdminReviewsBloc>().add(const AdminReviewsLoadReported());
+    } else if (_activeTab == 'all') {
+      context.read<AdminReviewsBloc>().add(AdminReviewsLoadAll(status: _statusFilter));
     } else {
       context.read<AdminReviewsBloc>().add(const AdminReviewsLoadPending());
     }
@@ -55,7 +63,7 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Gestion des avis'),
+        title: Text(context.l10n.reviewsManagement),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -112,45 +120,99 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
   }
 
   Widget _buildFilterChips(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingM,
-        vertical: AppDimens.paddingS,
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _buildFilterChip(
-              context,
-              label: 'En attente',
-              isSelected: !_isReportedTab,
-              color: AppColors.warning,
-              onTap: () {
-                setState(() => _isReportedTab = false);
-                _searchController.clear();
-                context
-                    .read<AdminReviewsBloc>()
-                    .add(const AdminReviewsLoadPending());
-              },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Onglets principaux ──
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingM,
+            vertical: AppDimens.paddingS,
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(
+                  context,
+                  label: 'En attente',
+                  isSelected: _activeTab == 'pending',
+                  color: AppColors.warning,
+                  onTap: () {
+                    setState(() { _activeTab = 'pending'; });
+                    _loadReviews();
+                  },
+                ),
+                const SizedBox(width: AppDimens.paddingS),
+                _buildFilterChip(
+                  context,
+                  label: 'Signalés',
+                  isSelected: _activeTab == 'reported',
+                  color: AppColors.error,
+                  onTap: () {
+                    setState(() { _activeTab = 'reported'; });
+                    _loadReviews();
+                  },
+                ),
+                const SizedBox(width: AppDimens.paddingS),
+                _buildFilterChip(
+                  context,
+                  label: 'Tous',
+                  isSelected: _activeTab == 'all',
+                  color: AppColors.primaryGreen,
+                  onTap: () {
+                    setState(() { _activeTab = 'all'; _statusFilter = 'all'; });
+                    _loadReviews();
+                  },
+                ),
+              ],
             ),
-            const SizedBox(width: AppDimens.paddingS),
-            _buildFilterChip(
-              context,
-              label: 'Signalés',
-              isSelected: _isReportedTab,
-              color: AppColors.error,
-              onTap: () {
-                setState(() => _isReportedTab = true);
-                _searchController.clear();
-                context
-                    .read<AdminReviewsBloc>()
-                    .add(const AdminReviewsLoadReported());
-              },
-            ),
-          ],
+          ),
         ),
-      ),
+        // ── Sous-filtres statut (onglet "Tous" uniquement) ──
+        if (_activeTab == 'all')
+          Container(
+            padding: const EdgeInsets.only(
+              left: AppDimens.paddingM,
+              right: AppDimens.paddingM,
+              bottom: AppDimens.paddingS,
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final entry in {
+                    'all': 'Tous les statuts',
+                    'pending': 'En attente',
+                    'approved': 'Approuvés',
+                    'rejected': 'Rejetés',
+                  }.entries)
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppDimens.paddingS),
+                      child: _buildFilterChip(
+                        context,
+                        label: entry.value,
+                        isSelected: _statusFilter == entry.key,
+                        color: entry.key == 'approved'
+                            ? AppColors.success
+                            : entry.key == 'rejected'
+                                ? AppColors.error
+                                : entry.key == 'pending'
+                                    ? AppColors.warning
+                                    : AppColors.grey500,
+                        onTap: () {
+                          setState(() { _statusFilter = entry.key; });
+                          context.read<AdminReviewsBloc>().add(
+                                AdminReviewsLoadAll(status: entry.key),
+                              );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -273,7 +335,7 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
   }
 
   Widget _buildCountHeader(BuildContext context, int count) {
-    final isReported = _isReportedTab;
+    final isReported = (_activeTab == 'reported');
     return Container(
       padding: const EdgeInsets.all(AppDimens.paddingM),
       color: AppColors.white,
@@ -329,6 +391,16 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
         review.user != null ? review.user!.firstName[0].toUpperCase() : 'U';
     final timeAgo = _formatTimeAgo(review.createdAt);
 
+    const subRatingLabels = {
+      'quality': 'Qualité',
+      'welcome': 'Accueil',
+      'information': 'Information',
+      'value': 'Rapport qualité/prix',
+      'availability': 'Disponibilité',
+      'reliability': 'Fiabilité',
+      'comfort': 'Confort',
+    };
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -340,19 +412,23 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User info + rating
+
+            // ── En-tête : avatar + nom + email + note + date ──
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppColors.greenSurface,
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      color: AppColors.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  backgroundImage: review.user?.avatar != null
+                      ? NetworkImage(review.user!.avatar!)
+                      : null,
+                  child: review.user?.avatar == null
+                      ? Text(initials,
+                          style: const TextStyle(
+                              color: AppColors.primaryGreen,
+                              fontWeight: FontWeight.bold))
+                      : null,
                 ),
                 const SizedBox(width: AppDimens.paddingS),
                 Expanded(
@@ -361,21 +437,25 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
                     children: [
                       Text(userName,
                           style: Theme.of(context).textTheme.titleSmall),
+                      if (review.user?.email != null)
+                        Text(
+                          review.user!.email!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: AppColors.grey500),
+                        ),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           ...List.generate(
-                            5,
-                            (i) => Icon(
-                              Icons.star_rounded,
-                              size: 14,
-                              color: i < review.rating
-                                  ? AppColors.starFilled
-                                  : AppColors.starEmpty,
-                            ),
+                            review.rating,
+                            (i) => const Text('🇩🇿',
+                                style: TextStyle(fontSize: 11)),
                           ),
-                          const SizedBox(width: AppDimens.paddingS),
+                          const SizedBox(width: 4),
                           Text(
-                            timeAgo,
+                            '${review.rating}/5 · $timeAgo',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
@@ -386,20 +466,22 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
                     ],
                   ),
                 ),
-                // Status badge
+                // Badge statut
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: _isReportedTab
+                    color: (_activeTab == 'reported')
                         ? AppColors.error.withValues(alpha: 0.1)
                         : AppColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   ),
                   child: Text(
-                    _isReportedTab ? 'Signalé' : 'En attente',
+                    (_activeTab == 'reported')
+                        ? context.l10n.statusReported
+                        : context.l10n.statusPending,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: _isReportedTab
+                          color: (_activeTab == 'reported')
                               ? AppColors.error
                               : AppColors.warning,
                           fontWeight: FontWeight.w600,
@@ -409,9 +491,77 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
               ],
             ),
 
+            // ── Établissement ciblé ──
+            if (review.establishment != null) ...[
+              const SizedBox(height: AppDimens.paddingS),
+              Row(
+                children: [
+                  const Icon(Iconsax.building, size: 13, color: AppColors.grey400),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      review.establishment!.name,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.grey600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            // ── Date de visite ──
+            if (review.visitDate != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Iconsax.calendar_1, size: 13, color: AppColors.grey400),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Visité le ${_formatDate(review.visitDate!)}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: AppColors.grey500),
+                  ),
+                ],
+              ),
+            ],
+
+            // ── Signalements ──
+            if ((_activeTab == 'reported') && review.reportCount > 0) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Iconsax.flag, size: 13, color: AppColors.error),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${review.reportCount} signalement${review.reportCount > 1 ? 's' : ''}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
+            ],
+
             const SizedBox(height: AppDimens.paddingM),
 
-            // Comment
+            // ── Titre ──
+            if (review.title != null && review.title!.isNotEmpty) ...[
+              Text(
+                review.title!,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+            ],
+
+            // ── Commentaire ──
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(AppDimens.paddingM),
@@ -428,20 +578,151 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
               ),
             ),
 
+            // ── Pros ──
+            if (review.hasPros) ...[
+              const SizedBox(height: AppDimens.paddingS),
+              ...review.pros!.map((pro) => Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.add_circle_outline_rounded,
+                            size: 14, color: AppColors.primaryGreen),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(pro,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.grey700)),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+
+            // ── Cons ──
+            if (review.hasCons) ...[
+              SizedBox(height: review.hasPros ? 2 : AppDimens.paddingS),
+              ...review.cons!.map((con) => Padding(
+                    padding: const EdgeInsets.only(bottom: 3),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.remove_circle_outline_rounded,
+                            size: 14, color: AppColors.error),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(con,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: AppColors.grey700)),
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+
+            // ── Sub-ratings ──
+            if (review.hasSubRatings) ...[
+              const SizedBox(height: AppDimens.paddingM),
+              Text(
+                'Notes détaillées',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.grey500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+              ),
+              const SizedBox(height: AppDimens.paddingS),
+              Wrap(
+                spacing: AppDimens.paddingS,
+                runSpacing: AppDimens.paddingXS,
+                children: review.subRatings!.entries
+                    .where((e) => e.value != null)
+                    .map((e) {
+                  final label =
+                      subRatingLabels[e.key] ?? e.key;
+                  final val = (e.value as num).toInt();
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey100,
+                      borderRadius:
+                          BorderRadius.circular(AppDimens.radiusS),
+                      border: Border.all(color: AppColors.grey200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: AppColors.grey600),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$val/5',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                color: AppColors.primaryGreen,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+
+            // ── Photos ──
+            if (review.hasImages) ...[
+              const SizedBox(height: AppDimens.paddingM),
+              SizedBox(
+                height: 72,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: review.images!.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (_, i) => ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(AppDimens.radiusS),
+                    child: Image.network(
+                      review.images![i],
+                      width: 72,
+                      height: 72,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 72,
+                        height: 72,
+                        color: AppColors.grey200,
+                        child: const Icon(Iconsax.image,
+                            color: AppColors.grey400),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
             const SizedBox(height: AppDimens.paddingM),
 
-            // Action buttons
+            // ── Boutons d'action ──
             Row(
               children: [
-                if (!_isReportedTab) ...[
-                  // Approve
+                if (!(_activeTab == 'reported')) ...[
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        context.read<AdminReviewsBloc>().add(
-                              AdminReviewApprove(reviewId: review.id),
-                            );
-                      },
+                      onPressed: () => context.read<AdminReviewsBloc>().add(
+                            AdminReviewApprove(reviewId: review.id),
+                          ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.success,
                         side: const BorderSide(color: AppColors.success),
@@ -451,7 +732,6 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
                     ),
                   ),
                   const SizedBox(width: AppDimens.paddingS),
-                  // Reject
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(review.id),
@@ -464,14 +744,11 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
                     ),
                   ),
                 ] else ...[
-                  // Dismiss report
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        context.read<AdminReviewsBloc>().add(
-                              AdminReviewDismissReport(reviewId: review.id),
-                            );
-                      },
+                      onPressed: () => context.read<AdminReviewsBloc>().add(
+                            AdminReviewDismissReport(reviewId: review.id),
+                          ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.success,
                         side: const BorderSide(color: AppColors.success),
@@ -481,7 +758,6 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
                     ),
                   ),
                   const SizedBox(width: AppDimens.paddingS),
-                  // Delete the review
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => _showRejectDialog(review.id),
@@ -500,6 +776,14 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'jan', 'fév', 'mar', 'avr', 'mai', 'juin',
+      'juil', 'août', 'sep', 'oct', 'nov', 'déc'
+    ];
+    return '${date.day} ${months[date.month - 1]}. ${date.year}';
   }
 
   Widget _buildErrorState(String message) {
@@ -536,7 +820,7 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
             ElevatedButton.icon(
               onPressed: _loadReviews,
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen),
             ),
@@ -547,7 +831,7 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
   }
 
   Widget _buildEmptyState() {
-    final isReported = _isReportedTab;
+    final isReported = (_activeTab == 'reported');
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppDimens.paddingXL),
@@ -606,7 +890,7 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
         ),
-        title: Text(_isReportedTab ? 'Supprimer cet avis' : 'Rejeter cet avis'),
+        title: Text((_activeTab == 'reported') ? 'Supprimer cet avis' : 'Rejeter cet avis'),
         content: TextField(
           controller: controller,
           maxLines: 3,
@@ -635,7 +919,7 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
-            child: Text(_isReportedTab ? 'Supprimer' : 'Rejeter'),
+            child: Text((_activeTab == 'reported') ? 'Supprimer' : 'Rejeter'),
           ),
         ],
       ),

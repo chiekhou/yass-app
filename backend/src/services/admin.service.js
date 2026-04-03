@@ -1,8 +1,7 @@
-const { User, Partner, Establishment, Review, Favorite, Promotion, RefreshToken, SubCategory, Commune } = require("../models");
+const { User, Partner, Establishment, Review, Favorite, Promotion, RefreshToken, SubCategory, Commune, AppSession } = require("../models");
 const invoiceService = require("./invoice.service");
 const ApiError = require("../utils/ApiError");
 const { Op, literal } = require("sequelize");
-const bcrypt = require("bcryptjs");
 const emailService = require("./email.service");
 const { generateSlug, generateUniqueSlug } = require("../utils/helpers");
 const notificationService = require("./notification.service");
@@ -12,6 +11,12 @@ class AdminService {
    * Get dashboard statistics
    */
   async getDashboardStats() {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
     const [
       totalUsers,
       totalPartners,
@@ -22,6 +27,21 @@ class AdminService {
       totalReviews,
       pendingReviews,
       reportedReviews,
+      totalVisits,
+      visitsToday,
+      visitsThisWeek,
+      visitsThisMonth,
+      genderMale,
+      genderFemale,
+      genderYoung,
+      genderChild,
+      genderUnknown,
+      ageUnder18,
+      age18to25,
+      age26to35,
+      age36to50,
+      ageOver50,
+      ageUnknown,
     ] = await Promise.all([
       User.count({ where: { role: "user" } }),
       Partner.count(),
@@ -32,6 +52,21 @@ class AdminService {
       Review.count(),
       Review.count({ where: { status: "pending" } }),
       Review.count({ where: { report_count: { [Op.gt]: 0 } } }),
+      AppSession.count(),
+      AppSession.count({ where: { created_at: { [Op.gte]: startOfToday } } }),
+      AppSession.count({ where: { created_at: { [Op.gte]: startOfWeek } } }),
+      AppSession.count({ where: { created_at: { [Op.gte]: startOfMonth } } }),
+      User.count({ where: { role: "user", gender: "male" } }),
+      User.count({ where: { role: "user", gender: "female" } }),
+      User.count({ where: { role: "user", gender: "young" } }),
+      User.count({ where: { role: "user", gender: "child" } }),
+      User.count({ where: { role: "user", gender: null } }),
+      User.count({ where: { role: "user", age: { [Op.lt]: 18, [Op.not]: null } } }),
+      User.count({ where: { role: "user", age: { [Op.between]: [18, 25] } } }),
+      User.count({ where: { role: "user", age: { [Op.between]: [26, 35] } } }),
+      User.count({ where: { role: "user", age: { [Op.between]: [36, 50] } } }),
+      User.count({ where: { role: "user", age: { [Op.gt]: 50 } } }),
+      User.count({ where: { role: "user", age: null } }),
     ]);
 
     return {
@@ -51,6 +86,25 @@ class AdminService {
         total: totalReviews,
         pending: pendingReviews,
         reported: reportedReviews,
+      },
+      demographics: {
+        male: genderMale,
+        female: genderFemale,
+        young: genderYoung,
+        child: genderChild,
+        unknown: genderUnknown,
+        age_under_18: ageUnder18,
+        age_18_25: age18to25,
+        age_26_35: age26to35,
+        age_36_50: age36to50,
+        age_over_50: ageOver50,
+        age_unknown: ageUnknown,
+      },
+      visits: {
+        total: totalVisits,
+        today: visitsToday,
+        this_week: visitsThisWeek,
+        this_month: visitsThisMonth,
       },
     };
   }
@@ -443,12 +497,11 @@ class AdminService {
       throw ApiError.conflict("A user with this email already exists");
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
     // Create user with role=partner, active + verified (no OTP needed)
+    // Note: User model's beforeCreate hook handles password hashing automatically
     const user = await User.create({
       email,
-      password: hashedPassword,
+      password,
       first_name,
       last_name,
       phone: phone || null,
@@ -553,8 +606,59 @@ class AdminService {
   // ==================== ESTABLISHMENT MANAGEMENT ====================
 
   /**
+   * Get all establishments with optional status filter and search
+   */
+  async getEstablishments(options = {}) {
+    const { page = 1, limit = 20, status, search } = options;
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (status) where.status = status;
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { address: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const { count, rows } = await Establishment.findAndCountAll({
+      where,
+      limit,
+      offset,
+      order: [["created_at", "DESC"]],
+      include: [
+        {
+          model: Partner,
+          as: "partner",
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "email", "first_name", "last_name"],
+            },
+          ],
+        },
+        { association: "category", attributes: ["id", "name", "name_ar"] },
+        { association: "wilaya", attributes: ["id", "name", "name_ar"] },
+      ],
+      distinct: true,
+    });
+
+    return {
+      establishments: rows,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
+  }
+
+  /**
    * Get pending establishments
    */
+
   async getPendingEstablishments(options = {}) {
     const { page = 1, limit = 20 } = options;
     const offset = (page - 1) * limit;
@@ -675,6 +779,35 @@ class AdminService {
     await Favorite.destroy({ where: { establishment_id: establishmentId } });
     await Review.destroy({ where: { establishment_id: establishmentId } });
     await establishment.destroy();
+  }
+
+  /**
+   * Toggle featured status of an establishment.
+   * durationDays = null → sans limite (featured_until = null)
+   * durationDays = 0    → retirer la mise en avant
+   * durationDays > 0    → mettre en avant pour N jours
+   */
+  async setFeatured(establishmentId, durationDays) {
+    const establishment = await Establishment.findByPk(establishmentId);
+    if (!establishment) {
+      throw ApiError.notFound("Establishment not found");
+    }
+
+    if (durationDays !== 0 && establishment.status !== "active") {
+      throw ApiError.badRequest("Seuls les établissements actifs peuvent être mis à la une");
+    }
+
+    if (durationDays === 0) {
+      await establishment.update({ is_featured: false, featured_until: null });
+    } else if (durationDays == null) {
+      await establishment.update({ is_featured: true, featured_until: null });
+    } else {
+      const until = new Date();
+      until.setDate(until.getDate() + parseInt(durationDays));
+      await establishment.update({ is_featured: true, featured_until: until });
+    }
+
+    return establishment.reload();
   }
 }
 

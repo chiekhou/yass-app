@@ -60,13 +60,22 @@ class _AdminCreateEstablishmentPageState
 
   // Opening hours
   static const _days = [
-    'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday', 'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
   ];
   static const _dayLabels = {
-    'monday': 'Lundi', 'tuesday': 'Mardi', 'wednesday': 'Mercredi',
-    'thursday': 'Jeudi', 'friday': 'Vendredi',
-    'saturday': 'Samedi', 'sunday': 'Dimanche',
+    'monday': 'Lundi',
+    'tuesday': 'Mardi',
+    'wednesday': 'Mercredi',
+    'thursday': 'Jeudi',
+    'friday': 'Vendredi',
+    'saturday': 'Samedi',
+    'sunday': 'Dimanche',
   };
   late final Map<String, bool> _dayClosed;
   late final Map<String, TextEditingController> _openCtrl;
@@ -175,11 +184,13 @@ class _AdminCreateEstablishmentPageState
         'subcategory_id': _selectedSubcategoryId,
         'commune_id': _selectedCommuneId,
         'name': _nameCtrl.text.trim(),
-        if (_nameArCtrl.text.trim().isNotEmpty) 'name_ar': _nameArCtrl.text.trim(),
+        if (_nameArCtrl.text.trim().isNotEmpty)
+          'name_ar': _nameArCtrl.text.trim(),
         'description': _descriptionCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
         if (_phoneCtrl.text.trim().isNotEmpty) 'phone': _phoneCtrl.text.trim(),
-        if (_whatsappCtrl.text.trim().isNotEmpty) 'whatsapp': _whatsappCtrl.text.trim(),
+        if (_whatsappCtrl.text.trim().isNotEmpty)
+          'whatsapp': _whatsappCtrl.text.trim(),
         if (_selectedPriceRange != null) 'price_range': _selectedPriceRange,
         if (_services.isNotEmpty) 'services': _services,
         if (_amenities.isNotEmpty) 'amenities': _amenities,
@@ -299,11 +310,11 @@ class _AdminCreateEstablishmentPageState
 
             // Wilaya dropdown
             DropdownButtonFormField<String>(
-              value: _selectedWilayaId,
+              initialValue: _selectedWilayaId,
               decoration: _dropdownDecoration('Wilaya'),
               items: _wilayas
-                  .map((w) => DropdownMenuItem(
-                      value: w.id, child: Text(w.name)))
+                  .map(
+                      (w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
                   .toList(),
               onChanged: _onWilayaChanged,
               validator: (v) => v == null ? 'Wilaya requise' : null,
@@ -312,11 +323,11 @@ class _AdminCreateEstablishmentPageState
 
             // Commune dropdown
             DropdownButtonFormField<String>(
-              value: _selectedCommuneId,
+              initialValue: _selectedCommuneId,
               decoration: _dropdownDecoration('Commune'),
               items: _communes
-                  .map((c) => DropdownMenuItem(
-                      value: c.id, child: Text(c.name)))
+                  .map(
+                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                   .toList(),
               onChanged: (v) => setState(() => _selectedCommuneId = v),
               validator: (v) => v == null ? 'Commune requise' : null,
@@ -328,11 +339,11 @@ class _AdminCreateEstablishmentPageState
 
             // Category dropdown
             DropdownButtonFormField<String>(
-              value: _selectedCategoryId,
+              initialValue: _selectedCategoryId,
               decoration: _dropdownDecoration('Catégorie'),
               items: _categories
-                  .map((c) => DropdownMenuItem(
-                      value: c.id, child: Text(c.name)))
+                  .map(
+                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                   .toList(),
               onChanged: _onCategoryChanged,
               validator: (v) => v == null ? 'Catégorie requise' : null,
@@ -341,11 +352,11 @@ class _AdminCreateEstablishmentPageState
 
             // Subcategory dropdown
             DropdownButtonFormField<String>(
-              value: _selectedSubcategoryId,
+              initialValue: _selectedSubcategoryId,
               decoration: _dropdownDecoration('Sous-catégorie'),
               items: _subcategories
-                  .map((s) => DropdownMenuItem(
-                      value: s.id, child: Text(s.name)))
+                  .map(
+                      (s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
                   .toList(),
               onChanged: (v) => setState(() => _selectedSubcategoryId = v),
               validator: (v) => v == null ? 'Sous-catégorie requise' : null,
@@ -360,8 +371,7 @@ class _AdminCreateEstablishmentPageState
               label: 'Nom de l\'établissement',
               hint: 'Restaurant El Djazair',
               prefixIcon: Iconsax.building,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Nom requis' : null,
+              validator: (v) => (v == null || v.isEmpty) ? 'Nom requis' : null,
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
@@ -415,14 +425,13 @@ class _AdminCreateEstablishmentPageState
             const SizedBox(height: AppDimens.paddingM),
 
             DropdownButtonFormField<String>(
-              value: _selectedPriceRange,
+              initialValue: _selectedPriceRange,
               decoration: _dropdownDecoration('Gamme de prix (optionnel)'),
               items: const [
                 DropdownMenuItem(value: r'$', child: Text(r'$ — Économique')),
                 DropdownMenuItem(value: r'$$', child: Text(r'$$ — Modéré')),
                 DropdownMenuItem(value: r'$$$', child: Text(r'$$$ — Élevé')),
-                DropdownMenuItem(
-                    value: r'$$$$', child: Text(r'$$$$ — Luxe')),
+                DropdownMenuItem(value: r'$$$$', child: Text(r'$$$$ — Luxe')),
               ],
               onChanged: (v) => setState(() => _selectedPriceRange = v),
             ),
@@ -526,7 +535,8 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(width: AppDimens.paddingS),
             IconButton(
-              icon: const Icon(Iconsax.add_square, color: AppColors.primaryGreen),
+              icon:
+                  const Icon(Iconsax.add_square, color: AppColors.primaryGreen),
               onPressed: () {
                 final val = controller.text.trim();
                 if (val.isNotEmpty && !items.contains(val)) {
@@ -544,8 +554,7 @@ class _AdminCreateEstablishmentPageState
             runSpacing: AppDimens.paddingXS,
             children: items
                 .map((item) => Chip(
-                      label: Text(item,
-                          style: const TextStyle(fontSize: 12)),
+                      label: Text(item, style: const TextStyle(fontSize: 12)),
                       deleteIcon: const Icon(Iconsax.close_circle, size: 14),
                       onDeleted: () => onRemove(item),
                       backgroundColor:
@@ -659,8 +668,7 @@ class _AdminCreateEstablishmentPageState
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        borderSide:
-            const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM, vertical: AppDimens.paddingM),

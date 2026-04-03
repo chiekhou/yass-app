@@ -49,6 +49,8 @@ class EstablishmentTrackPhone extends EstablishmentEvent {}
 
 class EstablishmentTrackWhatsApp extends EstablishmentEvent {}
 
+class EstablishmentTrackContact extends EstablishmentEvent {}
+
 // ==================== STATES ====================
 
 abstract class EstablishmentState extends Equatable {
@@ -126,6 +128,7 @@ class EstablishmentBloc extends Bloc<EstablishmentEvent, EstablishmentState> {
     on<EstablishmentLoadReviews>(_onLoadReviews);
     on<EstablishmentTrackPhone>(_onTrackPhone);
     on<EstablishmentTrackWhatsApp>(_onTrackWhatsApp);
+    on<EstablishmentTrackContact>(_onTrackContact);
   }
 
   Future<void> _onLoadById(
@@ -242,6 +245,18 @@ class EstablishmentBloc extends Bloc<EstablishmentEvent, EstablishmentState> {
     if (currentState is EstablishmentLoaded) {
       try {
         await _repository.trackWhatsAppClick(currentState.establishment.id);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _onTrackContact(
+    EstablishmentTrackContact event,
+    Emitter<EstablishmentState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EstablishmentLoaded) {
+      try {
+        await _repository.trackContact(currentState.establishment.id);
       } catch (_) {}
     }
   }

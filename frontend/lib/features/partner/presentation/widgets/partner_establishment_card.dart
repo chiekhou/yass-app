@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -183,15 +184,15 @@ class PartnerEstablishmentCard extends StatelessWidget {
     switch (establishment.status) {
       case 'active':
         color = AppColors.success;
-        label = 'Actif';
+        label = context.l10n.statusActive;
         break;
       case 'pending':
         color = AppColors.warning;
-        label = 'En attente';
+        label = context.l10n.statusPending;
         break;
       case 'rejected':
         color = AppColors.error;
-        label = 'Rejeté';
+        label = context.l10n.statusRejected;
         break;
       case 'inactive':
         color = AppColors.grey500;

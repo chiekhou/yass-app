@@ -149,11 +149,7 @@ class EstablishmentListCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.star_rounded,
-                                size: 14,
-                                color: AppColors.starFilled,
-                              ),
+                              const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                               const SizedBox(width: 2),
                               Text(
                                 establishment.displayRating,

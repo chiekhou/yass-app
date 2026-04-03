@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -193,7 +194,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'En attente',
+                  label: context.l10n.statusPending,
                   isSelected: statusFilter == 'pending',
                   color: AppColors.warning,
                   onTap: () => context
@@ -335,7 +336,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               onPressed: () =>
                   context.read<AdminUsersBloc>().add(const AdminUsersLoad()),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -397,7 +398,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             ListTile(
               leading:
                   const Icon(Iconsax.tick_circle, color: AppColors.success),
-              title: const Text('Actif'),
+              title: Text(context.l10n.statusActive),
               selected: user.status == 'active',
               onTap: () {
                 Navigator.pop(dialogContext);
@@ -422,7 +423,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             ListTile(
               leading:
                   const Icon(Iconsax.clock, color: AppColors.warning),
-              title: const Text('En attente'),
+              title: Text(context.l10n.statusPending),
               selected: user.status == 'pending',
               onTap: () {
                 Navigator.pop(dialogContext);
@@ -434,7 +435,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             ),
             ListTile(
               leading: const Icon(Iconsax.slash, color: AppColors.error),
-              title: const Text('Suspendu'),
+              title: Text(context.l10n.statusSuspended),
               selected: user.status == 'suspended',
               onTap: () {
                 Navigator.pop(dialogContext);
@@ -449,7 +450,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(AppStrings.cancel),
+            child: Text(context.l10n.cancel),
           ),
         ],
       ),
@@ -467,7 +468,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(AppStrings.cancel),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -480,7 +481,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text(AppStrings.delete),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -590,7 +591,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Actif'),
+                label: Text(context.l10n.statusActive),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -610,7 +611,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('En attente'),
+                label: Text(context.l10n.statusPending),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -620,7 +621,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Suspendu'),
+                label: Text(context.l10n.statusSuspended),
                 selected: false,
                 onSelected: (_) {
                   context

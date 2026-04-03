@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -163,7 +164,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'En attente',
+                  label: context.l10n.statusPending,
                   isSelected: statusFilter == 'pending',
                   color: AppColors.warning,
                   onTap: () => context.read<AdminPartnersBloc>().add(
@@ -389,7 +390,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                     AdminPartnersLoad(pendingOnly: widget.pendingOnly),
                   ),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen),
             ),
@@ -508,7 +509,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(AppStrings.cancel),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -566,7 +567,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(AppStrings.cancel),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -650,7 +651,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Approuvé'),
+                label: Text(context.l10n.statusApproved),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminPartnersBloc>().add(
@@ -659,7 +660,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('En attente'),
+                label: Text(context.l10n.statusPending),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminPartnersBloc>().add(
@@ -668,7 +669,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Rejeté'),
+                label: Text(context.l10n.statusRejected),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminPartnersBloc>().add(
@@ -677,7 +678,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Suspendu'),
+                label: Text(context.l10n.statusSuspended),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminPartnersBloc>().add(

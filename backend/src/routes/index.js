@@ -12,6 +12,22 @@ const favoriteRoutes = require("./favorite.routes");
 const reviewRoutes = require("./review.routes");
 const uploadRoutes = require("./upload.routes");
 const notificationRoutes = require("./notification.routes");
+const suggestionRoutes = require("./suggestion.routes");
+
+// ── Track app visit (public, no auth) ────────────────────────────────────────
+router.post("/app/visit", async (req, res) => {
+  try {
+    const { AppSession } = require("../models");
+    const { platform, user_id } = req.body;
+    await AppSession.create({
+      user_id: user_id || null,
+      platform: ["android", "ios", "web"].includes(platform) ? platform : null,
+    });
+  } catch (_) {
+    // Silently ignore — le tracking ne doit jamais bloquer l'appli
+  }
+  res.status(204).send();
+});
 
 // Health check
 router.get("/health", (req, res) => {
@@ -35,6 +51,7 @@ router.use("/favorites", favoriteRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/upload", uploadRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/suggestions", suggestionRoutes);
 
 // ── DEV ONLY: Simulate Chargily webhook (activate subscription manually) ──────
 // This endpoint is disabled in production and is for local testing only.

@@ -63,6 +63,12 @@ module.exports = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      sub_ratings: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Critères détaillés: quality, welcome, information, value, availability, reliability, comfort (1-5)',
+      },
       helpful_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,

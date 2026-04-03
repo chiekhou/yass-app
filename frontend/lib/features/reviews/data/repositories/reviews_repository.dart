@@ -52,24 +52,26 @@ class ReviewRepository {
   /// Create review
   Future<Review> create({
     required String establishmentId,
-    required int rating,
+    int? rating,
     String? title,
     required String comment,
     List<String>? pros,
     List<String>? cons,
     List<String>? images,
     DateTime? visitDate,
+    Map<String, int>? subRatings,
   }) async {
     final response = await _apiClient.post(
       ApiConfig.establishmentReviews(establishmentId),
       data: {
-        'rating': rating,
+        if (rating != null) 'rating': rating,
         if (title != null) 'title': title,
         'comment': comment,
         if (pros != null) 'pros': pros,
         if (cons != null) 'cons': cons,
         if (images != null) 'images': images,
         if (visitDate != null) 'visit_date': visitDate.toIso8601String(),
+        if (subRatings != null) 'sub_ratings': subRatings,
       },
     );
 

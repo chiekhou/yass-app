@@ -141,6 +141,241 @@ class CategoryFilterSheet extends StatelessWidget {
   }
 }
 
+/// Bottom sheet pour sélectionner une commune (liée à une wilaya)
+class CommuneFilterSheet extends StatelessWidget {
+  final List<Commune> communes;
+  final String? selectedCommuneId;
+  final ValueChanged<Commune?> onSelected;
+
+  const CommuneFilterSheet({
+    super.key,
+    required this.communes,
+    this.selectedCommuneId,
+    required this.onSelected,
+  });
+
+  static Future<Commune?> show(
+    BuildContext context, {
+    required List<Commune> communes,
+    String? selectedCommuneId,
+  }) async {
+    return showModalBottomSheet<Commune>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => CommuneFilterSheet(
+          communes: communes,
+          selectedCommuneId: selectedCommuneId,
+          onSelected: (commune) => Navigator.pop(context, commune),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppColors.grey300,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Commune',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              if (selectedCommuneId != null)
+                TextButton(
+                  onPressed: () => onSelected(null),
+                  child: const Text('Effacer'),
+                ),
+            ],
+          ),
+        ),
+        const Divider(),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingS),
+            itemCount: communes.length,
+            itemBuilder: (context, index) {
+              final commune = communes[index];
+              final isSelected = commune.id == selectedCommuneId;
+              return ListTile(
+                onTap: () => onSelected(commune),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primaryGreen.withValues(alpha: 0.1)
+                        : AppColors.grey100,
+                    borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                  ),
+                  child: Icon(
+                    Iconsax.location,
+                    color: isSelected ? AppColors.primaryGreen : AppColors.grey500,
+                  ),
+                ),
+                title: Text(
+                  commune.name,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? AppColors.primaryGreen : null,
+                  ),
+                ),
+                subtitle: commune.postalCode != null
+                    ? Text(commune.postalCode!, style: const TextStyle(fontSize: 12))
+                    : null,
+                trailing: isSelected
+                    ? const Icon(Iconsax.tick_circle5, color: AppColors.primaryGreen)
+                    : null,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Bottom sheet pour sélectionner une sous-catégorie
+class SubcategoryFilterSheet extends StatelessWidget {
+  final List<SubCategory> subcategories;
+  final String? selectedSubcategoryId;
+  final ValueChanged<SubCategory?> onSelected;
+
+  const SubcategoryFilterSheet({
+    super.key,
+    required this.subcategories,
+    this.selectedSubcategoryId,
+    required this.onSelected,
+  });
+
+  static Future<SubCategory?> show(
+    BuildContext context, {
+    required List<SubCategory> subcategories,
+    String? selectedSubcategoryId,
+  }) async {
+    return showModalBottomSheet<SubCategory>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => SubcategoryFilterSheet(
+          subcategories: subcategories,
+          selectedSubcategoryId: selectedSubcategoryId,
+          onSelected: (sub) => Navigator.pop(context, sub),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+          width: 40,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppColors.grey300,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Sous-catégorie',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              if (selectedSubcategoryId != null)
+                TextButton(
+                  onPressed: () => onSelected(null),
+                  child: const Text('Effacer'),
+                ),
+            ],
+          ),
+        ),
+        const Divider(),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingS),
+            itemCount: subcategories.length,
+            itemBuilder: (context, index) {
+              final sub = subcategories[index];
+              final isSelected = sub.id == selectedSubcategoryId;
+              return ListTile(
+                onTap: () => onSelected(sub),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primaryGreen.withValues(alpha: 0.1)
+                        : AppColors.grey100,
+                    borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                  ),
+                  child: Icon(
+                    Iconsax.category_2,
+                    color: isSelected
+                        ? AppColors.primaryGreen
+                        : AppColors.grey500,
+                  ),
+                ),
+                title: Text(
+                  sub.name,
+                  style: TextStyle(
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? AppColors.primaryGreen : null,
+                  ),
+                ),
+                trailing: isSelected
+                    ? const Icon(Iconsax.tick_circle5,
+                        color: AppColors.primaryGreen)
+                    : null,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Bottom sheet pour sélectionner une wilaya
 class WilayaFilterSheet extends StatefulWidget {
   final List<Wilaya> wilayas;

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/l10n/language_cubit.dart';
 import '../../../../app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
@@ -49,12 +50,12 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Bienvenue sur Win !',
+              context.l10n.welcomeTitle,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Connectez-vous pour accéder à toutes les fonctionnalités',
+              context.l10n.welcomeSubtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.white,
                   ),
@@ -69,7 +70,7 @@ class ProfilePage extends StatelessWidget {
                   backgroundColor: AppColors.white,
                   foregroundColor: AppColors.primaryGreen,
                 ),
-                child: const Text(AppStrings.login),
+                child: Text(context.l10n.login),
               ),
             ),
             const SizedBox(height: AppDimens.paddingM),
@@ -81,20 +82,20 @@ class ProfilePage extends StatelessWidget {
                   foregroundColor: AppColors.white,
                   side: const BorderSide(color: AppColors.white),
                 ),
-                child: const Text(AppStrings.register),
+                child: Text(context.l10n.register),
               ),
             ),
             const Spacer(),
             _buildMenuItem(
               context,
               icon: Iconsax.info_circle,
-              title: AppStrings.about_,
+              title: context.l10n.about,
               onTap: () {},
             ),
             _buildMenuItem(
               context,
               icon: Iconsax.message_question,
-              title: AppStrings.contactUs,
+              title: context.l10n.contactUs,
               onTap: () {},
             ),
           ],
@@ -160,8 +161,9 @@ class ProfilePage extends StatelessWidget {
                   // Edit Profile Button
                   OutlinedButton.icon(
                     onPressed: () => context.push(AppRoutes.editProfile),
-                    icon: const Icon(Iconsax.edit, size: 18),
-                    label: const Text(AppStrings.editProfile),
+                    icon: const Icon(Iconsax.edit,
+                        size: 18, color: AppColors.primaryRed),
+                    label: Text(context.l10n.editProfile),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.white,
                       side: const BorderSide(color: AppColors.white),
@@ -184,7 +186,7 @@ class ProfilePage extends StatelessWidget {
 
                 // Account Section
                 Text(
-                  'Mon compte',
+                  context.l10n.myAccount,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: AppColors.white,
                       ),
@@ -194,14 +196,19 @@ class ProfilePage extends StatelessWidget {
                   context,
                   items: [
                     _MenuItem(
-                      icon: Iconsax.star,
-                      title: AppStrings.myReviews,
-                      onTap: () => context.push(AppRoutes.myReviews),
+                      icon: Iconsax.notification,
+                      title: context.l10n.notifications,
+                      onTap: () => context.push(AppRoutes.notifications),
                     ),
                     _MenuItem(
-                      icon: Iconsax.notification,
-                      title: AppStrings.notifications,
-                      onTap: () => context.push(AppRoutes.notifications),
+                      icon: Iconsax.heart,
+                      title: context.l10n.myFavorites,
+                      onTap: () => context.push(AppRoutes.favorites),
+                    ),
+                    _MenuItem(
+                      icon: Iconsax.shop_add,
+                      title: 'Mes Suggestions',
+                      onTap: () => context.push(AppRoutes.mySuggestions),
                     ),
                   ],
                 ),
@@ -211,7 +218,7 @@ class ProfilePage extends StatelessWidget {
                 // Admin Section (if admin)
                 if (user.isAdmin) ...[
                   Text(
-                    'Espace administration',
+                    context.l10n.adminSpace,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: AppColors.white,
                         ),
@@ -222,22 +229,22 @@ class ProfilePage extends StatelessWidget {
                     items: [
                       _MenuItem(
                         icon: Iconsax.setting_2,
-                        title: 'Tableau de bord',
+                        title: context.l10n.dashboard,
                         onTap: () => context.push(AppRoutes.adminDashboard),
                       ),
                       _MenuItem(
                         icon: Iconsax.people,
-                        title: 'Gestion utilisateurs',
+                        title: context.l10n.usersManagement,
                         onTap: () => context.push(AppRoutes.adminUsers),
                       ),
                       _MenuItem(
                         icon: Iconsax.briefcase,
-                        title: 'Gestion partenaires',
+                        title: context.l10n.partnersManagement,
                         onTap: () => context.push(AppRoutes.adminPartners),
                       ),
                       _MenuItem(
                         icon: Iconsax.message_text,
-                        title: 'Gestion des avis',
+                        title: context.l10n.reviewsManagement,
                         onTap: () => context.push(AppRoutes.adminReviews),
                       ),
                     ],
@@ -248,7 +255,7 @@ class ProfilePage extends StatelessWidget {
                 // Partner Section (if partner)
                 if (user.isPartner) ...[
                   Text(
-                    'Espace partenaire',
+                    context.l10n.partnerSpace,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: AppColors.white,
                         ),
@@ -259,18 +266,18 @@ class ProfilePage extends StatelessWidget {
                     items: [
                       _MenuItem(
                         icon: Iconsax.chart_2,
-                        title: 'Tableau de bord',
+                        title: context.l10n.dashboard,
                         onTap: () => context.push(AppRoutes.partnerDashboard),
                       ),
                       _MenuItem(
                         icon: Iconsax.building,
-                        title: AppStrings.myEstablishments,
+                        title: context.l10n.myEstablishments,
                         onTap: () =>
                             context.push(AppRoutes.partnerEstablishments),
                       ),
                       _MenuItem(
                         icon: Iconsax.add_circle,
-                        title: 'Ajouter établissement',
+                        title: context.l10n.addEstablishment,
                         onTap: () =>
                             context.push(AppRoutes.partnerEstablishmentCreate),
                       ),
@@ -281,32 +288,24 @@ class ProfilePage extends StatelessWidget {
 
                 // Settings Section
                 Text(
-                  'Paramètres',
+                  context.l10n.settings,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         color: AppColors.white,
                       ),
                 ),
                 const SizedBox(height: AppDimens.paddingS),
-                BlocBuilder<ThemeCubit, ThemeMode>(
-                  builder: (ctx, themeMode) => _buildMenuCard(
+                BlocBuilder<LanguageCubit, Locale>(
+                  builder: (ctx, locale) => _buildMenuCard(
                     ctx,
                     items: [
                       _MenuItem(
                         icon: Iconsax.language_square,
-                        title: AppStrings.language,
-                        trailing: 'Français',
-                        onTap: () {},
+                        title: context.l10n.language,
+                        trailing:
+                            LanguageCubit.localeNames[locale.languageCode] ??
+                                locale.languageCode,
+                        onTap: () => _showLanguagePicker(context),
                       ),
-                      /*  _MenuItem(
-                        icon: themeMode == ThemeMode.dark
-                            ? Iconsax.sun_1
-                            : Iconsax.moon,
-                        title: AppStrings.darkMode,
-                        trailing: themeMode == ThemeMode.dark
-                            ? 'Activé'
-                            : 'Désactivé',
-                        onTap: () => ctx.read<ThemeCubit>().toggle(),
-                      ),*/
                     ],
                   ),
                 ),
@@ -315,7 +314,7 @@ class ProfilePage extends StatelessWidget {
 
                 // About Section
                 Text(
-                  'À propos',
+                  context.l10n.about,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.white,
                       ),
@@ -326,17 +325,17 @@ class ProfilePage extends StatelessWidget {
                   items: [
                     _MenuItem(
                       icon: Iconsax.document,
-                      title: AppStrings.privacyPolicy,
+                      title: context.l10n.privacyPolicy,
                       onTap: () {},
                     ),
                     _MenuItem(
                       icon: Iconsax.document_text,
-                      title: AppStrings.termsOfService,
+                      title: context.l10n.termsOfService,
                       onTap: () {},
                     ),
                     _MenuItem(
                       icon: Iconsax.star,
-                      title: AppStrings.rateApp,
+                      title: context.l10n.rateApp,
                       onTap: () {},
                     ),
                   ],
@@ -353,7 +352,7 @@ class ProfilePage extends StatelessWidget {
                     },
                     icon: const Icon(Iconsax.logout, color: AppColors.redLight),
                     label: Text(
-                      AppStrings.logout,
+                      context.l10n.logout,
                       style: const TextStyle(color: AppColors.white),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -368,6 +367,88 @@ class ProfilePage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _showLanguagePicker(BuildContext context) {
+    final current = context.read<LanguageCubit>().state;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
+      ),
+      builder: (_) => SingleChildScrollView(
+        padding: EdgeInsets.only(
+          top: AppDimens.paddingL,
+          bottom: AppDimens.paddingL + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: AppDimens.paddingM),
+              decoration: BoxDecoration(
+                color: AppColors.grey400,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              context.l10n.language,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            ...LanguageCubit.supportedLocales.map((locale) {
+              final isSelected = locale.languageCode == current.languageCode;
+              final name = LanguageCubit.localeNames[locale.languageCode] ??
+                  locale.languageCode;
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor:
+                      isSelected ? AppColors.primaryGreen : AppColors.grey100,
+                  radius: 18,
+                  child: Text(
+                    _localeFlag(locale.languageCode),
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                ),
+                title: Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? AppColors.primaryGreen : null,
+                  ),
+                ),
+                trailing: isSelected
+                    ? const Icon(Icons.check_circle,
+                        color: AppColors.primaryGreen)
+                    : null,
+                onTap: () {
+                  context.read<LanguageCubit>().changeLanguage(locale);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _localeFlag(String code) {
+    const flags = {
+      'fr': '🇫🇷',
+      'ar': '🇩🇿',
+      'es': '🇪🇸',
+      'de': '🇩🇪',
+      'nl': '🇳🇱',
+      'it': '🇮🇹',
+    };
+    return flags[code] ?? '🌐';
   }
 
   Widget _buildMenuCard(BuildContext context,

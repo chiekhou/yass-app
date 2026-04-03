@@ -35,7 +35,8 @@ class WilayaController {
     try {
       const { id } = req.params;
 
-      if (!id || isNaN(parseInt(id))) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!id || !uuidRegex.test(id)) {
         throw ApiError.badRequest("Invalid wilaya ID");
       }
 

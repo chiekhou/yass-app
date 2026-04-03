@@ -14,6 +14,8 @@ class AdminStats extends Equatable {
   final PartnerStats partnerStats;
   final EstablishmentStats establishmentStats;
   final List<RecentActivity> recentActivities;
+  final VisitStats visitStats;
+  final DemographicStats demographicStats;
 
   const AdminStats({
     required this.totalUsers,
@@ -29,6 +31,8 @@ class AdminStats extends Equatable {
     required this.partnerStats,
     required this.establishmentStats,
     this.recentActivities = const [],
+    this.visitStats = const VisitStats(),
+    this.demographicStats = const DemographicStats(),
   });
 
   factory AdminStats.fromJson(Map<String, dynamic> json) {
@@ -62,7 +66,7 @@ class AdminStats extends Equatable {
           : json['establishmentStats'] != null
               ? EstablishmentStats.fromJson(json['establishmentStats'])
               : const EstablishmentStats(),
-      recentActivities: json['recent_activities'] != null
+        recentActivities: json['recent_activities'] != null
           ? (json['recent_activities'] as List)
               .map((e) => RecentActivity.fromJson(e))
               .toList()
@@ -71,6 +75,12 @@ class AdminStats extends Equatable {
                   .map((e) => RecentActivity.fromJson(e))
                   .toList()
               : [],
+      visitStats: json['visits'] != null
+          ? VisitStats.fromJson(json['visits'] as Map<String, dynamic>)
+          : const VisitStats(),
+      demographicStats: json['demographics'] != null
+          ? DemographicStats.fromJson(json['demographics'] as Map<String, dynamic>)
+          : const DemographicStats(),
     );
   }
 
@@ -89,7 +99,58 @@ class AdminStats extends Equatable {
         partnerStats,
         establishmentStats,
         recentActivities,
+        visitStats,
+        demographicStats,
       ];
+}
+
+class DemographicStats extends Equatable {
+  final int male;
+  final int female;
+  final int young;
+  final int child;
+  final int unknown;
+  final int ageUnder18;
+  final int age18to25;
+  final int age26to35;
+  final int age36to50;
+  final int ageOver50;
+  final int ageUnknown;
+
+  const DemographicStats({
+    this.male = 0,
+    this.female = 0,
+    this.young = 0,
+    this.child = 0,
+    this.unknown = 0,
+    this.ageUnder18 = 0,
+    this.age18to25 = 0,
+    this.age26to35 = 0,
+    this.age36to50 = 0,
+    this.ageOver50 = 0,
+    this.ageUnknown = 0,
+  });
+
+  int get total => male + female + young + child + unknown;
+
+  factory DemographicStats.fromJson(Map<String, dynamic> json) {
+    return DemographicStats(
+      male: json['male'] ?? 0,
+      female: json['female'] ?? 0,
+      young: json['young'] ?? 0,
+      child: json['child'] ?? 0,
+      unknown: json['unknown'] ?? 0,
+      ageUnder18: json['age_under_18'] ?? 0,
+      age18to25: json['age_18_25'] ?? 0,
+      age26to35: json['age_26_35'] ?? 0,
+      age36to50: json['age_36_50'] ?? 0,
+      ageOver50: json['age_over_50'] ?? 0,
+      ageUnknown: json['age_unknown'] ?? 0,
+    );
+  }
+
+  @override
+  List<Object?> get props => [male, female, young, child, unknown, ageUnder18, age18to25, age26to35, age36to50, ageOver50, ageUnknown];
 }
 
 class UserStats extends Equatable {
@@ -180,6 +241,32 @@ class EstablishmentStats extends Equatable {
 
   @override
   List<Object?> get props => [total, active, pending, rejected, featured];
+}
+
+class VisitStats extends Equatable {
+  final int total;
+  final int today;
+  final int thisWeek;
+  final int thisMonth;
+
+  const VisitStats({
+    this.total = 0,
+    this.today = 0,
+    this.thisWeek = 0,
+    this.thisMonth = 0,
+  });
+
+  factory VisitStats.fromJson(Map<String, dynamic> json) {
+    return VisitStats(
+      total: json['total'] ?? 0,
+      today: json['today'] ?? 0,
+      thisWeek: json['this_week'] ?? json['thisWeek'] ?? 0,
+      thisMonth: json['this_month'] ?? json['thisMonth'] ?? 0,
+    );
+  }
+
+  @override
+  List<Object?> get props => [total, today, thisWeek, thisMonth];
 }
 
 class RecentActivity extends Equatable {

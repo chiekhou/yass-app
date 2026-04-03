@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -6,7 +7,6 @@ import 'package:iconsax/iconsax.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
-import '../../../../shared/widgets/custom_button.dart' hide CustomButton;
 import '../../../../shared/widgets/loading_overlay.dart';
 import '../bloc/auth_bloc.dart';
 
@@ -115,7 +115,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
           // Title
           Text(
-            AppStrings.forgotPassword,
+            context.l10n.forgotPassword,
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
@@ -133,7 +133,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           // Email Field
           CustomTextField(
             controller: _emailController,
-            label: AppStrings.email,
+            label: context.l10n.email,
             hint: 'exemple@email.com',
             keyboardType: TextInputType.emailAddress,
             prefixIcon: Iconsax.sms,

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/admin.controller");
 const reviewController = require("../controllers/review.controller");
+const suggestionController = require("../controllers/suggestion.controller");
 const { authenticate, isAdmin } = require("../middlewares/auth");
 const validate = require("../middlewares/validate");
 const adminValidation = require("../validations/admin.validation");
@@ -131,6 +132,14 @@ router.post(
 );
 
 /**
+ * @route   GET /api/v1/admin/establishments
+ * @desc    Get all establishments with optional status filter
+ * @access  Admin
+ * @query   page, limit, status, search
+ */
+router.get("/establishments", adminController.getEstablishments);
+
+/**
  * @route   GET /api/v1/admin/establishments/pending
  * @desc    Get pending establishments
  * @access  Admin
@@ -159,6 +168,30 @@ router.post(
 );
 
 /**
+ * @route   POST /api/v1/admin/establishments/:id/feature
+ * @desc    Mettre en avant / retirer la mise en avant d'un établissement
+ * @access  Admin
+ * @body    { duration_days: number | null }  — 0 = retirer
+ */
+router.post("/establishments/:id/feature", adminController.setFeatured);
+
+/**
+ * @route   POST /api/v1/admin/establishments/:id/feature/checkout
+ * @desc    Générer un lien Chargily pour mise à la une (paiement automatique)
+ * @access  Admin
+ * @body    { plan: "featured_7" | "featured_15" | "featured_30" }
+ */
+router.post("/establishments/:id/feature/checkout", adminController.featureCheckout);
+
+/**
+ * @route   POST /api/v1/admin/establishments/:id/feature/manual
+ * @desc    Créer une facture manuelle pour mise à la une
+ * @access  Admin
+ * @body    { plan: "featured_7" | "featured_15" | "featured_30", transfer_reference?: string }
+ */
+router.post("/establishments/:id/feature/manual", adminController.featureManual);
+
+/**
  * @route   DELETE /api/v1/admin/establishments/:id
  * @desc    Delete establishment
  * @access  Admin
@@ -182,6 +215,13 @@ router.get("/payments/pending", adminController.getPendingPayments);
 router.post("/payments/:invoiceId/validate", adminController.validatePayment);
 
 // ==================== REVIEW ROUTES ====================
+
+/**
+ * @route   GET /api/v1/admin/reviews
+ * @desc    Get all reviews (filterable by status)
+ * @access  Admin
+ */
+router.get("/reviews", reviewController.getAllReviews);
 
 /**
  * @route   GET /api/v1/admin/reviews/pending
@@ -221,5 +261,29 @@ router.post(
  * @access  Admin
  */
 router.post("/reviews/:id/dismiss-report", reviewController.dismissReport);
+router.post("/reviews/:id/revoke", reviewController.revokeReview);
+
+// ==================== SUGGESTION ROUTES ====================
+
+/**
+ * @route   GET /api/v1/admin/suggestions
+ * @desc    Liste de toutes les suggestions (filtre par status optionnel)
+ * @access  Admin
+ */
+router.get("/suggestions", suggestionController.adminGetAll);
+
+/**
+ * @route   POST /api/v1/admin/suggestions/:id/approve
+ * @desc    Approuver une suggestion
+ * @access  Admin
+ */
+router.post("/suggestions/:id/approve", suggestionController.adminApprove);
+
+/**
+ * @route   POST /api/v1/admin/suggestions/:id/reject
+ * @desc    Rejeter une suggestion
+ * @access  Admin
+ */
+router.post("/suggestions/:id/reject", suggestionController.adminReject);
 
 module.exports = router;

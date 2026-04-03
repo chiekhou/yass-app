@@ -23,9 +23,13 @@ module.exports = (sequelize) => {
           'establishment_approved',
           'establishment_rejected',
           'payment_validated',
+          'payment_pending',
           'subscription_expiring',
           'review_new',
-          'review_reply'
+          'review_reply',
+          'suggestion_approved',
+          'suggestion_rejected',
+          'contact_message'
         ),
         allowNull: false,
       },

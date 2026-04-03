@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -26,9 +27,9 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
         title: const Text('Mes factures',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
@@ -38,7 +39,8 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
         builder: (context, state) {
           if (state is InvoicesLoading) {
             return const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryGreen));
+                child:
+                    CircularProgressIndicator(color: AppColors.primaryGreen));
           }
 
           if (state is InvoicesError) {
@@ -46,7 +48,8 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Iconsax.warning_2, color: Colors.white38, size: 48),
+                  const Icon(Iconsax.warning_2,
+                      color: Colors.white38, size: 48),
                   const SizedBox(height: AppDimens.paddingM),
                   Text(state.message,
                       style: const TextStyle(color: Colors.white54),
@@ -69,9 +72,8 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
               return _buildEmptyState();
             }
             return RefreshIndicator(
-              onRefresh: () async => context
-                  .read<PartnerInvoicesBloc>()
-                  .add(const LoadInvoices()),
+              onRefresh: () async =>
+                  context.read<PartnerInvoicesBloc>().add(const LoadInvoices()),
               color: AppColors.primaryGreen,
               backgroundColor: const Color(0xFF1A1A1A),
               child: ListView.separated(
@@ -96,7 +98,7 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Iconsax.receipt_item, color: Colors.white24, size: 64),
+          const Icon(Iconsax.receipt_item, color: Colors.white, size: 64),
           const SizedBox(height: AppDimens.paddingL),
           Text('Aucune facture',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -106,20 +108,21 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
           const SizedBox(height: AppDimens.paddingS),
           Text('Vos factures apparaîtront ici après votre premier paiement.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white38,
+                    color: Colors.white,
                   ),
               textAlign: TextAlign.center),
           const SizedBox(height: AppDimens.paddingXL),
           ElevatedButton.icon(
             onPressed: () => context.push(AppRoutes.partnerSubscription),
-            icon: const Icon(Iconsax.star, size: 18),
+            icon: const Icon(Iconsax.star, size: 16),
             label: const Text('S\'abonner'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.white,
+              foregroundColor: AppColors.primaryGreen,
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingXL,
-                  vertical: AppDimens.paddingM),
+                  horizontal: AppDimens.paddingM, vertical: AppDimens.paddingS),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppDimens.radiusM)),
             ),
@@ -138,12 +141,11 @@ class _InvoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () =>
-          context.push(AppRoutes.partnerInvoiceDetail(invoice.id)),
+      onTap: () => context.push(AppRoutes.partnerInvoiceDetail(invoice.id)),
       child: Container(
         padding: const EdgeInsets.all(AppDimens.paddingM),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
@@ -174,7 +176,7 @@ class _InvoiceCard extends StatelessWidget {
                   Text(
                     invoice.invoiceNumber,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.primaryGreen,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -182,14 +184,14 @@ class _InvoiceCard extends StatelessWidget {
                   Text(
                     '${invoice.planLabel} · ${invoice.paymentMethodLabel}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white54,
+                          color: AppColors.primaryRed,
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _formatDate(invoice.createdAt),
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white38,
+                          color: AppColors.primaryGreen,
                         ),
                   ),
                 ],
@@ -219,8 +221,18 @@ class _InvoiceCard extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-      'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
+      'Jan',
+      'Fév',
+      'Mar',
+      'Avr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Aoû',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Déc'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -243,7 +255,7 @@ class _StatusBadge extends StatelessWidget {
         break;
       case 'pending_validation':
         color = AppColors.warning;
-        label = 'En attente';
+        label = context.l10n.statusPending;
         break;
       case 'failed':
         color = AppColors.error;

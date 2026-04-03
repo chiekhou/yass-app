@@ -205,6 +205,24 @@ class EstablishmentController {
     }
   }
 
+  /**
+   * Track contact form submission
+   * POST /api/v1/establishments/:id/track/contact
+   */
+  async trackContact(req, res, next) {
+    try {
+      const { name, email, message } = req.body;
+      await establishmentService.trackContact(req.params.id, {
+        name: name || "Anonyme",
+        senderEmail: email || "",
+        message: message || "",
+      });
+      ApiResponse.success(null, "Message envoyé avec succès").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ==================== PARTNER ROUTES ====================
 
   /**

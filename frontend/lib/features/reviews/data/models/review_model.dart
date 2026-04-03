@@ -52,6 +52,8 @@ class Review extends Equatable {
   final DateTime? partnerReplyAt;
   final String status;
   final String? rejectionReason;
+  final int reportCount;
+  final Map<String, dynamic>? subRatings;
   final User? user;
   final ReviewEstablishment? establishment;
   final DateTime createdAt;
@@ -73,6 +75,8 @@ class Review extends Equatable {
     this.partnerReplyAt,
     this.status = 'pending',
     this.rejectionReason,
+    this.reportCount = 0,
+    this.subRatings,
     this.user,
     this.establishment,
     required this.createdAt,
@@ -86,6 +90,7 @@ class Review extends Equatable {
   bool get isApproved => status == 'approved';
   bool get isRejected => status == 'rejected';
   bool get hasRejectionReason => rejectionReason != null && rejectionReason!.isNotEmpty;
+  bool get hasSubRatings => subRatings != null && subRatings!.isNotEmpty;
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
@@ -108,6 +113,10 @@ class Review extends Equatable {
           : null,
       status: json['status'] ?? 'pending',
       rejectionReason: json['rejection_reason'],
+      reportCount: json['report_count'] ?? 0,
+      subRatings: json['sub_ratings'] != null
+          ? Map<String, dynamic>.from(json['sub_ratings'])
+          : null,
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       establishment: json['establishment'] != null
           ? ReviewEstablishment.fromJson(json['establishment'])

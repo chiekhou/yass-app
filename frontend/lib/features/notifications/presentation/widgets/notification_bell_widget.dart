@@ -7,8 +7,22 @@ import '../../../../../app_router.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../bloc/notifications_bloc.dart';
 
-class NotificationBellWidget extends StatelessWidget {
+class NotificationBellWidget extends StatefulWidget {
   const NotificationBellWidget({super.key});
+
+  @override
+  State<NotificationBellWidget> createState() => _NotificationBellWidgetState();
+}
+
+class _NotificationBellWidgetState extends State<NotificationBellWidget> {
+  @override
+  void initState() {
+    super.initState();
+    final bloc = context.read<NotificationsBloc>();
+    if (bloc.state is NotificationsInitial || bloc.state is NotificationsError) {
+      bloc.add(const LoadNotifications());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

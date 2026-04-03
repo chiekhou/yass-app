@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -61,7 +62,7 @@ class AdminUserDetailPage extends StatelessWidget {
                   const SizedBox(height: AppDimens.paddingM),
                   ElevatedButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Retour'),
+                    child: Text(context.l10n.back),
                   ),
                 ],
               ),
@@ -419,16 +420,16 @@ class _UserDetailView extends StatelessWidget {
     String statusLabel;
     switch (p.status) {
       case 'approved':
-        statusLabel = 'Approuvé';
+        statusLabel = context.l10n.statusApproved;
         break;
       case 'pending':
-        statusLabel = 'En attente';
+        statusLabel = context.l10n.statusPending;
         break;
       case 'rejected':
-        statusLabel = 'Rejeté';
+        statusLabel = context.l10n.statusRejected;
         break;
       case 'suspended':
-        statusLabel = 'Suspendu';
+        statusLabel = context.l10n.statusSuspended;
         break;
       default:
         statusLabel = p.status;

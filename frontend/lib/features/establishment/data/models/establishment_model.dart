@@ -9,6 +9,18 @@ double? _parseDouble(dynamic value) {
   return null;
 }
 
+/// Returns the effective subscription plan, treating expired subscriptions as 'free'.
+String _effectivePlan(dynamic partner) {
+  if (partner == null) return 'free';
+  final plan = (partner['subscription_plan'] as String?) ?? 'free';
+  if (plan == 'free') return 'free';
+  final expiresAt = partner['subscription_expires_at'];
+  if (expiresAt == null) return 'free';
+  final expiry = DateTime.tryParse(expiresAt as String);
+  if (expiry == null || expiry.isBefore(DateTime.now())) return 'free';
+  return plan;
+}
+
 class Establishment extends Equatable {
   final String id;
   final String name;
@@ -31,6 +43,7 @@ class Establishment extends Equatable {
   final String? facebook;
   final String? instagram;
   final String? tiktok;
+  final String? snapchat;
   final Map<String, dynamic>? openingHours;
   final String? priceRange;
   final List<String>? services;
@@ -49,6 +62,7 @@ class Establishment extends Equatable {
   final Commune? commune;
   final double? distance;
   final bool? isFavorited;
+  final String partnerSubscriptionPlan; // free | premium | gold
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -74,6 +88,7 @@ class Establishment extends Equatable {
     this.facebook,
     this.instagram,
     this.tiktok,
+    this.snapchat,
     this.openingHours,
     this.priceRange,
     this.services,
@@ -92,6 +107,7 @@ class Establishment extends Equatable {
     this.commune,
     this.distance,
     this.isFavorited,
+    this.partnerSubscriptionPlan = 'free',
     required this.createdAt,
     required this.updatedAt,
   });
@@ -150,6 +166,7 @@ class Establishment extends Equatable {
       facebook: json['facebook'],
       instagram: json['instagram'],
       tiktok: json['tiktok'],
+      snapchat: json['snapchat'],
       openingHours: json['opening_hours'] is Map
           ? Map<String, dynamic>.from(json['opening_hours'])
           : null,
@@ -177,6 +194,7 @@ class Establishment extends Equatable {
           json['commune'] != null ? Commune.fromJson(json['commune']) : null,
       distance: _parseDouble(json['distance']),
       isFavorited: json['is_favorited'],
+      partnerSubscriptionPlan: _effectivePlan(json['partner']),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -209,6 +227,7 @@ class Establishment extends Equatable {
       'facebook': facebook,
       'instagram': instagram,
       'tiktok': tiktok,
+      'snapchat': snapchat,
       'opening_hours': openingHours,
       'price_range': priceRange,
       'services': services,
@@ -244,6 +263,7 @@ class Establishment extends Equatable {
     String? facebook,
     String? instagram,
     String? tiktok,
+    String? snapchat,
     Map<String, dynamic>? openingHours,
     String? priceRange,
     List<String>? services,
@@ -287,6 +307,7 @@ class Establishment extends Equatable {
       facebook: facebook ?? this.facebook,
       instagram: instagram ?? this.instagram,
       tiktok: tiktok ?? this.tiktok,
+      snapchat: snapchat ?? this.snapchat,
       openingHours: openingHours ?? this.openingHours,
       priceRange: priceRange ?? this.priceRange,
       services: services ?? this.services,

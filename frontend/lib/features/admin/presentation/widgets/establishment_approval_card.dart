@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -119,7 +120,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
                 const Icon(Iconsax.clock, size: 12, color: AppColors.white),
                 const SizedBox(width: AppDimens.paddingXS),
                 Text(
-                  'En attente',
+                  context.l10n.statusPending,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.w500,

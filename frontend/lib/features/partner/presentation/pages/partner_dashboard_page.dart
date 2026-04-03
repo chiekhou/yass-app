@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -32,7 +33,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Tableau de bord'),
+        title: Text(context.l10n.dashboard),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -126,7 +127,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               onPressed: () =>
                   context.read<PartnerDashboardBloc>().add(PartnerDashboardLoad()),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -223,7 +224,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               color: AppColors.success,
             ),
             PartnerStatCard(
-              title: 'En attente',
+              title: context.l10n.statusPending,
               value: stats.pendingEstablishments.toString(),
               icon: Iconsax.clock,
               color: AppColors.warning,
@@ -280,6 +281,13 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
           value: _formatNumber(stats.whatsappClicks),
           icon: Iconsax.message,
           color: AppColors.primaryGreen,
+        ),
+        const SizedBox(height: AppDimens.paddingS),
+        PartnerStatCardCompact(
+          title: 'Prises de contact',
+          value: _formatNumber(stats.totalContacts),
+          icon: Iconsax.message_edit,
+          color: AppColors.warning,
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -776,19 +777,19 @@ class _StatusBadgeChip extends StatelessWidget {
     switch (status) {
       case 'approved':
         icon = Iconsax.verify5;
-        label = 'Approuvé';
+        label = context.l10n.statusApproved;
         break;
       case 'pending':
         icon = Iconsax.clock;
-        label = 'En attente';
+        label = context.l10n.statusPending;
         break;
       case 'rejected':
         icon = Iconsax.close_circle;
-        label = 'Rejeté';
+        label = context.l10n.statusRejected;
         break;
       case 'suspended':
         icon = Iconsax.slash;
-        label = 'Suspendu';
+        label = context.l10n.statusSuspended;
         break;
       default:
         icon = Iconsax.info_circle;

@@ -29,9 +29,9 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0F0F0F),
+        backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
         title: const Text('Reçu de paiement',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
@@ -169,8 +169,8 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
 
                       // Séparateur pointillé
                       const Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: AppDimens.paddingM),
+                        padding:
+                            EdgeInsets.symmetric(vertical: AppDimens.paddingM),
                         child: _DottedDivider(),
                       ),
 
@@ -237,8 +237,8 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                border: Border.all(
-                    color: AppColors.warning.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -323,16 +323,26 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
       ),
       child: Text(
         label,
-        style: TextStyle(
-            color: color, fontSize: 12, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }
 
   String _formatDate(DateTime date) {
     const months = [
-      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }

@@ -1,4 +1,4 @@
-const { Invoice, Partner } = require("../models");
+const { Invoice, Partner, Establishment } = require("../models");
 const config = require("../config/app");
 const ApiError = require("../utils/ApiError");
 const notificationService = require("./notification.service");
@@ -23,6 +23,9 @@ class InvoiceService {
     partner,
     plan,
     method,
+    type = "subscription",
+    establishmentId = null,
+    featuredDurationDays = null,
     chargilyCheckoutId = null,
     chargilyCheckoutUrl = null,
     transferReference = null,
@@ -31,7 +34,9 @@ class InvoiceService {
     status = "pending_validation",
     paidAt = null,
   }) {
-    const planConfig = config.chargily.plans[plan];
+    // Chercher le plan dans subscription ou featured selon le type
+    const planConfig =
+      config.chargily.plans[plan] || config.chargily.featuredPlans[plan];
     if (!planConfig) {
       throw ApiError.badRequest(`Plan invalide : ${plan}`);
     }
@@ -47,7 +52,10 @@ class InvoiceService {
     const invoice = await Invoice.create({
       invoice_number: invoiceNumber,
       partner_id: partner.id,
+      type,
       plan,
+      establishment_id: establishmentId,
+      featured_duration_days: featuredDurationDays,
       amount: planConfig.amount,
       currency: "DZD",
       payment_method: method,
@@ -61,6 +69,22 @@ class InvoiceService {
     });
 
     return invoice;
+  }
+
+  // ─── Activer la mise à la une après paiement ────────────────────────────
+
+  async activateFeatured(invoice) {
+    if (!invoice.establishment_id || !invoice.featured_duration_days) return;
+
+    const now = new Date();
+    const featuredUntil = new Date(
+      now.getTime() + invoice.featured_duration_days * 24 * 60 * 60 * 1000
+    );
+
+    await Establishment.update(
+      { is_featured: true, featured_until: featuredUntil },
+      { where: { id: invoice.establishment_id } }
+    );
   }
 
   // ─── Liste des factures d'un partenaire ──────────────────────────────────
@@ -95,8 +119,8 @@ class InvoiceService {
       throw ApiError.notFound("Facture introuvable");
     }
 
-    if (invoice.payment_method !== "manual") {
-      throw ApiError.badRequest("Cette facture n'est pas un paiement manuel");
+    if (!["manual", "cash"].includes(invoice.payment_method)) {
+      throw ApiError.badRequest("Cette facture n'est pas un paiement manuel ou espèces");
     }
 
     if (invoice.status === "paid") {
@@ -112,28 +136,40 @@ class InvoiceService {
       validated_at: now,
     });
 
-    // Activer l'abonnement du partenaire
-    const planConfig = config.chargily.plans[invoice.plan];
-    if (planConfig) {
-      const expiresAt = new Date(
-        now.getTime() + planConfig.days * 24 * 60 * 60 * 1000
-      );
-      const subscriptionPlan = invoice.plan === "yearly" ? "gold" : "premium";
+    if (invoice.type === "featured") {
+      // Activer la mise à la une de l'établissement
+      await this.activateFeatured(invoice);
+    } else {
+      // Activer l'abonnement du partenaire
+      const planConfig = config.chargily.plans[invoice.plan];
+      if (planConfig) {
+        const expiresAt = new Date(
+          now.getTime() + planConfig.days * 24 * 60 * 60 * 1000
+        );
+        const subscriptionPlan = invoice.plan === "yearly" ? "gold" : "premium";
 
-      await Partner.update(
-        {
-          subscription_plan: subscriptionPlan,
-          subscription_expires_at: expiresAt,
-        },
-        { where: { id: invoice.partner_id } }
-      );
+        await Partner.update(
+          {
+            subscription_plan: subscriptionPlan,
+            subscription_expires_at: expiresAt,
+          },
+          { where: { id: invoice.partner_id } }
+        );
 
-      // Mettre à jour les dates de la facture si elles ne sont pas définies
-      if (!invoice.period_start || !invoice.period_end) {
-        await invoice.update({
-          period_start: now,
-          period_end: expiresAt,
-        });
+        if (!invoice.period_start || !invoice.period_end) {
+          await invoice.update({
+            period_start: now,
+            period_end: expiresAt,
+          });
+        }
+
+        // Gold : mise à la une automatique sur tous les établissements actifs
+        if (subscriptionPlan === "gold") {
+          await Establishment.update(
+            { is_featured: true, featured_until: expiresAt },
+            { where: { partner_id: invoice.partner_id, status: "active" } }
+          );
+        }
       }
     }
 
@@ -152,8 +188,9 @@ class InvoiceService {
 
   async getPendingManualPayments({ page = 1, limit = 20 } = {}) {
     const offset = (page - 1) * limit;
+    const { Op } = require("sequelize");
     const { count, rows } = await Invoice.findAndCountAll({
-      where: { payment_method: "manual", status: "pending_validation" },
+      where: { payment_method: { [Op.in]: ["manual", "cash"] }, status: "pending_validation" },
       include: [
         {
           model: Partner,

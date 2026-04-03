@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -9,6 +10,7 @@ import '../../../../app_router.dart';
 import '../bloc/admin_dashboard_bloc.dart';
 import '../widgets/admin_stat_card.dart';
 import '../widgets/admin_drawer.dart';
+import '../../data/models/admin_stats_model.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -29,7 +31,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Tableau de bord'),
+        title: Text(context.l10n.dashboard),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -105,7 +107,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               onPressed: () =>
                   context.read<AdminDashboardBloc>().add(AdminDashboardLoad()),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -204,24 +206,295 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               subtitle: '${stats.pendingPartners} en attente',
               onTap: () => context.push(AppRoutes.adminPartners),
             ),
-            AdminStatCard(
-              title: 'Établissements',
-              value: stats.totalEstablishments.toString(),
-              icon: Iconsax.building,
-              color: AppColors.warning,
-              subtitle: '${stats.pendingEstablishments} en attente',
-              onTap: () => context.push(AppRoutes.adminPendingEstablishments),
+          ],
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildDemographicStats(context, state),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildVisitStats(context, stats.visitStats),
+      ],
+    );
+  }
+
+  Widget _buildDemographicStats(BuildContext context, AdminDashboardLoaded state) {
+    final d = state.stats.demographicStats;
+    final total = d.total > 0 ? d.total : 1;
+
+    final items = [
+      _DemoItem('Hommes', d.male, const Color(0xFF3B82F6), Icons.male),
+      _DemoItem('Femmes', d.female, const Color(0xFFEC4899), Icons.female),
+      _DemoItem('Jeunes', d.young, const Color(0xFFF59E0B), Icons.emoji_people),
+      _DemoItem('Enfants', d.child, const Color(0xFF10B981), Icons.child_care),
+      if (d.unknown > 0)
+        _DemoItem('Non renseigné', d.unknown, AppColors.grey400, Icons.help_outline),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(AppDimens.paddingM),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppDimens.paddingS),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                ),
+                child: const Icon(Iconsax.profile_2user, color: AppColors.primaryGreen, size: 20),
+              ),
+              const SizedBox(width: AppDimens.paddingS),
+              Text(
+                'Démographie des utilisateurs',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.grey900,
+                    ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingS,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+                ),
+                child: Text(
+                  'Total : ${d.total}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimens.paddingM),
+          _buildAgeRanges(context, d),
+          const SizedBox(height: AppDimens.paddingM),
+          ...items.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
+                child: Row(
+                  children: [
+                    Icon(item.icon, size: 16, color: item.color),
+                    const SizedBox(width: AppDimens.paddingS),
+                    SizedBox(
+                      width: 90,
+                      child: Text(
+                        item.label,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.grey700,
+                            ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+                        child: LinearProgressIndicator(
+                          value: item.count / total,
+                          minHeight: 8,
+                          backgroundColor: AppColors.grey100,
+                          valueColor: AlwaysStoppedAnimation<Color>(item.color),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimens.paddingS),
+                    SizedBox(
+                      width: 32,
+                      child: Text(
+                        '${item.count}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.grey800,
+                            ),
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAgeRanges(BuildContext context, DemographicStats d) {
+    final totalWithAge = d.ageUnder18 + d.age18to25 + d.age26to35 + d.age36to50 + d.ageOver50;
+    if (totalWithAge == 0) return const SizedBox.shrink();
+
+    final ranges = [
+      _AgeRange('< 18 ans', d.ageUnder18, const Color(0xFF8B5CF6)),
+      _AgeRange('18 – 25 ans', d.age18to25, const Color(0xFF3B82F6)),
+      _AgeRange('26 – 35 ans', d.age26to35, const Color(0xFF10B981)),
+      _AgeRange('36 – 50 ans', d.age36to50, const Color(0xFFF59E0B)),
+      _AgeRange('> 50 ans', d.ageOver50, const Color(0xFFEF4444)),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.cake_outlined, size: 16, color: AppColors.grey500),
+            const SizedBox(width: AppDimens.paddingS),
+            Text(
+              'Tranches d\'âge',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey700,
+                  ),
             ),
-            AdminStatCard(
-              title: 'Avis',
-              value: stats.totalReviews.toString(),
-              icon: Iconsax.star,
-              color: AppColors.primaryRed,
-              subtitle: '${stats.pendingReviews} à modérer',
+            if (d.ageUnknown > 0) ...[
+              const Spacer(),
+              Text(
+                '${d.ageUnknown} non renseigné',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.grey400),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: AppDimens.paddingS),
+        ...ranges.map((r) => Padding(
+              padding: const EdgeInsets.only(bottom: AppDimens.paddingXS),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 72,
+                    child: Text(
+                      r.label,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.grey600),
+                    ),
+                  ),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+                      child: LinearProgressIndicator(
+                        value: r.count / totalWithAge,
+                        minHeight: 8,
+                        backgroundColor: AppColors.grey100,
+                        valueColor: AlwaysStoppedAnimation<Color>(r.color),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppDimens.paddingS),
+                  SizedBox(
+                    width: 28,
+                    child: Text(
+                      '${r.count}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.grey800,
+                          ),
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ],
+    );
+  }
+
+  Widget _buildVisitStats(BuildContext context, VisitStats visits) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimens.paddingM),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppDimens.paddingS),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                ),
+                child: const Icon(Iconsax.chart_2, color: AppColors.info, size: 20),
+              ),
+              const SizedBox(width: AppDimens.paddingS),
+              Text(
+                'Visites de l\'application',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.grey900,
+                    ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.paddingS,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+                ),
+                child: Text(
+                  'Total : ${visits.total}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.info,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimens.paddingM),
+          Row(
+            children: [
+              _buildVisitChip(context, 'Aujourd\'hui', visits.today),
+              const SizedBox(width: AppDimens.paddingS),
+              _buildVisitChip(context, 'Cette semaine', visits.thisWeek),
+              const SizedBox(width: AppDimens.paddingS),
+              _buildVisitChip(context, 'Ce mois', visits.thisMonth),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVisitChip(BuildContext context, String label, int count) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+        decoration: BoxDecoration(
+          color: AppColors.grey50,
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        ),
+        child: Column(
+          children: [
+            Text(
+              count.toString(),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.info,
+                  ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: AppColors.grey600,
+                  ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -332,10 +605,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             Expanded(
               child: _buildQuickActionButton(
                 context,
-                icon: Iconsax.clock,
-                label: 'En attente',
+                icon: Iconsax.buildings,
+                label: 'Établissements',
                 color: AppColors.warning,
-                onTap: () => context.push(AppRoutes.adminPendingEstablishments),
+                onTap: () => context.push(AppRoutes.adminEstablishments),
               ),
             ),
           ],
@@ -388,4 +661,21 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
     );
   }
+}
+
+class _DemoItem {
+  final String label;
+  final int count;
+  final Color color;
+  final IconData icon;
+
+  const _DemoItem(this.label, this.count, this.color, this.icon);
+}
+
+class _AgeRange {
+  final String label;
+  final int count;
+  final Color color;
+
+  const _AgeRange(this.label, this.count, this.color);
 }

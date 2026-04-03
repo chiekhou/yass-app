@@ -4,156 +4,166 @@ const register = [
   body("email")
     .trim()
     .isEmail()
-    .withMessage("Please provide a valid email address")
+    .withMessage("Veuillez fournir une adresse e-mail valide")
     .normalizeEmail(),
 
   body("password")
     .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
+    .withMessage("Le mot de passe doit contenir au moins 8 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     ),
 
   body("first_name")
     .trim()
     .notEmpty()
-    .withMessage("First name is required")
+    .withMessage("Le prénom est requis")
     .isLength({ min: 2, max: 100 })
-    .withMessage("First name must be between 2 and 100 characters"),
+    .withMessage("Le prénom doit contenir entre 2 et 100 caractères"),
 
   body("last_name")
     .trim()
     .notEmpty()
-    .withMessage("Last name is required")
+    .withMessage("Le nom est requis")
     .isLength({ min: 2, max: 100 })
-    .withMessage("Last name must be between 2 and 100 characters"),
+    .withMessage("Le nom doit contenir entre 2 et 100 caractères"),
 
   body("phone")
     .optional()
     .trim()
     .matches(/^\+?[0-9]\d{6,14}$/)
-    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+    .withMessage("Veuillez fournir un numéro de téléphone valide (ex. 0551234567 ou +33612345678)"),
 
   body("language")
     .optional()
     .isIn(["fr", "ar", "en"])
-    .withMessage("Language must be fr, ar, or en"),
+    .withMessage("La langue doit être fr, ar ou en"),
 
-  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+  body("age")
+    .optional()
+    .isInt({ min: 1, max: 120 })
+    .withMessage("L'âge doit être un entier entre 1 et 120"),
+
+  body("gender")
+    .optional()
+    .isIn(["male", "female", "young", "child"])
+    .withMessage("Le genre doit être male, female, young ou child"),
+
+  body("wilaya_id").optional().isUUID(4).withMessage("Identifiant de wilaya invalide"),
 ];
 
 const registerPartner = [
-  // User fields
+  // Champs utilisateur
   body("email")
     .trim()
     .isEmail()
-    .withMessage("Please provide a valid email address")
+    .withMessage("Veuillez fournir une adresse e-mail valide")
     .normalizeEmail(),
 
   body("password")
     .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
+    .withMessage("Le mot de passe doit contenir au moins 8 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     ),
 
   body("first_name")
     .trim()
     .notEmpty()
-    .withMessage("First name is required")
+    .withMessage("Le prénom est requis")
     .isLength({ min: 2, max: 100 })
-    .withMessage("First name must be between 2 and 100 characters"),
+    .withMessage("Le prénom doit contenir entre 2 et 100 caractères"),
 
   body("last_name")
     .trim()
     .notEmpty()
-    .withMessage("Last name is required")
+    .withMessage("Le nom est requis")
     .isLength({ min: 2, max: 100 })
-    .withMessage("Last name must be between 2 and 100 characters"),
+    .withMessage("Le nom doit contenir entre 2 et 100 caractères"),
 
   body("phone")
     .trim()
     .notEmpty()
-    .withMessage("Phone number is required for partners")
+    .withMessage("Le numéro de téléphone est requis pour les partenaires")
     .matches(/^\+?[0-9]\d{6,14}$/)
-    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+    .withMessage("Veuillez fournir un numéro de téléphone valide (ex. 0551234567 ou +33612345678)"),
 
   body("language")
     .optional()
     .isIn(["fr", "ar", "en"])
-    .withMessage("Language must be fr, ar, or en"),
+    .withMessage("La langue doit être fr, ar ou en"),
 
-  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+  body("wilaya_id").optional().isUUID(4).withMessage("Identifiant de wilaya invalide"),
 
-  // Partner fields
+  // Champs partenaire
   body("company_name")
     .trim()
     .notEmpty()
-    .withMessage("Company name is required")
+    .withMessage("Le nom de l'entreprise est requis")
     .isLength({ min: 2, max: 255 })
-    .withMessage("Company name must be between 2 and 255 characters"),
+    .withMessage("Le nom de l'entreprise doit contenir entre 2 et 255 caractères"),
 
   body("registration_number")
     .optional()
     .trim()
     .isLength({ max: 100 })
-    .withMessage("Registration number must be less than 100 characters"),
+    .withMessage("Le numéro d'enregistrement ne doit pas dépasser 100 caractères"),
 
   body("tax_id")
     .optional()
     .trim()
     .isLength({ max: 100 })
-    .withMessage("Tax ID must be less than 100 characters"),
+    .withMessage("L'identifiant fiscal ne doit pas dépasser 100 caractères"),
 ];
 
 const login = [
   body("email")
     .trim()
     .isEmail()
-    .withMessage("Please provide a valid email address")
+    .withMessage("Veuillez fournir une adresse e-mail valide")
     .normalizeEmail(),
 
-  body("password").notEmpty().withMessage("Password is required"),
+  body("password").notEmpty().withMessage("Le mot de passe est requis"),
 ];
 
 const forgotPassword = [
   body("email")
     .trim()
     .isEmail()
-    .withMessage("Please provide a valid email address")
+    .withMessage("Veuillez fournir une adresse e-mail valide")
     .normalizeEmail(),
 ];
 
 const resetPassword = [
-  body("token").notEmpty().withMessage("Reset token is required"),
+  body("token").notEmpty().withMessage("Le token de réinitialisation est requis"),
 
   body("password")
     .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
+    .withMessage("Le mot de passe doit contenir au moins 8 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     ),
 ];
 
 const changePassword = [
   body("current_password")
     .notEmpty()
-    .withMessage("Current password is required"),
+    .withMessage("Le mot de passe actuel est requis"),
 
   body("new_password")
     .isLength({ min: 8 })
-    .withMessage("New password must be at least 8 characters long")
+    .withMessage("Le nouveau mot de passe doit contenir au moins 8 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "New password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "Le nouveau mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     ),
 ];
 
 const refreshToken = [
-  body("refresh_token").notEmpty().withMessage("Refresh token is required"),
+  body("refresh_token").notEmpty().withMessage("Le token de rafraîchissement est requis"),
 ];
 
 const updateProfile = [
@@ -161,26 +171,36 @@ const updateProfile = [
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage("First name must be between 2 and 100 characters"),
+    .withMessage("Le prénom doit contenir entre 2 et 100 caractères"),
 
   body("last_name")
     .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
-    .withMessage("Last name must be between 2 and 100 characters"),
+    .withMessage("Le nom doit contenir entre 2 et 100 caractères"),
 
   body("phone")
     .optional()
     .trim()
     .matches(/^\+?[0-9]\d{6,14}$/)
-    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+    .withMessage("Veuillez fournir un numéro de téléphone valide (ex. 0551234567 ou +33612345678)"),
 
   body("language")
     .optional()
     .isIn(["fr", "ar", "en"])
-    .withMessage("Language must be fr, ar, or en"),
+    .withMessage("La langue doit être fr, ar ou en"),
 
-  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+  body("age")
+    .optional()
+    .isInt({ min: 1, max: 120 })
+    .withMessage("L'âge doit être un entier entre 1 et 120"),
+
+  body("gender")
+    .optional()
+    .isIn(["male", "female", "young", "child"])
+    .withMessage("Le genre doit être male, female, young ou child"),
+
+  body("wilaya_id").optional().isUUID(4).withMessage("Identifiant de wilaya invalide"),
 ];
 
 const updatePartnerProfile = [
@@ -188,89 +208,99 @@ const updatePartnerProfile = [
     .optional()
     .trim()
     .isLength({ min: 2, max: 255 })
-    .withMessage("Company name must be between 2 and 255 characters"),
+    .withMessage("Le nom de l'entreprise doit contenir entre 2 et 255 caractères"),
 
   body("registration_number")
     .optional()
     .trim()
     .isLength({ max: 100 })
-    .withMessage("Registration number must be less than 100 characters"),
+    .withMessage("Le numéro d'enregistrement ne doit pas dépasser 100 caractères"),
 
   body("tax_id")
     .optional()
     .trim()
     .isLength({ max: 100 })
-    .withMessage("Tax ID must be less than 100 characters"),
+    .withMessage("L'identifiant fiscal ne doit pas dépasser 100 caractères"),
 ];
 
 const registerWithPhone = [
   body("phone")
     .trim()
     .notEmpty()
-    .withMessage("Phone number is required")
+    .withMessage("Le numéro de téléphone est requis")
     .matches(/^\+?[0-9]\d{6,14}$/)
-    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+    .withMessage("Veuillez fournir un numéro de téléphone valide (ex. 0551234567 ou +33612345678)"),
 
   body("password")
     .isLength({ min: 8 })
-    .withMessage("Password must be at least 8 characters long")
+    .withMessage("Le mot de passe doit contenir au moins 8 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage(
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
     ),
 
   body("first_name")
     .trim()
     .notEmpty()
-    .withMessage("First name is required")
+    .withMessage("Le prénom est requis")
     .isLength({ min: 2, max: 100 })
-    .withMessage("First name must be between 2 and 100 characters"),
+    .withMessage("Le prénom doit contenir entre 2 et 100 caractères"),
 
   body("last_name")
     .trim()
     .notEmpty()
-    .withMessage("Last name is required")
+    .withMessage("Le nom est requis")
     .isLength({ min: 2, max: 100 })
-    .withMessage("Last name must be between 2 and 100 characters"),
+    .withMessage("Le nom doit contenir entre 2 et 100 caractères"),
 
   body("email")
     .optional({ nullable: true, checkFalsy: true })
     .trim()
     .isEmail()
-    .withMessage("Please provide a valid email address")
+    .withMessage("Veuillez fournir une adresse e-mail valide")
     .normalizeEmail(),
 
   body("language")
     .optional()
     .isIn(["fr", "ar", "en"])
-    .withMessage("Language must be fr, ar, or en"),
+    .withMessage("La langue doit être fr, ar ou en"),
 
-  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
+  body("age")
+    .optional()
+    .isInt({ min: 1, max: 120 })
+    .withMessage("L'âge doit être un entier entre 1 et 120"),
+
+  body("gender")
+    .optional()
+    .isIn(["male", "female", "young", "child"])
+    .withMessage("Le genre doit être male, female, young ou child"),
+
+  body("wilaya_id").optional().isUUID(4).withMessage("Identifiant de wilaya invalide"),
 ];
 
 const loginWithPhone = [
   body("phone")
     .trim()
     .notEmpty()
-    .withMessage("Phone number is required")
+    .withMessage("Le numéro de téléphone est requis")
     .matches(/^\+?[0-9]\d{6,14}$/)
-    .withMessage("Please provide a valid phone number (e.g. 0551234567 or +33612345678)"),
+    .withMessage("Veuillez fournir un numéro de téléphone valide (ex. 0551234567 ou +33612345678)"),
 
-  body("password").notEmpty().withMessage("Password is required"),
+  body("password").notEmpty().withMessage("Le mot de passe est requis"),
 ];
 
 const verifyPhoneOtp = [
   body("otp")
     .trim()
     .notEmpty()
-    .withMessage("OTP is required")
+    .withMessage("Le code OTP est requis")
     .isLength({ min: 6, max: 6 })
-    .withMessage("OTP must be exactly 6 digits")
+    .withMessage("Le code OTP doit contenir exactement 6 chiffres")
     .isNumeric()
-    .withMessage("OTP must contain only digits"),
+    .withMessage("Le code OTP ne doit contenir que des chiffres"),
 ];
 
-// Email OTP uses the same 6-digit validation rules as phone OTP
+// L'OTP par e-mail utilise les mêmes règles de validation que l'OTP par téléphone
 const verifyEmailOtp = verifyPhoneOtp;
 
 module.exports = {

@@ -38,6 +38,18 @@ class AppColors {
   static const Color scaffoldBackground =
       Color(0xFF006233); // Primary green as scaffold
 
+  // Text colors sémantiques
+  /// Texte sur fond vert (scaffold, headers verts, AppBar)
+  static const Color textOnGreen = Color(0xFFFFFFFF);
+  /// Texte secondaire/caption sur fond vert (légèrement transparent)
+  static const Color textOnGreenSecondary = Color(0xCCFFFFFF); // white 80%
+  /// Texte principal sur fond blanc (cards, dialogs)
+  static const Color textPrimary = Color(0xFF212121);   // grey900
+  /// Texte secondaire sur fond blanc
+  static const Color textSecondary = Color(0xFF616161); // grey700
+  /// Texte tertiaire / hint sur fond blanc
+  static const Color textHint = Color(0xFF9E9E9E);      // grey500
+
   // Semantic Colors
   static const Color success = Color(0xFF4CAF50);
   static const Color successLight = Color(0xFFE8F5E9);

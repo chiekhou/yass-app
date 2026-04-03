@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -248,7 +249,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                           size: 11, color: AppColors.warning),
                       const SizedBox(width: 4),
                       Text(
-                        'En attente',
+                        context.l10n.statusPending,
                         style:
                             Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: AppColors.warning,

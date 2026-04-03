@@ -238,6 +238,25 @@ class AdminController {
   // ==================== ESTABLISHMENT MANAGEMENT ====================
 
   /**
+   * Get all establishments
+   * GET /api/v1/admin/establishments
+   */
+  async getEstablishments(req, res, next) {
+    try {
+      const { page, limit, status, search } = req.query;
+      const result = await adminService.getEstablishments({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 20,
+        status,
+        search,
+      });
+      ApiResponse.success(result, "Establishments retrieved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Create establishment (admin-driven)
    * POST /api/v1/admin/establishments
    */
@@ -315,6 +334,94 @@ class AdminController {
     try {
       await adminService.deleteEstablishment(req.params.id);
       ApiResponse.success(null, "Establishment deleted successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Set featured status (manuel gratuit)
+   * POST /api/v1/admin/establishments/:id/feature
+   * body: { duration_days: number | null }  — 0 = retirer
+   */
+  async setFeatured(req, res, next) {
+    try {
+      const { duration_days } = req.body;
+      const establishment = await adminService.setFeatured(
+        req.params.id,
+        duration_days !== undefined ? duration_days : null,
+      );
+      ApiResponse.success(establishment, "Mise en avant mise à jour").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Générer un lien Chargily pour mise à la une (admin → partenaire)
+   * POST /api/v1/admin/establishments/:id/feature/checkout
+   * body: { plan: "featured_7" | "featured_15" | "featured_30" }
+   */
+  async featureCheckout(req, res, next) {
+    try {
+      const { plan } = req.body;
+      const subscriptionService = require("../services/subscription.service");
+      const { Establishment, Partner } = require("../models");
+
+      const establishment = await Establishment.findByPk(req.params.id, {
+        include: [{ model: Partner, as: "partner" }],
+      });
+      if (!establishment) {
+        return next(require("../utils/ApiError").notFound("Établissement introuvable"));
+      }
+      if (!establishment.partner) {
+        return next(require("../utils/ApiError").badRequest("Établissement sans partenaire"));
+      }
+
+      const { checkoutUrl } = await subscriptionService.createFeaturedChargilyCheckout(
+        establishment.partner,
+        establishment.id,
+        plan
+      );
+
+      ApiResponse.success({ checkout_url: checkoutUrl }, "Lien de paiement généré").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Créer une facture manuelle pour mise à la une
+   * POST /api/v1/admin/establishments/:id/feature/manual
+   * body: { plan: "featured_7" | "featured_15" | "featured_30", transfer_reference?: string }
+   */
+  async featureManual(req, res, next) {
+    try {
+      const { plan, transfer_reference, payment_method } = req.body;
+      const subscriptionService = require("../services/subscription.service");
+      const { Establishment, Partner } = require("../models");
+
+      const establishment = await Establishment.findByPk(req.params.id, {
+        include: [{ model: Partner, as: "partner" }],
+      });
+      if (!establishment) {
+        return next(require("../utils/ApiError").notFound("Établissement introuvable"));
+      }
+      if (!establishment.partner) {
+        return next(require("../utils/ApiError").badRequest("Établissement sans partenaire"));
+      }
+
+      const method = payment_method === "cash" ? "cash" : "manual";
+
+      const result = await subscriptionService.createFeaturedManualRequest(
+        establishment.partner,
+        establishment.id,
+        plan,
+        transfer_reference || null,
+        method
+      );
+
+      ApiResponse.success(result, "Facture manuelle mise à la une créée").send(res);
     } catch (error) {
       next(error);
     }

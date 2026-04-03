@@ -140,6 +140,24 @@ router.put(
   uploadController.reorderGallery,
 );
 
+// ==================== FEATURED PAYMENT ROUTES ====================
+
+/**
+ * @route   POST /api/v1/partner/establishments/:id/feature/checkout
+ * @desc    Payer la mise à la une via Chargily (paiement automatique)
+ * @access  Partner
+ * @body    { plan: "featured_7" | "featured_15" | "featured_30" }
+ */
+router.post("/establishments/:id/feature/checkout", subscriptionController.featuredCheckout);
+
+/**
+ * @route   POST /api/v1/partner/establishments/:id/feature/manual
+ * @desc    Demander la mise à la une par virement bancaire
+ * @access  Partner
+ * @body    { plan: "featured_7" | "featured_15" | "featured_30", transfer_reference?: string }
+ */
+router.post("/establishments/:id/feature/manual", subscriptionController.featuredManual);
+
 // ==================== SUBSCRIPTION ROUTES ====================
 
 /**

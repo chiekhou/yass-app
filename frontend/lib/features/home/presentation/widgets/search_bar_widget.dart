@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -51,7 +52,7 @@ class SearchBarWidget extends StatelessWidget {
             Expanded(
               child: onTap != null
                   ? Text(
-                      AppStrings.searchHint,
+                      context.l10n.searchHint,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.grey500,
                           ),
@@ -64,7 +65,7 @@ class SearchBarWidget extends StatelessWidget {
                       enabled: enabled,
                       style: Theme.of(context).textTheme.bodyMedium,
                       decoration: InputDecoration(
-                        hintText: AppStrings.searchHint,
+                        hintText: context.l10n.searchHint,
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,

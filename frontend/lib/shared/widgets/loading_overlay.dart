@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -240,12 +241,12 @@ class ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              AppStrings.error,
+              context.l10n.error,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              message ?? AppStrings.somethingWentWrong,
+              message ?? context.l10n.somethingWentWrong,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -257,7 +258,7 @@ class ErrorState extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text(AppStrings.retry),
+                label: Text(context.l10n.retry),
               ),
             ],
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -18,7 +19,7 @@ class PartnerSubscriptionPage extends StatefulWidget {
 }
 
 class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
-  String _selectedPlan = 'monthly';
+  String _selectedPlan = 'basic';
   String _selectedMethod = 'online'; // 'online' | 'manual' | 'cash'
   final TextEditingController _referenceController = TextEditingController();
 
@@ -44,7 +45,9 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
       backgroundColor: AppColors.background,
       body: BlocConsumer<PartnerSubscriptionBloc, PartnerSubscriptionState>(
         listener: (context, state) async {
-          if (state is CheckoutSessionCreated) {
+          if (state is SubscriptionLoaded && state.status.isActive) {
+            setState(() => _selectedPlan = _planToKey(state.status.plan));
+          } else if (state is CheckoutSessionCreated) {
             await _openCheckout(state.checkoutUrl);
           } else if (state is ManualPaymentRequested) {
             if (context.mounted) {
@@ -91,7 +94,13 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                     Align(
                       alignment: Alignment.topLeft,
                       child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/partner');
+                          }
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(AppDimens.paddingS),
                           decoration: BoxDecoration(
@@ -113,7 +122,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                       _buildPendingPaymentBanner(),
                     ] else ...[
                       Text(
-                        'Envie de vous abonner ?',
+                        'Choisissez votre offre',
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   color: Colors.white,
@@ -123,7 +132,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                       ),
                       const SizedBox(height: AppDimens.paddingM),
                       Text(
-                        'Rendez vos établissements visibles et attirez de nouveaux clients.',
+                        'Basic est gratuit pour toujours. Passez à Premium ou Gold pour débloquer plus de fonctionnalités.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white.withValues(alpha: 0.7),
                               height: 1.5,
@@ -136,27 +145,60 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
 
                     // Cards de plan
                     _buildPlanCard(
+                      plan: 'basic',
+                      planLabel: 'Basic',
+                      title: 'Gratuit',
+                      subtitle: 'toujours gratuit',
+                      badge: null,
+                      isSelected: _selectedPlan == 'basic',
+                      isLocked: currentStatus?.isActive ?? false,
+                      features: const [
+                        'Profil établissement visible',
+                        'Prise de rendez-vous client',
+                        'Coordonnées & localisation',
+                      ],
+                    ),
+                    const SizedBox(height: AppDimens.paddingM),
+                    _buildPlanCard(
                       plan: 'monthly',
+                      planLabel: 'Premium',
                       title: '${_monthlyPrice.toStringAsFixed(0)} DA / mois',
                       subtitle: 'sans engagement',
                       badge: null,
                       isSelected: _selectedPlan == 'monthly',
+                      isLocked: currentStatus?.isActive ?? false,
+                      features: const [
+                        'Tout Basic inclus',
+                        'Bouton WhatsApp',
+                        'Réseaux sociaux (Facebook, Instagram…)',
+                        'Galerie photos & vidéos',
+                        'Avis & notes clients',
+                      ],
                     ),
                     const SizedBox(height: AppDimens.paddingM),
                     _buildPlanCard(
                       plan: 'yearly',
+                      planLabel: 'Gold',
                       title: '${_yearlyPrice.toStringAsFixed(0)} DA / an',
                       subtitle:
                           'soit ${(_yearlyPrice / 12).toStringAsFixed(0)} DA/mois',
                       badge: 'Économisez $_yearlySavingPercent%',
                       isSelected: _selectedPlan == 'yearly',
+                      isLocked: currentStatus?.isActive ?? false,
+                      features: const [
+                        'Tout Premium inclus',
+                        'Mise à la une automatique',
+                        'Priorité dans les résultats',
+                        'Badge établissement Gold',
+                      ],
                     ),
 
                     const SizedBox(height: AppDimens.paddingXL),
 
                     // Sélecteur méthode de paiement
                     if ((currentStatus == null || !currentStatus.isActive) &&
-                        currentStatus?.hasPendingPayment != true) ...[
+                        currentStatus?.hasPendingPayment != true &&
+                        _selectedPlan != 'basic') ...[
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -360,6 +402,14 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                     ],
 
                     const SizedBox(height: AppDimens.paddingXL),
+
+                    // ─── Toutes les fonctionnalités ───────────────────────
+                    _buildAllFeatures(
+                      context,
+                      currentPlan: currentStatus?.plan ?? 'free',
+                    ),
+
+                    const SizedBox(height: AppDimens.paddingXL),
                   ],
                 ),
               ),
@@ -370,15 +420,310 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
     );
   }
 
+  static const List<Map<String, dynamic>> _allFeatures = [
+    {
+      'label': 'Profil établissement visible',
+      'icon': Iconsax.building,
+      'plan': 'basic',
+    },
+    {
+      'label': 'Coordonnées & localisation',
+      'icon': Iconsax.location,
+      'plan': 'basic',
+    },
+    {
+      'label': 'Prise de rendez-vous client',
+      'icon': Iconsax.calendar,
+      'plan': 'basic',
+    },
+    {
+      'label': 'Bouton WhatsApp',
+      'icon': Iconsax.message,
+      'plan': 'premium',
+    },
+    {
+      'label': 'Réseaux sociaux (Facebook, Instagram…)',
+      'icon': Iconsax.share,
+      'plan': 'premium',
+    },
+    {
+      'label': 'Galerie photos & vidéos',
+      'icon': Iconsax.gallery,
+      'plan': 'premium',
+    },
+    {
+      'label': 'Avis & notes clients',
+      'icon': Iconsax.star,
+      'plan': 'premium',
+    },
+    {
+      'label': 'Mise à la une automatique',
+      'icon': Iconsax.award,
+      'plan': 'gold',
+    },
+    {
+      'label': 'Priorité dans les résultats',
+      'icon': Iconsax.ranking,
+      'plan': 'gold',
+    },
+    {
+      'label': 'Badge établissement Gold',
+      'icon': Iconsax.medal,
+      'plan': 'gold',
+    },
+  ];
+
+  String _planToKey(String plan) {
+    switch (plan) {
+      case 'premium':
+        return 'monthly';
+      case 'gold':
+        return 'yearly';
+      default:
+        return 'basic';
+    }
+  }
+
+  int _planLevel(String plan) {
+    switch (plan) {
+      case 'premium':
+        return 1;
+      case 'gold':
+        return 2;
+      default:
+        return 0;
+    }
+  }
+
+  Widget _buildAllFeatures(BuildContext context, {required String currentPlan}) {
+    final currentLevel = _planLevel(currentPlan);
+
+    // tri: disponible d'abord, verrouillé ensuite
+    final sorted = [..._allFeatures]..sort((a, b) {
+        final aLocked = _planLevel(a['plan'] as String) > currentLevel ? 1 : 0;
+        final bLocked = _planLevel(b['plan'] as String) > currentLevel ? 1 : 0;
+        return aLocked.compareTo(bLocked);
+      });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Toutes les fonctionnalités',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            children: sorted.asMap().entries.map((entry) {
+              final i = entry.key;
+              final f = entry.value;
+              final featurePlan = f['plan'] as String;
+              final isLocked = _planLevel(featurePlan) > currentLevel;
+              final isLast = i == sorted.length - 1;
+
+              final planBadge = featurePlan == 'gold'
+                  ? 'Gold'
+                  : featurePlan == 'premium'
+                      ? 'Premium'
+                      : null;
+
+              return Column(
+                children: [
+                  InkWell(
+                    onTap: isLocked
+                        ? () => _showLockedFeatureDialog(
+                              context,
+                              featureName: f['label'] as String,
+                              requiredPlan: featurePlan,
+                            )
+                        : null,
+                    borderRadius: BorderRadius.vertical(
+                      top: i == 0
+                          ? const Radius.circular(AppDimens.radiusM)
+                          : Radius.zero,
+                      bottom: isLast
+                          ? const Radius.circular(AppDimens.radiusM)
+                          : Radius.zero,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimens.paddingM,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            f['icon'] as IconData,
+                            size: 18,
+                            color: isLocked
+                                ? Colors.white24
+                                : featurePlan == 'gold'
+                                    ? const Color(0xFFFFD700)
+                                    : AppColors.greenAccent,
+                          ),
+                          const SizedBox(width: AppDimens.paddingM),
+                          Expanded(
+                            child: Text(
+                              f['label'] as String,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: isLocked
+                                        ? Colors.white38
+                                        : Colors.white,
+                                  ),
+                            ),
+                          ),
+                          if (planBadge != null && isLocked)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: featurePlan == 'gold'
+                                    ? const Color(0xFFFFD700).withValues(alpha: 0.15)
+                                    : AppColors.primaryGreen.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                planBadge,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: featurePlan == 'gold'
+                                      ? const Color(0xFFFFD700)
+                                      : AppColors.greenAccent,
+                                ),
+                              ),
+                            )
+                          else if (!isLocked)
+                            const Icon(Icons.check_circle_rounded,
+                                size: 16, color: AppColors.greenAccent)
+                          else
+                            const Icon(Icons.lock_rounded,
+                                size: 14, color: Colors.white24),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (!isLast)
+                    Divider(
+                      height: 1,
+                      color: Colors.white.withValues(alpha: 0.07),
+                    ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showLockedFeatureDialog(
+    BuildContext context, {
+    required String featureName,
+    required String requiredPlan,
+  }) {
+    final planLabel = requiredPlan == 'gold' ? 'Gold' : 'Premium';
+    final planColor = requiredPlan == 'gold'
+        ? const Color(0xFFFFD700)
+        : AppColors.greenAccent;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A2B1A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.lock_rounded, color: planColor, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Fonctionnalité $planLabel',
+              style: TextStyle(
+                color: planColor,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '« $featureName »',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppDimens.paddingS),
+            Text(
+              'Cette fonctionnalité est disponible à partir de l\'offre $planLabel. '
+              'Sélectionnez l\'offre $planLabel ci-dessus pour en profiter.',
+              style: const TextStyle(
+                color: Colors.white60,
+                height: 1.5,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Fermer',
+                style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                _selectedPlan =
+                    requiredPlan == 'gold' ? 'yearly' : 'monthly';
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: planColor,
+              foregroundColor: Colors.black,
+            ),
+            child: Text('Voir l\'offre $planLabel'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPlanCard({
     required String plan,
+    required String planLabel,
     required String title,
     required String subtitle,
     required String? badge,
     required bool isSelected,
+    required bool isLocked,
+    required List<String> features,
   }) {
+    final accentColor = plan == 'yearly'
+        ? const Color(0xFFFFD700)
+        : AppColors.greenAccent;
+
     return GestureDetector(
-      onTap: () => setState(() => _selectedPlan = plan),
+      onTap: isLocked ? null : () => setState(() => _selectedPlan = plan),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: double.infinity,
@@ -388,51 +733,85 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryGreen.withValues(alpha: 0.25)
+              ? accentColor.withValues(alpha: 0.15)
               : Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           border: Border.all(
             color: isSelected
-                ? AppColors.greenAccent
+                ? accentColor
                 : Colors.white.withValues(alpha: 0.12),
             width: 1.5,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          )),
-                  const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.5),
-                          )),
-                ],
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        planLabel,
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              color: accentColor,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(title,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              )),
+                      Text(subtitle,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.5),
+                              )),
+                    ],
+                  ),
+                ),
+                if (badge != null)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryRed.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                    ),
+                    child: Text(badge,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            )),
+                  )
+                else if (isSelected)
+                  Icon(Icons.check_circle_rounded,
+                      color: accentColor, size: 20),
+              ],
+            ),
+            const SizedBox(height: AppDimens.paddingS),
+            ...features.map(
+              (f) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Icon(Icons.check, size: 14, color: accentColor),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        f,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.75),
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            if (badge != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryRed.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
-                ),
-                child: Text(badge,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        )),
-              )
-            else if (isSelected)
-              const Icon(Icons.check_circle_rounded,
-                  color: AppColors.greenAccent, size: 20),
           ],
         ),
       ),

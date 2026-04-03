@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -14,12 +15,14 @@ import '../bloc/review_bloc.dart';
 class AllReviewsPage extends StatefulWidget {
   final String establishmentId;
   final String? establishmentName;
+  final String? categoryName;
   final ReviewsResponse? initialData;
 
   const AllReviewsPage({
     super.key,
     required this.establishmentId,
     this.establishmentName,
+    this.categoryName,
     this.initialData,
   });
 
@@ -160,9 +163,10 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         onPressed: () async {
           final authState = context.read<AuthBloc>().state;
           if (authState is AuthAuthenticated) {
+            final name = Uri.encodeComponent(widget.establishmentName ?? '');
+            final cat = Uri.encodeComponent(widget.categoryName ?? '');
             final result = await context.push<bool>(
-              AppRoutes.writeReview
-                  .replaceFirst(':establishmentId', widget.establishmentId),
+              '${AppRoutes.writeReview.replaceFirst(':establishmentId', widget.establishmentId)}?name=$name&category=$cat',
             );
             if (result == true) {
               _loadReviews();
@@ -174,7 +178,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
         icon: const Icon(Iconsax.edit, size: 18),
-        label: const Text(AppStrings.writeReview),
+        label: Text(context.l10n.writeReview),
       ),
     );
   }
@@ -198,13 +202,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
               Row(
                 children: List.generate(
                   5,
-                  (i) => Icon(
-                    Icons.star_rounded,
-                    size: 16,
-                    color: i < data.averageRating.round()
-                        ? AppColors.starFilled
-                        : AppColors.starEmpty,
-                  ),
+                  (i) => Text('🇩🇿', style: const TextStyle(fontSize: 14)),
                 ),
               ),
               const SizedBox(height: 4),
@@ -235,8 +233,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.star_rounded,
-                          size: 12, color: AppColors.starFilled),
+                      const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                       const SizedBox(width: 8),
                       Expanded(
                         child: ClipRRect(
@@ -370,13 +367,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
                       children: [
                         ...List.generate(
                           5,
-                          (i) => Icon(
-                            Icons.star_rounded,
-                            size: 14,
-                            color: i < review.rating
-                                ? AppColors.starFilled
-                                : AppColors.starEmpty,
-                          ),
+                          (i) => const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                         ),
                         const SizedBox(width: AppDimens.paddingS),
                         Text(

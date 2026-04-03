@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -50,6 +51,17 @@ class _LoginPageState extends State<LoginPage> {
     return '${phone.substring(0, 4)}****${phone.substring(phone.length - 2)}';
   }
 
+  String _translateError(String message) {
+    const map = {
+      'Invalid email or password': 'Email ou mot de passe incorrect',
+      'Invalid phone number or password': 'Numéro de téléphone ou mot de passe incorrect',
+      'Account suspended': 'Votre compte a été suspendu',
+      'Account inactive': 'Votre compte est inactif',
+      'User not found': 'Aucun compte trouvé avec ces identifiants',
+    };
+    return map[message] ?? 'Email ou mot de passe incorrect';
+  }
+
   void _onLogin() {
     if (_formKey.currentState!.validate()) {
       if (_usePhone) {
@@ -98,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.message),
+              content: Text(_translateError(state.message)),
               backgroundColor: AppColors.error,
             ),
           );
@@ -144,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               const SizedBox(height: AppDimens.paddingM),
                               Text(
-                                AppStrings.appNameAr,
+                                'وِين',
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineMedium
@@ -155,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               const SizedBox(height: AppDimens.paddingXS),
                               Text(
-                                AppStrings.appTagline,
+                                context.l10n.appTagline,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -169,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         // Title
                         Text(
-                          AppStrings.login,
+                          context.l10n.login,
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: AppDimens.paddingM),
@@ -184,13 +196,13 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             children: [
                               _buildToggleTab(
-                                label: 'Par email',
+                                label: context.l10n.byEmail,
                                 icon: Iconsax.sms,
                                 selected: !_usePhone,
                                 onTap: () => setState(() => _usePhone = false),
                               ),
                               _buildToggleTab(
-                                label: 'Par téléphone',
+                                label: context.l10n.byPhone,
                                 icon: Iconsax.call,
                                 selected: _usePhone,
                                 onTap: () => setState(() => _usePhone = true),
@@ -204,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                         if (!_usePhone)
                           CustomTextField(
                             controller: _emailController,
-                            label: AppStrings.email,
+                            label: context.l10n.email,
                             hint: 'exemple@email.com',
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Iconsax.sms,
@@ -222,7 +234,7 @@ class _LoginPageState extends State<LoginPage> {
                         else
                           CustomTextField(
                             controller: _phoneController,
-                            label: AppStrings.phone,
+                            label: context.l10n.phone,
                             hint: '0551234567',
                             keyboardType: TextInputType.phone,
                             prefixIcon: Iconsax.call,
@@ -242,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                         // Password Field
                         CustomTextField(
                           controller: _passwordController,
-                          label: AppStrings.password,
+                          label: context.l10n.password,
                           hint: '••••••••',
                           obscureText: _obscurePassword,
                           prefixIcon: Iconsax.lock,
@@ -275,7 +287,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: TextButton(
                             onPressed: () =>
                                 context.push(AppRoutes.forgotPassword),
-                            child: const Text(AppStrings.forgotPassword),
+                            child: Text(context.l10n.forgotPassword),
                           ),
                         ),
 
@@ -294,8 +306,8 @@ class _LoginPageState extends State<LoginPage> {
                                   BorderRadius.circular(AppDimens.radiusM),
                             ),
                           ),
-                          child: const Text(
-                            AppStrings.login,
+                          child: Text(
+                            context.l10n.login,
                             style: TextStyle(
                               fontSize: AppDimens.fontL,
                               fontWeight: FontWeight.w600,
@@ -331,12 +343,12 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              AppStrings.noAccount,
+                              context.l10n.noAccount,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             TextButton(
                               onPressed: () => context.push(AppRoutes.register),
-                              child: const Text(AppStrings.register),
+                              child: Text(context.l10n.register),
                             ),
                           ],
                         ),

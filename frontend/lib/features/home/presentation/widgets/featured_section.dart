@@ -75,11 +75,34 @@ class FeaturedSection extends StatelessWidget {
                                   child: const Icon(Iconsax.image,
                                       color: AppColors.grey400, size: 40)),
                         ),
-                        // Rank badge (top 3 get medal colors)
+                        // Badge "À la une"
                         Positioned(
                           top: AppDimens.paddingS,
                           left: AppDimens.paddingS,
-                          child: _RankBadge(rank: index + 1),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.star_rounded,
+                                    size: 12, color: Colors.white),
+                                SizedBox(width: 3),
+                                Text(
+                                  'À la une',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                         // Rating overlay (bottom right of image)
                         Positioned(
@@ -95,8 +118,7 @@ class FeaturedSection extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.star_rounded,
-                                    color: AppColors.starFilled, size: 14),
+                                const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                                 const SizedBox(width: 3),
                                 Text(
                                   e.displayRating,
@@ -182,42 +204,6 @@ class FeaturedSection extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-/// Rank badge widget — gold/silver/bronze for top 3, white for others
-class _RankBadge extends StatelessWidget {
-  final int rank;
-  const _RankBadge({required this.rank});
-
-  @override
-  Widget build(BuildContext context) {
-    if (rank <= 3) {
-      const medals = ['🥇', '🥈', '🥉'];
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.45),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(medals[rank - 1], style: const TextStyle(fontSize: 14)),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '#$rank',
-        style: const TextStyle(
-          color: AppColors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-        ),
       ),
     );
   }

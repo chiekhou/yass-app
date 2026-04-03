@@ -77,6 +77,62 @@ class SubscriptionController {
   }
 
   /**
+   * POST /partner/establishments/:id/feature/checkout
+   * Body: { plan: "featured_7" | "featured_15" | "featured_30" }
+   * Crée une session Chargily pour mise à la une et retourne l'URL de paiement
+   */
+  async featuredCheckout(req, res, next) {
+    try {
+      const { plan } = req.body;
+      const { id: establishmentId } = req.params;
+
+      if (!plan || !["featured_7", "featured_15", "featured_30"].includes(plan)) {
+        throw ApiError.badRequest('Le plan doit être "featured_7", "featured_15" ou "featured_30"');
+      }
+
+      const { checkoutUrl } = await subscriptionService.createFeaturedChargilyCheckout(
+        req.partner,
+        establishmentId,
+        plan
+      );
+
+      res.json({ success: true, data: { checkout_url: checkoutUrl } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /partner/establishments/:id/feature/manual
+   * Body: { plan: "featured_7" | "featured_15" | "featured_30", transfer_reference?: string }
+   * Crée une demande de paiement manuel pour mise à la une
+   */
+  async featuredManual(req, res, next) {
+    try {
+      const { plan, transfer_reference, payment_method } = req.body;
+      const { id: establishmentId } = req.params;
+
+      if (!plan || !["featured_7", "featured_15", "featured_30"].includes(plan)) {
+        throw ApiError.badRequest('Le plan doit être "featured_7", "featured_15" ou "featured_30"');
+      }
+
+      const method = payment_method === "cash" ? "cash" : "manual";
+
+      const result = await subscriptionService.createFeaturedManualRequest(
+        req.partner,
+        establishmentId,
+        plan,
+        transfer_reference || null,
+        method
+      );
+
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * POST /chargily/webhook
    * Webhook Chargily (raw body, pas d'auth)
    */

@@ -48,6 +48,8 @@ class AuthRegisterRequested extends AuthEvent {
   final String password;
   final String? phone;
   final String? wilayaId;
+  final String? gender;
+  final int? age;
 
   const AuthRegisterRequested({
     required this.firstName,
@@ -56,10 +58,12 @@ class AuthRegisterRequested extends AuthEvent {
     required this.password,
     this.phone,
     this.wilayaId,
+    this.gender,
+    this.age,
   });
 
   @override
-  List<Object?> get props => [firstName, lastName, email, password, phone, wilayaId];
+  List<Object?> get props => [firstName, lastName, email, password, phone, wilayaId, gender, age];
 }
 
 class AuthRegisterWithPhoneRequested extends AuthEvent {
@@ -68,6 +72,8 @@ class AuthRegisterWithPhoneRequested extends AuthEvent {
   final String phone;
   final String password;
   final String? wilayaId;
+  final String? gender;
+  final int? age;
 
   const AuthRegisterWithPhoneRequested({
     required this.firstName,
@@ -75,10 +81,12 @@ class AuthRegisterWithPhoneRequested extends AuthEvent {
     required this.phone,
     required this.password,
     this.wilayaId,
+    this.gender,
+    this.age,
   });
 
   @override
-  List<Object?> get props => [firstName, lastName, phone, password, wilayaId];
+  List<Object?> get props => [firstName, lastName, phone, password, wilayaId, gender, age];
 }
 
 class AuthLogoutRequested extends AuthEvent {}
@@ -88,16 +96,18 @@ class AuthUpdateProfile extends AuthEvent {
   final String? lastName;
   final String? phone;
   final String? wilayaId;
+  final String? avatar;
 
   const AuthUpdateProfile({
     this.firstName,
     this.lastName,
     this.phone,
     this.wilayaId,
+    this.avatar,
   });
 
   @override
-  List<Object?> get props => [firstName, lastName, phone, wilayaId];
+  List<Object?> get props => [firstName, lastName, phone, wilayaId, avatar];
 }
 
 class AuthForgotPasswordRequested extends AuthEvent {
@@ -321,7 +331,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       emit(AuthError(message: e.toString()));
-      emit(AuthUnauthenticated());
+      // Do NOT emit AuthUnauthenticated here — it would trigger a redirect
+      // to the home page via the global BlocListener in main.dart
     }
   }
 
@@ -342,7 +353,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       emit(AuthError(message: e.toString()));
-      emit(AuthUnauthenticated());
+      // Do NOT emit AuthUnauthenticated here — it would trigger a redirect
+      // to the home page via the global BlocListener in main.dart
     }
   }
 
@@ -359,6 +371,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
         phone: event.phone,
         wilayaId: event.wilayaId,
+        gender: event.gender,
+        age: event.age,
       );
       if (user.status == 'pending') {
         emit(AuthPendingVerification(user: user, verificationType: 'email'));
@@ -383,6 +397,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         phone: event.phone,
         password: event.password,
         wilayaId: event.wilayaId,
+        gender: event.gender,
+        age: event.age,
       );
       if (user.status == 'pending') {
         emit(AuthPendingVerification(user: user, verificationType: 'phone'));
@@ -449,6 +465,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           lastName: event.lastName,
           phone: event.phone,
           wilayaId: event.wilayaId,
+          avatar: event.avatar,
         );
         emit(AuthAuthenticated(user: user));
       } catch (e) {

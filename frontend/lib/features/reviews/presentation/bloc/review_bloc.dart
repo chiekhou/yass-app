@@ -15,23 +15,25 @@ abstract class ReviewEvent extends Equatable {
 
 class ReviewSubmit extends ReviewEvent {
   final String establishmentId;
-  final int rating;
+  final int? rating;
   final String? title;
   final String comment;
   final List<String>? pros;
   final List<String>? cons;
   final List<String>? images;
   final DateTime? visitDate;
+  final Map<String, int>? subRatings;
 
   const ReviewSubmit({
     required this.establishmentId,
-    required this.rating,
+    this.rating,
     this.title,
     required this.comment,
     this.pros,
     this.cons,
     this.images,
     this.visitDate,
+    this.subRatings,
   });
 
   @override
@@ -44,6 +46,7 @@ class ReviewSubmit extends ReviewEvent {
         cons,
         images,
         visitDate,
+        subRatings,
       ];
 }
 
@@ -216,6 +219,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         cons: event.cons,
         images: event.images,
         visitDate: event.visitDate,
+        subRatings: event.subRatings,
       );
 
       emit(ReviewSubmitSuccess(

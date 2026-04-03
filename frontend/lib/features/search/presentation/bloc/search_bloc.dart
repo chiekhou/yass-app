@@ -45,37 +45,52 @@ class _SearchSuggestionsExecute extends SearchEvent {
 class SearchQuery extends SearchEvent {
   final String query;
   final String? categoryId;
+  final String? subcategoryId;
   final String? wilayaId;
+  final String? communeId;
   final String? priceRange;
   final double? minRating;
   final bool? isVerified;
   final String? sortBy;
   final String? sortOrder;
   final int page;
+  final double? latitude;
+  final double? longitude;
+  final int? radius;
 
   const SearchQuery({
     required this.query,
     this.categoryId,
+    this.subcategoryId,
     this.wilayaId,
+    this.communeId,
     this.priceRange,
     this.minRating,
     this.isVerified,
     this.sortBy,
     this.sortOrder,
     this.page = 1,
+    this.latitude,
+    this.longitude,
+    this.radius,
   });
 
   @override
   List<Object?> get props => [
         query,
         categoryId,
+        subcategoryId,
         wilayaId,
+        communeId,
         priceRange,
         minRating,
         isVerified,
         sortBy,
         sortOrder,
         page,
+        latitude,
+        longitude,
+        radius,
       ];
 }
 
@@ -230,52 +245,77 @@ class SearchError extends SearchState {
 
 class SearchFilters extends Equatable {
   final String? categoryId;
+  final String? subcategoryId;
   final String? wilayaId;
+  final String? communeId;
   final String? priceRange;
   final double? minRating;
   final bool? isVerified;
   final String? sortBy;
   final String? sortOrder;
+  final double? latitude;
+  final double? longitude;
+  final int? radius;
 
   const SearchFilters({
     this.categoryId,
+    this.subcategoryId,
     this.wilayaId,
+    this.communeId,
     this.priceRange,
     this.minRating,
     this.isVerified,
     this.sortBy,
     this.sortOrder,
+    this.latitude,
+    this.longitude,
+    this.radius,
   });
 
   SearchFilters copyWith({
     String? categoryId,
+    String? subcategoryId,
     String? wilayaId,
+    String? communeId,
     String? priceRange,
     double? minRating,
     bool? isVerified,
     String? sortBy,
     String? sortOrder,
+    double? latitude,
+    double? longitude,
+    int? radius,
   }) {
     return SearchFilters(
       categoryId: categoryId ?? this.categoryId,
+      subcategoryId: subcategoryId ?? this.subcategoryId,
       wilayaId: wilayaId ?? this.wilayaId,
+      communeId: communeId ?? this.communeId,
       priceRange: priceRange ?? this.priceRange,
       minRating: minRating ?? this.minRating,
       isVerified: isVerified ?? this.isVerified,
       sortBy: sortBy ?? this.sortBy,
       sortOrder: sortOrder ?? this.sortOrder,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      radius: radius ?? this.radius,
     );
   }
 
   @override
   List<Object?> get props => [
         categoryId,
+        subcategoryId,
         wilayaId,
+        communeId,
         priceRange,
         minRating,
         isVerified,
         sortBy,
         sortOrder,
+        latitude,
+        longitude,
+        radius,
       ];
 }
 
@@ -419,12 +459,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       final response = await _repository.search(
         query: event.query,
         categoryId: event.categoryId,
+        subcategoryId: event.subcategoryId,
         wilayaId: event.wilayaId,
+        communeId: event.communeId,
         priceRange: event.priceRange,
         minRating: event.minRating,
         isVerified: event.isVerified,
         sortBy: event.sortBy,
         sortOrder: event.sortOrder,
+        latitude: event.latitude,
+        longitude: event.longitude,
+        radius: event.radius,
         page: event.page,
       );
 
@@ -435,12 +480,17 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         currentPage: event.page,
         filters: SearchFilters(
           categoryId: event.categoryId,
+          subcategoryId: event.subcategoryId,
           wilayaId: event.wilayaId,
+          communeId: event.communeId,
           priceRange: event.priceRange,
           minRating: event.minRating,
           isVerified: event.isVerified,
           sortBy: event.sortBy,
           sortOrder: event.sortOrder,
+          latitude: event.latitude,
+          longitude: event.longitude,
+          radius: event.radius,
         ),
         categories: currentCategories,
         wilayas: currentWilayas,
@@ -473,6 +523,9 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           isVerified: currentState.filters.isVerified,
           sortBy: currentState.filters.sortBy,
           sortOrder: currentState.filters.sortOrder,
+          latitude: currentState.filters.latitude,
+          longitude: currentState.filters.longitude,
+          radius: currentState.filters.radius,
           page: currentState.currentPage + 1,
         );
 

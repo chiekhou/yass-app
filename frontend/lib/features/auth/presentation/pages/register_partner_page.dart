@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -7,7 +8,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
-import '../../../../shared/widgets/custom_button.dart' hide CustomButton;
 import '../../../../shared/widgets/loading_overlay.dart';
 import '../../../home/data/models/category_model.dart';
 import '../../../home/data/repositories/category_repository.dart';
@@ -654,7 +654,7 @@ class _RegisterPartnerPageState extends State<RegisterPartnerPage> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   ),
                 ),
-                child: const Text('Retour'),
+                child: Text(context.l10n.back),
               ),
             ),
           if (_currentStep > 0) const SizedBox(width: AppDimens.paddingM),

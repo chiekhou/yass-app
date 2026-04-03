@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -32,8 +33,11 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _acceptTerms = false;
   bool _usePhone = false;
 
+  final _ageController = TextEditingController();
+
   List<Wilaya> _wilayas = [];
   String? _selectedWilayaId;
+  String? _selectedGender;
   bool _loadingWilayas = false;
 
   @override
@@ -61,6 +65,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
@@ -92,6 +97,7 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         return;
       }
+      final age = int.tryParse(_ageController.text.trim());
       if (_usePhone) {
         context.read<AuthBloc>().add(AuthRegisterWithPhoneRequested(
               firstName: _firstNameController.text.trim(),
@@ -99,6 +105,8 @@ class _RegisterPageState extends State<RegisterPage> {
               phone: _phoneController.text.trim(),
               password: _passwordController.text,
               wilayaId: _selectedWilayaId,
+              gender: _selectedGender,
+              age: age,
             ));
       } else {
         context.read<AuthBloc>().add(AuthRegisterRequested(
@@ -108,6 +116,8 @@ class _RegisterPageState extends State<RegisterPage> {
               password: _passwordController.text,
               phone: null,
               wilayaId: _selectedWilayaId,
+              gender: _selectedGender,
+              age: age,
             ));
       }
     }
@@ -169,7 +179,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         // Title
                         Text(
-                          AppStrings.register,
+                          context.l10n.register,
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: AppDimens.paddingXS),
@@ -192,13 +202,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: Row(
                             children: [
                               _buildToggleTab(
-                                label: 'Par email',
+                                label: context.l10n.byEmail,
                                 icon: Iconsax.sms,
                                 selected: !_usePhone,
                                 onTap: () => setState(() => _usePhone = false),
                               ),
                               _buildToggleTab(
-                                label: 'Par téléphone',
+                                label: context.l10n.byPhone,
                                 icon: Iconsax.call,
                                 selected: _usePhone,
                                 onTap: () => setState(() => _usePhone = true),
@@ -214,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             Expanded(
                               child: CustomTextField(
                                 controller: _firstNameController,
-                                label: AppStrings.firstName,
+                                label: context.l10n.firstName,
                                 hint: 'Prénom',
                                 prefixIcon: Iconsax.user,
                                 validator: (value) {
@@ -229,7 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             Expanded(
                               child: CustomTextField(
                                 controller: _lastNameController,
-                                label: AppStrings.lastName,
+                                label: context.l10n.lastName,
                                 hint: 'Nom',
                                 prefixIcon: Iconsax.user,
                                 validator: (value) {
@@ -248,7 +258,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         if (!_usePhone)
                           CustomTextField(
                             controller: _emailController,
-                            label: AppStrings.email,
+                            label: context.l10n.email,
                             hint: 'exemple@email.com',
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Iconsax.sms,
@@ -266,7 +276,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         else
                           CustomTextField(
                             controller: _phoneController,
-                            label: AppStrings.phone,
+                            label: context.l10n.phone,
                             hint: '0551234567',
                             keyboardType: TextInputType.phone,
                             prefixIcon: Iconsax.call,
@@ -286,7 +296,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // Password
                         CustomTextField(
                           controller: _passwordController,
-                          label: AppStrings.password,
+                          label: context.l10n.password,
                           hint: '••••••••',
                           obscureText: _obscurePassword,
                           prefixIcon: Iconsax.lock,
@@ -317,7 +327,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // Confirm Password
                         CustomTextField(
                           controller: _confirmPasswordController,
-                          label: AppStrings.confirmPassword,
+                          label: context.l10n.confirmPassword,
                           hint: '••••••••',
                           obscureText: _obscureConfirmPassword,
                           prefixIcon: Iconsax.lock,
@@ -393,6 +403,65 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: AppDimens.paddingM),
 
+                        // Age field
+                        TextFormField(
+                          controller: _ageController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Âge',
+                            hintText: 'Ex: 25',
+                            prefixIcon: const Icon(Iconsax.calendar, size: AppDimens.iconS),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                              borderSide: const BorderSide(color: AppColors.grey300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                              borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              final age = int.tryParse(value);
+                              if (age == null || age < 1 || age > 120) {
+                                return 'Âge invalide (1–120)';
+                              }
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppDimens.paddingM),
+
+                        // Genre selector
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Qui êtes-vous ?',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.grey700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                            const SizedBox(height: AppDimens.paddingS),
+                            Row(
+                              children: [
+                                _buildGenderOption('male', 'Homme', Icons.male),
+                                const SizedBox(width: AppDimens.paddingS),
+                                _buildGenderOption('female', 'Femme', Icons.female),
+                                const SizedBox(width: AppDimens.paddingS),
+                                _buildGenderOption('young', 'Jeune', Icons.emoji_people),
+                                const SizedBox(width: AppDimens.paddingS),
+                                _buildGenderOption('child', 'Enfant', Icons.child_care),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppDimens.paddingM),
+
                         // Terms Checkbox
                         Row(
                           children: [
@@ -456,8 +525,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   BorderRadius.circular(AppDimens.radiusM),
                             ),
                           ),
-                          child: const Text(
-                            AppStrings.register,
+                          child: Text(
+                            context.l10n.register,
                             style: TextStyle(
                               fontSize: AppDimens.fontL,
                               fontWeight: FontWeight.w600,
@@ -472,12 +541,12 @@ class _RegisterPageState extends State<RegisterPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              AppStrings.hasAccount,
+                              context.l10n.hasAccount,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             TextButton(
                               onPressed: () => context.pop(),
-                              child: const Text(AppStrings.login),
+                              child: Text(context.l10n.login),
                             ),
                           ],
                         ),
@@ -526,6 +595,48 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildGenderOption(String value, String label, IconData icon) {
+    final selected = _selectedGender == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedGender = selected ? null : value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primaryGreen.withValues(alpha: 0.1)
+                : AppColors.grey100,
+            borderRadius: BorderRadius.circular(AppDimens.radiusS),
+            border: Border.all(
+              color: selected ? AppColors.primaryGreen : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: selected ? AppColors.primaryGreen : AppColors.grey500,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? AppColors.primaryGreen : AppColors.grey600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

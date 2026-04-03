@@ -8,6 +8,7 @@ import 'dart:io';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_exceptions.dart';
 import '../../../../core/constants/api_config.dart';
 import '../../../../app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -90,7 +91,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
       ),
       builder: (context) => SafeArea(
         child: Padding(
@@ -142,23 +144,46 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
 
     try {
-      // Upload avatar if selected
+      // Capture old avatar URL for cache eviction
+      final oldAvatarUrl = authBloc.state is AuthAuthenticated
+          ? (authBloc.state as AuthAuthenticated).user.avatar
+          : null;
+
+      // Upload avatar if selected — get back the new URL from the response
+      String? newAvatarUrl;
       if (_selectedAvatar != null) {
-        await _uploadAvatar();
+        newAvatarUrl = await _uploadAvatar();
       }
 
-      // Update profile
+      // Update profile — include avatar URL so the returned user is guaranteed
+      // to have the correct value regardless of DB read timing
       authBloc.add(AuthUpdateProfile(
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
-            phone: _phoneController.text.trim().isNotEmpty
-                ? _phoneController.text.trim()
-                : null,
-            wilayaId: _selectedWilayaId,
-          ));
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phone: _phoneController.text.trim().isNotEmpty
+            ? _phoneController.text.trim()
+            : null,
+        wilayaId: _selectedWilayaId,
+        avatar: newAvatarUrl,
+      ));
 
-      // Wait for state change
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Wait for the bloc to finish processing (AuthLoading → AuthAuthenticated/AuthError)
+      await authBloc.stream
+          .firstWhere((s) => s is AuthAuthenticated || s is AuthError)
+          .timeout(const Duration(seconds: 10));
+
+      // Evict old avatar from Flutter's image cache + pre-cache new one
+      if (newAvatarUrl != null && mounted) {
+        if (oldAvatarUrl != null) {
+          PaintingBinding.instance.imageCache
+              .evict(NetworkImage(oldAvatarUrl));
+        }
+        try {
+          await precacheImage(NetworkImage(newAvatarUrl), context);
+        } catch (_) {
+          // Pre-caching is best-effort — the image will still load on the profile page
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -170,9 +195,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
         context.pop();
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -182,14 +209,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<void> _uploadAvatar() async {
-    if (_selectedAvatar == null) return;
+  Future<String?> _uploadAvatar() async {
+    if (_selectedAvatar == null) return null;
 
-    await ApiClient.instance.uploadFile(
+    final response = await ApiClient.instance.uploadFile(
       ApiConfig.uploadAvatar,
       filePath: _selectedAvatar!.path,
       fieldName: 'avatar',
     );
+    return response.data['data']?['avatar'] as String?;
   }
 
   @override
@@ -266,18 +294,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 : (user.avatar != null
                                     ? NetworkImage(user.avatar!)
                                     : null) as ImageProvider?,
-                            child: _selectedAvatar == null && user.avatar == null
-                                ? Text(
-                                    user.firstName.isNotEmpty
-                                        ? user.firstName[0].toUpperCase()
-                                        : '?',
-                                    style: const TextStyle(
-                                      fontSize: 40,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryGreen,
-                                    ),
-                                  )
-                                : null,
+                            child:
+                                _selectedAvatar == null && user.avatar == null
+                                    ? Text(
+                                        user.firstName.isNotEmpty
+                                            ? user.firstName[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryGreen,
+                                        ),
+                                      )
+                                    : null,
                           ),
                           Positioned(
                             bottom: 0,
@@ -449,14 +478,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 children: [
                                   Text(
                                     'Informations entreprise',
-                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
                                   if (user.partnerProfile != null)
                                     Text(
                                       user.partnerProfile!.companyName,
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
                                             color: AppColors.grey600,
                                           ),
                                     ),
@@ -469,12 +504,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: () => context.push(AppRoutes.editPartnerProfile),
+                            onPressed: () =>
+                                context.push(AppRoutes.editPartnerProfile),
                             icon: const Icon(Iconsax.edit, size: 18),
                             label: const Text('Modifier les informations'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.primaryGreen,
-                              side: const BorderSide(color: AppColors.primaryGreen),
+                              side: const BorderSide(
+                                  color: AppColors.primaryGreen),
                             ),
                           ),
                         ),
@@ -507,7 +544,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: enabled ? AppColors.grey500 : AppColors.grey400),
+        prefixIcon:
+            Icon(icon, color: enabled ? AppColors.grey500 : AppColors.grey400),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
@@ -538,7 +576,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     required void Function(T?) onChanged,
   }) {
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.grey500),
@@ -566,6 +604,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  String _extractPasswordError(Object e) {
+    if (e is ValidationException) {
+      final fieldErrors = e.fieldErrors;
+      if (fieldErrors.isNotEmpty) {
+        return fieldErrors.values.expand((msgs) => msgs).join('\n');
+      }
+      return e.message.isNotEmpty ? e.message : 'Erreur de validation';
+    }
+    if (e is BadRequestException) {
+      const map = {
+        'Current password is incorrect': 'Le mot de passe actuel est incorrect',
+      };
+      return map[e.message] ?? e.message;
+    }
+    return 'Une erreur est survenue. Veuillez réessayer.';
+  }
+
   void _showChangePasswordDialog() {
     final currentPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
@@ -573,6 +628,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final formKey = GlobalKey<FormState>();
     bool isLoading = false;
     String? errorMessage;
+    bool obscureCurrent = true;
+    bool obscureNew = true;
+    bool obscureConfirm = true;
 
     showDialog(
       context: context,
@@ -603,10 +661,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                   TextFormField(
                     controller: currentPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
+                    obscureText: obscureCurrent,
+                    decoration: InputDecoration(
                       labelText: 'Mot de passe actuel',
-                      prefixIcon: Icon(Iconsax.lock),
+                      prefixIcon: const Icon(Iconsax.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureCurrent ? Iconsax.eye_slash : Iconsax.eye,
+                          size: 20,
+                          color: AppColors.grey500,
+                        ),
+                        onPressed: () => setDialogState(
+                            () => obscureCurrent = !obscureCurrent),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -618,10 +685,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const SizedBox(height: AppDimens.paddingM),
                   TextFormField(
                     controller: newPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
+                    obscureText: obscureNew,
+                    decoration: InputDecoration(
                       labelText: 'Nouveau mot de passe',
-                      prefixIcon: Icon(Iconsax.lock_1),
+                      prefixIcon: const Icon(Iconsax.lock_1),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureNew ? Iconsax.eye_slash : Iconsax.eye,
+                          size: 20,
+                          color: AppColors.grey500,
+                        ),
+                        onPressed: () =>
+                            setDialogState(() => obscureNew = !obscureNew),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -636,10 +712,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const SizedBox(height: AppDimens.paddingM),
                   TextFormField(
                     controller: confirmPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
+                    obscureText: obscureConfirm,
+                    decoration: InputDecoration(
                       labelText: 'Confirmer le mot de passe',
-                      prefixIcon: Icon(Iconsax.lock_1),
+                      prefixIcon: const Icon(Iconsax.lock_1),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureConfirm ? Iconsax.eye_slash : Iconsax.eye,
+                          size: 20,
+                          color: AppColors.grey500,
+                        ),
+                        onPressed: () => setDialogState(
+                            () => obscureConfirm = !obscureConfirm),
+                      ),
                     ),
                     validator: (value) {
                       if (value != newPasswordController.text) {
@@ -674,7 +759,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           data: {
                             'current_password': currentPasswordController.text,
                             'new_password': newPasswordController.text,
-                            'new_password_confirmation': confirmPasswordController.text,
+                            'new_password_confirmation':
+                                confirmPasswordController.text,
                           },
                         );
 
@@ -688,8 +774,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           );
                         }
                       } catch (e) {
+                        final msg = _extractPasswordError(e);
                         setDialogState(() {
-                          errorMessage = 'Mot de passe actuel incorrect';
+                          errorMessage = msg;
                           isLoading = false;
                         });
                       }

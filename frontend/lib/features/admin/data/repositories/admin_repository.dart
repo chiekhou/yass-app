@@ -133,6 +133,26 @@ class AdminRepository {
 
   // ==================== ESTABLISHMENT MANAGEMENT ====================
 
+  Future<AdminEstablishmentPagination> getEstablishments({
+    int page = 1,
+    int limit = 20,
+    String? status,
+    String? search,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+    };
+    if (status != null) queryParams['status'] = status;
+    if (search != null && search.isNotEmpty) queryParams['search'] = search;
+
+    final response = await _apiClient.get(
+      ApiConfig.adminEstablishments,
+      queryParameters: queryParams,
+    );
+    return AdminEstablishmentPagination.fromJson(response.data['data']);
+  }
+
   Future<AdminEstablishmentPagination> getPendingEstablishments({
     int page = 1,
     int limit = 20,
@@ -166,7 +186,35 @@ class AdminRepository {
     await _apiClient.delete(ApiConfig.adminEstablishmentById(id));
   }
 
+  /// durationDays = null → sans limite, 0 → retirer, >0 → durée en jours
+  Future<AdminEstablishment> setFeatured(String id, {int? durationDays}) async {
+    final response = await _apiClient.post(
+      ApiConfig.adminFeatureEstablishment(id),
+      data: {'duration_days': durationDays},
+    );
+    return AdminEstablishment.fromJson(response.data['data']);
+  }
+
   // ==================== REVIEW MODERATION ====================
+
+  Future<Map<String, dynamic>> getAllReviews({
+    int page = 1,
+    int limit = 20,
+    String status = 'all',
+    String? search,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      'status': status,
+    };
+    if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    final response = await _apiClient.get(
+      ApiConfig.adminReviews,
+      queryParameters: queryParams,
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
 
   Future<Map<String, dynamic>> getPendingReviews({
     int page = 1,
@@ -211,6 +259,11 @@ class AdminRepository {
     return Review.fromJson(response.data['data']);
   }
 
+  Future<Review> revokeReview(String id) async {
+    final response = await _apiClient.post(ApiConfig.adminRevokeReview(id));
+    return Review.fromJson(response.data['data']);
+  }
+
   Future<Review> dismissReport(String id) async {
     final response = await _apiClient.post(
       ApiConfig.adminDismissReport(id),
@@ -238,5 +291,16 @@ class AdminRepository {
       ApiConfig.adminValidatePayment(invoiceId),
     );
     return response.data['data'] as Map<String, dynamic>;
+  }
+
+  // ==================== SUGGESTIONS ====================
+
+  Future<int> getPendingSuggestionsCount() async {
+    final response = await _apiClient.get(
+      ApiConfig.adminSuggestions,
+      queryParameters: {'status': 'pending', 'limit': 1, 'page': 1},
+    );
+    final pagination = response.data['pagination'];
+    return (pagination?['total_items'] ?? 0) as int;
   }
 }

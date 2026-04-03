@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:win_app/features/establishment/data/repositories/establishment_repository.dart';
 
+import '../../../../core/services/location_service.dart';
 import '../../data/models/category_model.dart';
 import '../../data/repositories/category_repository.dart';
 import '../../../establishment/data/models/establishment_model.dart';
@@ -28,6 +29,15 @@ class HomeLoadByWilaya extends HomeEvent {
 
   @override
   List<Object?> get props => [wilayaId];
+}
+
+class HomeLoadNearby extends HomeEvent {
+  final String? fallbackWilayaId;
+
+  const HomeLoadNearby({this.fallbackWilayaId});
+
+  @override
+  List<Object?> get props => [fallbackWilayaId];
 }
 
 // ==================== STATES ====================
@@ -94,6 +104,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeLoadData>(_onLoadData);
     on<HomeRefresh>(_onRefresh);
     on<HomeLoadByWilaya>(_onLoadByWilaya);
+    on<HomeLoadNearby>(_onLoadNearby);
   }
 
   Future<void> _onLoadData(
@@ -105,7 +116,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // Load categories and top-rated in parallel
       final results = await Future.wait([
         _categoryRepository.getAll(),
-        _establishmentRepository.getTopRated(limit: 10),
+        _establishmentRepository.getFeatured(limit: 10),
       ]);
 
       final categories = results[0] as List<Category>;
@@ -127,7 +138,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     try {
       final results = await Future.wait([
         _categoryRepository.getAll(),
-        _establishmentRepository.getTopRated(limit: 10),
+        _establishmentRepository.getFeatured(limit: 10),
       ]);
 
       final categories = results[0] as List<Category>;
@@ -175,5 +186,46 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(currentState.copyWith(isLoadingNearby: false));
       }
     }
+  }
+
+  Future<void> _onLoadNearby(
+    HomeLoadNearby event,
+    Emitter<HomeState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! HomeLoaded) return;
+
+    emit(currentState.copyWith(isLoadingNearby: true));
+
+    try {
+      // Tente la géolocalisation GPS
+      final position = await LocationService().getCurrentPosition();
+
+      if (position != null) {
+        final nearby = await _establishmentRepository.getNearby(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          radius: 5,
+          limit: 10,
+        );
+        emit(currentState.copyWith(nearby: nearby, isLoadingNearby: false));
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback : wilaya de l'utilisateur
+    if (event.fallbackWilayaId != null) {
+      try {
+        final result = await _establishmentRepository.getByWilaya(
+          event.fallbackWilayaId!,
+          limit: 10,
+        );
+        emit(currentState.copyWith(
+            nearby: result.items, isLoadingNearby: false));
+        return;
+      } catch (_) {}
+    }
+
+    emit(currentState.copyWith(isLoadingNearby: false));
   }
 }

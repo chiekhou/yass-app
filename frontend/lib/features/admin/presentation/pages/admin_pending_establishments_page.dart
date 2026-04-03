@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -204,7 +205,7 @@ class _AdminPendingEstablishmentsPageState
                   .read<AdminEstablishmentsBloc>()
                   .add(AdminEstablishmentsLoadPending()),
               icon: const Icon(Icons.refresh),
-              label: const Text(AppStrings.retry),
+              label: Text(context.l10n.retry),
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen),
             ),
@@ -303,7 +304,7 @@ class _AdminPendingEstablishmentsPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(AppStrings.cancel),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {

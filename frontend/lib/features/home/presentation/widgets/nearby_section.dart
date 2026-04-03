@@ -95,8 +95,7 @@ class NearbySection extends StatelessWidget {
                               overflow: TextOverflow.ellipsis),
                           const SizedBox(height: AppDimens.paddingS),
                           Row(children: [
-                            const Icon(Icons.star_rounded,
-                                color: AppColors.starFilled, size: 14),
+                            const Text('🇩🇿', style: TextStyle(fontSize: 12)),
                             const SizedBox(width: 2),
                             Text(e.displayRating,
                                 style: Theme.of(context)

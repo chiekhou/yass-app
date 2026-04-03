@@ -100,6 +100,14 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING(500),
         allowNull: true,
       },
+      age: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      gender: {
+        type: DataTypes.ENUM("male", "female", "young", "child"),
+        allowNull: true,
+      },
       wilaya_id: {
         type: DataTypes.UUID,
         allowNull: true,

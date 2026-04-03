@@ -1,10 +1,10 @@
+import '../config/app_config.dart';
+
 class ApiConfig {
   ApiConfig._();
 
-  // Base URL - Change this for production
-  //static const String baseUrl = 'http://10.0.2.2:3000/api/v1'; // Android emulator
-  static const String baseUrl = 'http://localhost:3000/api/v1'; // iOS simulator
-  // static const String baseUrl = 'https://api.win-dz.com/api/v1'; // Production
+  // Base URL — injectée via --dart-define-from-file=.env.*.json
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Timeouts
   static const int connectTimeout = 30000; // 30 seconds
@@ -70,6 +70,20 @@ class ApiConfig {
   static String trackPhone(String id) => '$establishments/$id/track/phone';
   static String trackWhatsApp(String id) =>
       '$establishments/$id/track/whatsapp';
+  static String trackContact(String id) =>
+      '$establishments/$id/track/contact';
+
+  // Featured payment (partner)
+  static String partnerFeaturedCheckout(String id) =>
+      '$partner/establishments/$id/feature/checkout';
+  static String partnerFeaturedManual(String id) =>
+      '$partner/establishments/$id/feature/manual';
+
+  // Featured payment (admin)
+  static String adminFeaturedCheckout(String id) =>
+      '$adminEstablishments/$id/feature/checkout';
+  static String adminFeaturedManual(String id) =>
+      '$adminEstablishments/$id/feature/manual';
 
   // Favorites
   static const String favorites = '/favorites';
@@ -111,10 +125,14 @@ class ApiConfig {
   static String partnerReviewReply(String id) => '$partner/reviews/$id/reply';
 
   // Partner Subscription
-  static const String partnerSubscriptionStatus = '$partner/subscription/status';
-  static const String partnerSubscriptionCheckout = '$partner/subscription/checkout';
-  static const String partnerSubscriptionManual = '$partner/subscription/manual';
-  static const String partnerSubscriptionCancel = '$partner/subscription/cancel';
+  static const String partnerSubscriptionStatus =
+      '$partner/subscription/status';
+  static const String partnerSubscriptionCheckout =
+      '$partner/subscription/checkout';
+  static const String partnerSubscriptionManual =
+      '$partner/subscription/manual';
+  static const String partnerSubscriptionCancel =
+      '$partner/subscription/cancel';
 
   // Partner Invoices
   static const String partnerInvoices = '$partner/invoices';
@@ -128,17 +146,17 @@ class ApiConfig {
   static const String adminPendingPartners = '$admin/partners/pending';
   static const String adminEstablishments = '$admin/establishments';
   static String adminEstablishmentById(String id) => '$adminEstablishments/$id';
+  static String adminFeatureEstablishment(String id) => '$adminEstablishments/$id/feature';
   static const String adminPendingEstablishments =
       '$admin/establishments/pending';
   static const String adminReviews = '$admin/reviews';
   static const String adminPendingReviews = '$admin/reviews/pending';
   static const String adminReportedReviews = '$admin/reviews/reported';
-  static String adminApproveReview(String id) =>
-      '$admin/reviews/$id/approve';
-  static String adminRejectReview(String id) =>
-      '$admin/reviews/$id/reject';
+  static String adminApproveReview(String id) => '$admin/reviews/$id/approve';
+  static String adminRejectReview(String id) => '$admin/reviews/$id/reject';
   static String adminDismissReport(String id) =>
       '$admin/reviews/$id/dismiss-report';
+  static String adminRevokeReview(String id) => '$admin/reviews/$id/revoke';
 
   // Admin Payments
   static const String adminPendingPayments = '$admin/payments/pending';
@@ -154,4 +172,18 @@ class ApiConfig {
 
   // FCM Token
   static const String updateFcmToken = '$auth/fcm-token';
+
+  // Suggestions d'établissements
+  static const String suggestions = '/suggestions';
+  static const String mySuggestions = '$suggestions/mine';
+  static String suggestionVote(String id) => '$suggestions/$id/vote';
+  static String suggestionDownvote(String id) => '$suggestions/$id/downvote';
+  static const String adminSuggestions = '$admin/suggestions';
+  static String adminApproveSuggestion(String id) =>
+      '$admin/suggestions/$id/approve';
+  static String adminRejectSuggestion(String id) =>
+      '$admin/suggestions/$id/reject';
+
+  // App tracking
+  static const String trackVisit = '/app/visit';
 }

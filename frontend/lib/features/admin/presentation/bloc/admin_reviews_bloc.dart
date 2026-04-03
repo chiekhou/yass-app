@@ -15,20 +15,24 @@ abstract class AdminReviewsEvent extends Equatable {
 
 class AdminReviewsLoadPending extends AdminReviewsEvent {
   final int page;
-
   const AdminReviewsLoadPending({this.page = 1});
-
   @override
   List<Object?> get props => [page];
 }
 
 class AdminReviewsLoadReported extends AdminReviewsEvent {
   final int page;
-
   const AdminReviewsLoadReported({this.page = 1});
-
   @override
   List<Object?> get props => [page];
+}
+
+class AdminReviewsLoadAll extends AdminReviewsEvent {
+  final int page;
+  final String status;
+  const AdminReviewsLoadAll({this.page = 1, this.status = 'all'});
+  @override
+  List<Object?> get props => [page, status];
 }
 
 class AdminReviewsLoadMore extends AdminReviewsEvent {}
@@ -37,9 +41,7 @@ class AdminReviewsRefresh extends AdminReviewsEvent {}
 
 class AdminReviewsSearch extends AdminReviewsEvent {
   final String query;
-
   const AdminReviewsSearch({required this.query});
-
   @override
   List<Object?> get props => [query];
 }
@@ -65,9 +67,14 @@ class AdminReviewReject extends AdminReviewsEvent {
 
 class AdminReviewDismissReport extends AdminReviewsEvent {
   final String reviewId;
-
   const AdminReviewDismissReport({required this.reviewId});
+  @override
+  List<Object?> get props => [reviewId];
+}
 
+class AdminReviewRevoke extends AdminReviewsEvent {
+  final String reviewId;
+  const AdminReviewRevoke({required this.reviewId});
   @override
   List<Object?> get props => [reviewId];
 }
@@ -85,13 +92,17 @@ class AdminReviewsInitial extends AdminReviewsState {}
 
 class AdminReviewsLoading extends AdminReviewsState {}
 
+// 'pending' | 'reported' | 'all'
+typedef ReviewTab = String;
+
 class AdminReviewsLoaded extends AdminReviewsState {
   final List<Review> reviews;
   final List<Review> filteredReviews;
   final int totalCount;
   final int currentPage;
   final bool hasMore;
-  final bool isReportedTab;
+  final ReviewTab activeTab;
+  final String statusFilter; // 'all' | 'approved' | 'pending' | 'rejected'
   final bool isLoadingMore;
   final String? searchQuery;
 
@@ -101,10 +112,14 @@ class AdminReviewsLoaded extends AdminReviewsState {
     required this.totalCount,
     required this.currentPage,
     required this.hasMore,
-    this.isReportedTab = false,
+    this.activeTab = 'pending',
+    this.statusFilter = 'all',
     this.isLoadingMore = false,
     this.searchQuery,
   });
+
+  bool get isReportedTab => activeTab == 'reported';
+  bool get isAllTab => activeTab == 'all';
 
   AdminReviewsLoaded copyWith({
     List<Review>? reviews,
@@ -112,7 +127,8 @@ class AdminReviewsLoaded extends AdminReviewsState {
     int? totalCount,
     int? currentPage,
     bool? hasMore,
-    bool? isReportedTab,
+    ReviewTab? activeTab,
+    String? statusFilter,
     bool? isLoadingMore,
     String? searchQuery,
   }) {
@@ -122,7 +138,8 @@ class AdminReviewsLoaded extends AdminReviewsState {
       totalCount: totalCount ?? this.totalCount,
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
-      isReportedTab: isReportedTab ?? this.isReportedTab,
+      activeTab: activeTab ?? this.activeTab,
+      statusFilter: statusFilter ?? this.statusFilter,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       searchQuery: searchQuery ?? this.searchQuery,
     );
@@ -135,7 +152,8 @@ class AdminReviewsLoaded extends AdminReviewsState {
         totalCount,
         currentPage,
         hasMore,
-        isReportedTab,
+        activeTab,
+        statusFilter,
         isLoadingMore,
         searchQuery,
       ];
@@ -163,17 +181,18 @@ class AdminReviewsError extends AdminReviewsState {
 
 class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
   final AdminRepository _repository = AdminRepository();
-  bool _isReportedTab = false;
 
   AdminReviewsBloc() : super(AdminReviewsInitial()) {
     on<AdminReviewsLoadPending>(_onLoadPending);
     on<AdminReviewsLoadReported>(_onLoadReported);
+    on<AdminReviewsLoadAll>(_onLoadAll);
     on<AdminReviewsLoadMore>(_onLoadMore);
     on<AdminReviewsRefresh>(_onRefresh);
     on<AdminReviewsSearch>(_onSearch);
     on<AdminReviewApprove>(_onApprove);
     on<AdminReviewReject>(_onReject);
     on<AdminReviewDismissReport>(_onDismissReport);
+    on<AdminReviewRevoke>(_onRevoke);
   }
 
   List<Review> _filterReviews(List<Review> reviews, String? query) {
@@ -183,34 +202,38 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
       final userName = review.user != null
           ? '${review.user!.firstName} ${review.user!.lastName}'.toLowerCase()
           : '';
+      final establishment = review.establishment?.name.toLowerCase() ?? '';
       return review.comment.toLowerCase().contains(lowerQuery) ||
-          userName.contains(lowerQuery);
+          (review.title?.toLowerCase().contains(lowerQuery) ?? false) ||
+          userName.contains(lowerQuery) ||
+          establishment.contains(lowerQuery);
     }).toList();
   }
+
+  List<Review> _parseReviews(Map<String, dynamic> data) =>
+      (data['reviews'] as List?)?.map((e) => Review.fromJson(e)).toList() ?? [];
+
+  int _total(Map<String, dynamic> data, List reviews) =>
+      (data['pagination'] as Map<String, dynamic>?)?['total'] ?? reviews.length;
+
+  int _totalPages(Map<String, dynamic> data) =>
+      (data['pagination'] as Map<String, dynamic>?)?['totalPages'] ?? 1;
 
   Future<void> _onLoadPending(
     AdminReviewsLoadPending event,
     Emitter<AdminReviewsState> emit,
   ) async {
-    _isReportedTab = false;
     emit(AdminReviewsLoading());
     try {
       final data = await _repository.getPendingReviews(page: event.page);
-      final reviewsList = (data['reviews'] as List?)
-              ?.map((e) => Review.fromJson(e))
-              .toList() ??
-          [];
-      final pagination = data['pagination'] as Map<String, dynamic>?;
-      final total = pagination?['total'] ?? reviewsList.length;
-      final totalPages = pagination?['totalPages'] ?? 1;
-
+      final reviews = _parseReviews(data);
       emit(AdminReviewsLoaded(
-        reviews: reviewsList,
-        filteredReviews: reviewsList,
-        totalCount: total,
+        reviews: reviews,
+        filteredReviews: reviews,
+        totalCount: _total(data, reviews),
         currentPage: event.page,
-        hasMore: event.page < totalPages,
-        isReportedTab: false,
+        hasMore: event.page < _totalPages(data),
+        activeTab: 'pending',
       ));
     } catch (e) {
       emit(AdminReviewsError(message: e.toString()));
@@ -221,25 +244,42 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
     AdminReviewsLoadReported event,
     Emitter<AdminReviewsState> emit,
   ) async {
-    _isReportedTab = true;
     emit(AdminReviewsLoading());
     try {
       final data = await _repository.getReportedReviews(page: event.page);
-      final reviewsList = (data['reviews'] as List?)
-              ?.map((e) => Review.fromJson(e))
-              .toList() ??
-          [];
-      final pagination = data['pagination'] as Map<String, dynamic>?;
-      final total = pagination?['total'] ?? reviewsList.length;
-      final totalPages = pagination?['totalPages'] ?? 1;
-
+      final reviews = _parseReviews(data);
       emit(AdminReviewsLoaded(
-        reviews: reviewsList,
-        filteredReviews: reviewsList,
-        totalCount: total,
+        reviews: reviews,
+        filteredReviews: reviews,
+        totalCount: _total(data, reviews),
         currentPage: event.page,
-        hasMore: event.page < totalPages,
-        isReportedTab: true,
+        hasMore: event.page < _totalPages(data),
+        activeTab: 'reported',
+      ));
+    } catch (e) {
+      emit(AdminReviewsError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onLoadAll(
+    AdminReviewsLoadAll event,
+    Emitter<AdminReviewsState> emit,
+  ) async {
+    emit(AdminReviewsLoading());
+    try {
+      final data = await _repository.getAllReviews(
+        page: event.page,
+        status: event.status,
+      );
+      final reviews = _parseReviews(data);
+      emit(AdminReviewsLoaded(
+        reviews: reviews,
+        filteredReviews: reviews,
+        totalCount: _total(data, reviews),
+        currentPage: event.page,
+        hasMore: event.page < _totalPages(data),
+        activeTab: 'all',
+        statusFilter: event.status,
       ));
     } catch (e) {
       emit(AdminReviewsError(message: e.toString()));
@@ -256,28 +296,30 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
         !currentState.hasMore) return;
 
     emit(currentState.copyWith(isLoadingMore: true));
-
     try {
       final nextPage = currentState.currentPage + 1;
-      final data = _isReportedTab
-          ? await _repository.getReportedReviews(page: nextPage)
-          : await _repository.getPendingReviews(page: nextPage);
+      late Map<String, dynamic> data;
+      if (currentState.activeTab == 'reported') {
+        data = await _repository.getReportedReviews(page: nextPage);
+      } else if (currentState.activeTab == 'all') {
+        data = await _repository.getAllReviews(
+          page: nextPage,
+          status: currentState.statusFilter,
+        );
+      } else {
+        data = await _repository.getPendingReviews(page: nextPage);
+      }
 
-      final newReviews = (data['reviews'] as List?)
-              ?.map((e) => Review.fromJson(e))
-              .toList() ??
-          [];
-      final pagination = data['pagination'] as Map<String, dynamic>?;
-      final totalPages = pagination?['totalPages'] ?? 1;
-
+      final newReviews = _parseReviews(data);
       final allReviews = [...currentState.reviews, ...newReviews];
       emit(AdminReviewsLoaded(
         reviews: allReviews,
         filteredReviews: _filterReviews(allReviews, currentState.searchQuery),
         totalCount: currentState.totalCount,
         currentPage: nextPage,
-        hasMore: nextPage < totalPages,
-        isReportedTab: _isReportedTab,
+        hasMore: nextPage < _totalPages(data),
+        activeTab: currentState.activeTab,
+        statusFilter: currentState.statusFilter,
         searchQuery: currentState.searchQuery,
       ));
     } catch (e) {
@@ -289,8 +331,15 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
     AdminReviewsRefresh event,
     Emitter<AdminReviewsState> emit,
   ) async {
-    if (_isReportedTab) {
-      add(const AdminReviewsLoadReported());
+    final currentState = state;
+    if (currentState is AdminReviewsLoaded) {
+      if (currentState.activeTab == 'reported') {
+        add(const AdminReviewsLoadReported());
+      } else if (currentState.activeTab == 'all') {
+        add(AdminReviewsLoadAll(status: currentState.statusFilter));
+      } else {
+        add(const AdminReviewsLoadPending());
+      }
     } else {
       add(const AdminReviewsLoadPending());
     }
@@ -339,8 +388,19 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
   ) async {
     try {
       await _repository.dismissReport(event.reviewId);
-      emit(const AdminReviewActionSuccess(
-          message: 'Signalement rejeté'));
+      emit(const AdminReviewActionSuccess(message: 'Signalement ignoré'));
+    } catch (e) {
+      emit(AdminReviewsError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onRevoke(
+    AdminReviewRevoke event,
+    Emitter<AdminReviewsState> emit,
+  ) async {
+    try {
+      await _repository.revokeReview(event.reviewId);
+      emit(const AdminReviewActionSuccess(message: 'Avis révoqué'));
     } catch (e) {
       emit(AdminReviewsError(message: e.toString()));
     }

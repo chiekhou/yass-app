@@ -44,6 +44,8 @@ class AuthRepository {
     required String password,
     String? phone,
     String? wilayaId,
+    String? gender,
+    int? age,
   }) async {
     final response = await _apiClient.post(
       ApiConfig.register,
@@ -55,6 +57,8 @@ class AuthRepository {
         'password_confirmation': password,
         if (phone != null) 'phone': phone,
         if (wilayaId != null) 'wilaya_id': wilayaId,
+        if (gender != null) 'gender': gender,
+        if (age != null) 'age': age,
       },
     );
 
@@ -136,6 +140,7 @@ class AuthRepository {
     String? phone,
     String? wilayaId,
     String? language,
+    String? avatar,
   }) async {
     final response = await _apiClient.put(
       ApiConfig.updateProfile,
@@ -145,6 +150,7 @@ class AuthRepository {
         if (phone != null) 'phone': phone,
         if (wilayaId != null) 'wilaya_id': wilayaId,
         if (language != null) 'language': language,
+        if (avatar != null) 'avatar': avatar,
       },
     );
 
@@ -229,6 +235,8 @@ class AuthRepository {
     required String phone,
     required String password,
     String? wilayaId,
+    String? gender,
+    int? age,
   }) async {
     final response = await _apiClient.post(
       ApiConfig.registerPhone,
@@ -239,6 +247,8 @@ class AuthRepository {
         'password': password,
         'password_confirmation': password,
         if (wilayaId != null) 'wilaya_id': wilayaId,
+        if (gender != null) 'gender': gender,
+        if (age != null) 'age': age,
       },
     );
 
