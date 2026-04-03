@@ -114,6 +114,14 @@ module.exports = {
         services: ["Livraison", "Sur place", "À emporter", "Réservation"],
         amenities: ["WiFi gratuit", "Climatisation", "Parking", "Terrasse"],
         tags: ["couscous", "traditionnel", "familial", "halal"],
+        logo: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop",
+        ],
       },
       {
         partner: "Salon de Coiffure Nour",
@@ -137,6 +145,13 @@ module.exports = {
         services: ["Coupe", "Coloration", "Brushing", "Maquillage", "Soins"],
         amenities: ["Climatisation", "Parking"],
         tags: ["coiffure femme", "maquillage", "soins"],
+        logo: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&h=600&fit=crop",
+        ],
       },
       {
         partner: "Location Auto Plus",
@@ -165,6 +180,13 @@ module.exports = {
         ],
         amenities: ["Parking", "Climatisation"],
         tags: ["location voiture", "voiture", "transport"],
+        logo: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=800&h=600&fit=crop",
+        ],
       },
       {
         partner: "Spa & Hammam Relaxation",
@@ -202,6 +224,13 @@ module.exports = {
         ],
         amenities: ["Climatisation", "Parking", "Vestiaires"],
         tags: ["spa", "hammam", "massage", "détente", "bien-être"],
+        logo: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=800&h=600&fit=crop",
+        ],
       },
 
       // ==================== ORAN ====================
@@ -234,6 +263,13 @@ module.exports = {
         ],
         amenities: ["Parking", "Salle d'attente"],
         tags: ["garage", "mécanique", "réparation", "entretien"],
+        logo: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=800&h=600&fit=crop",
+        ],
       },
       {
         partner: "Pizza Napoli",
@@ -257,6 +293,14 @@ module.exports = {
         services: ["Sur place", "Livraison", "À emporter"],
         amenities: ["WiFi gratuit", "Climatisation", "Parking"],
         tags: ["pizza", "italien", "livraison", "pâtes"],
+        logo: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1579751626657-72bc17010498?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1555072956-7758afb20e8f?w=800&h=600&fit=crop",
+        ],
       },
 
       // ==================== CONSTANTINE ====================
@@ -298,6 +342,14 @@ module.exports = {
           "Restaurant",
         ],
         tags: ["hôtel", "luxe", "4 étoiles", "vue panoramique", "spa"],
+        logo: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&h=600&fit=crop",
+        ],
       },
       {
         partner: "Salle des Fêtes El Amir",
@@ -340,6 +392,13 @@ module.exports = {
           "Vestiaires",
         ],
         tags: ["mariage", "fête", "événement", "salle"],
+        logo: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=800&h=600&fit=crop",
+        ],
       },
 
       // ==================== ANNABA ====================
@@ -373,6 +432,13 @@ module.exports = {
         services: ["Médicaments", "Parapharmacie", "Conseil", "Livraison"],
         amenities: ["Climatisation", "Parking à proximité"],
         tags: ["pharmacie", "médicaments", "santé", "garde"],
+        logo: "https://images.unsplash.com/photo-1576602976047-174e57a47881?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&h=600&fit=crop",
+        ],
       },
 
       // ==================== TIZI OUZOU ====================
@@ -406,14 +472,41 @@ module.exports = {
         services: ["Sur place", "À emporter"],
         amenities: ["WiFi gratuit", "Terrasse", "Vue panoramique"],
         tags: ["café", "thé", "kabyle", "traditionnel", "montagne"],
+        logo: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=200&h=200&fit=crop",
+        cover_image: "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1200&h=600&fit=crop",
+        images: [
+          "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1498804103079-a6351b050096?w=800&h=600&fit=crop",
+          "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&h=600&fit=crop",
+        ],
       },
     ];
 
     // Build establishments array
-    const establishmentsToInsert = establishments.map((est) => {
+    const establishmentsToInsert = establishments.map((est, index) => {
       const partner = partnerMap[est.partner];
       const sub = subMap[est.subcategory];
       const commune = communeMap[est.commune];
+
+      // Validation avec messages d'erreur détaillés
+      if (!partner) {
+        console.error(`Partner not found: "${est.partner}"`);
+        console.error("Available partners:", Object.keys(partnerMap));
+        throw new Error(`Partner not found: "${est.partner}"`);
+      }
+      if (!sub) {
+        console.error(`Subcategory not found: "${est.subcategory}"`);
+        console.error("Available subcategories:", Object.keys(subMap));
+        throw new Error(`Subcategory not found: "${est.subcategory}"`);
+      }
+      if (!commune) {
+        console.error(`Commune not found: "${est.commune}"`);
+        console.error("Available communes:", Object.keys(communeMap));
+        throw new Error(`Commune not found: "${est.commune}"`);
+      }
+
+      // Mark first 5 establishments as featured
+      const isFeatured = index < 5;
 
       return {
         id: uuidv4(),
@@ -435,6 +528,9 @@ module.exports = {
         whatsapp: est.whatsapp,
         email: est.email || null,
         website: est.website || null,
+        logo: est.logo || null,
+        cover_image: est.cover_image || null,
+        images: JSON.stringify(est.images || []),
         opening_hours: JSON.stringify(est.opening_hours),
         price_range: est.price_range,
         services: JSON.stringify(est.services),
@@ -442,7 +538,7 @@ module.exports = {
         tags: JSON.stringify(est.tags),
         status: "active",
         is_verified: true,
-        is_featured: false,
+        is_featured: isFeatured,
         average_rating: (3.5 + Math.random() * 1.5).toFixed(2),
         total_reviews: Math.floor(Math.random() * 50) + 5,
         total_views: Math.floor(Math.random() * 1000) + 100,
@@ -451,6 +547,9 @@ module.exports = {
         updated_at: now,
       };
     });
+
+    // Supprimer les anciens établissements avant d'insérer
+    await queryInterface.bulkDelete("establishments", null, {});
 
     await queryInterface.bulkInsert(
       "establishments",

@@ -80,6 +80,13 @@ router.post("/:id/track/phone", establishmentController.trackPhoneClick);
  */
 router.post("/:id/track/whatsapp", establishmentController.trackWhatsAppClick);
 
+/**
+ * @route   POST /api/v1/establishments/:id/track/contact
+ * @desc    Track contact form submission
+ * @access  Public
+ */
+router.post("/:id/track/contact", establishmentController.trackContact);
+
 // ==================== REVIEW ROUTES ====================
 
 /**

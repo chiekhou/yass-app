@@ -13,7 +13,7 @@ module.exports = (sequelize) => {
       },
       email: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
         unique: true,
         validate: {
           isEmail: true,
@@ -76,12 +76,36 @@ module.exports = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      phone_otp: {
+        type: DataTypes.STRING(6),
+        allowNull: true,
+      },
+      phone_otp_expires: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      email_otp: {
+        type: DataTypes.STRING(6),
+        allowNull: true,
+      },
+      email_otp_expires: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       last_login: {
         type: DataTypes.DATE,
         allowNull: true,
       },
       fcm_token: {
         type: DataTypes.STRING(500),
+        allowNull: true,
+      },
+      age: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      gender: {
+        type: DataTypes.ENUM("male", "female", "young", "child"),
         allowNull: true,
       },
       wilaya_id: {
@@ -130,6 +154,10 @@ module.exports = (sequelize) => {
     delete values.email_verification_expires;
     delete values.password_reset_token;
     delete values.password_reset_expires;
+    delete values.phone_otp;
+    delete values.phone_otp_expires;
+    delete values.email_otp;
+    delete values.email_otp_expires;
     return values;
   };
 

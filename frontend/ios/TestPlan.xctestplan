@@ -1,0 +1,26 @@
+{
+  "configurations" : [
+    {
+      "id" : "F41B1AA6-F848-4BBF-BE7A-488628675CA5",
+      "name" : "Configuration 1",
+      "options" : {
+        "locationScenario" : {
+          "identifier" : "Paris, France",
+          "referenceType" : "built-in"
+        }
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "locationScenario" : {
+      "identifier" : "Paris, France",
+      "referenceType" : "built-in"
+    },
+    "region" : "DZ",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}

@@ -152,6 +152,46 @@ module.exports = {
       updated_at: now,
     }));
 
+    // Récupérer les IDs des utilisateurs test existants
+    const existingTestUsers = await queryInterface.sequelize.query(
+      `SELECT id FROM users WHERE email LIKE '%@test.com';`,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+    const existingUserIds = existingTestUsers.map((u) => u.id);
+
+    if (existingUserIds.length > 0) {
+      // Supprimer dans l'ordre des dépendances (foreign keys)
+      // 1. Supprimer les établissements liés aux partenaires de ces utilisateurs
+      await queryInterface.sequelize.query(
+        `DELETE FROM establishments WHERE partner_id IN (SELECT id FROM partners WHERE user_id IN (:userIds));`,
+        { replacements: { userIds: existingUserIds } }
+      );
+      // 2. Supprimer les refresh_tokens liés aux utilisateurs
+      await queryInterface.sequelize.query(
+        `DELETE FROM refresh_tokens WHERE user_id IN (:userIds);`,
+        { replacements: { userIds: existingUserIds } }
+      );
+      // 3. Supprimer les favoris liés aux utilisateurs
+      await queryInterface.sequelize.query(
+        `DELETE FROM favorites WHERE user_id IN (:userIds);`,
+        { replacements: { userIds: existingUserIds } }
+      );
+      // 4. Supprimer les reviews liés aux utilisateurs
+      await queryInterface.sequelize.query(
+        `DELETE FROM reviews WHERE user_id IN (:userIds);`,
+        { replacements: { userIds: existingUserIds } }
+      );
+      // 5. Supprimer les partenaires liés aux utilisateurs
+      await queryInterface.sequelize.query(
+        `DELETE FROM partners WHERE user_id IN (:userIds);`,
+        { replacements: { userIds: existingUserIds } }
+      );
+      // 6. Supprimer les utilisateurs test
+      await queryInterface.bulkDelete("users", {
+        email: { [Sequelize.Op.like]: "%@test.com" },
+      });
+    }
+
     await queryInterface.bulkInsert("users", usersToInsert, {});
 
     // Create partners
@@ -169,6 +209,8 @@ module.exports = {
       updated_at: now,
     }));
 
+    // Supprimer les anciens partenaires test avant d'insérer
+    await queryInterface.bulkDelete("partners", null, {});
     await queryInterface.bulkInsert("partners", partnersToInsert, {});
   },
 

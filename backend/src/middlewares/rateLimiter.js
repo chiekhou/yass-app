@@ -7,7 +7,7 @@ const config = require("../config/app");
  */
 const generalLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.maxRequests,
+  max: config.env === "development" ? 10000 : config.rateLimit.maxRequests,
   message: {
     success: false,
     message: "Too many requests, please try again later",
@@ -24,7 +24,7 @@ const generalLimiter = rateLimit({
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes
+  max: config.env === "development" ? 10000 : 10,
   message: {
     success: false,
     message: "Too many login attempts, please try again after 15 minutes",
@@ -59,7 +59,7 @@ const passwordResetLimiter = rateLimit({
  */
 const registrationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 registrations per hour per IP
+  max: process.env.NODE_ENV === "development" ? 1000 : 5, // unlimited in dev, 5 in production
   message: {
     success: false,
     message: "Too many registration attempts, please try again later",

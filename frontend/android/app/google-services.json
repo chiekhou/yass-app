@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "879774213776",
+    "project_id": "win-app-754f2",
+    "storage_bucket": "win-app-754f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:879774213776:android:a8d7f57e667ed5cb0a5a15",
+        "android_client_info": {
+          "package_name": "com.win.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAD4EC3QIvV0m3u9Y20kXzsosQOy4BKbF8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

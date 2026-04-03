@@ -1,0 +1,606 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
+
+import 'features/onboarding/presentation/pages/onboarding_page.dart';
+import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/register_page.dart';
+import 'features/auth/presentation/pages/register_partner_page.dart';
+import 'features/auth/presentation/pages/forgot_password_page.dart';
+import 'features/auth/presentation/pages/verify_otp_page.dart';
+import 'features/home/presentation/pages/home_page.dart';
+import 'features/home/presentation/pages/main_page.dart';
+import 'features/search/presentation/pages/search_page.dart';
+import 'features/establishment/presentation/pages/establishment_details_page.dart';
+import 'features/favorites/presentation/pages/favorites_page.dart';
+import 'features/profile/presentation/pages/profile_page.dart';
+import 'features/profile/presentation/pages/edit_profile_page.dart';
+import 'features/profile/presentation/pages/edit_partner_profile_page.dart';
+import 'features/reviews/presentation/pages/write_review_page.dart';
+import 'features/reviews/presentation/pages/all_reviews_page.dart';
+import 'features/reviews/presentation/pages/my_reviews_page.dart';
+import 'features/reviews/data/models/review_model.dart';
+import 'features/home/presentation/pages/category_page.dart';
+
+// Admin imports
+import 'features/admin/presentation/pages/admin_create_partner_page.dart';
+import 'features/admin/presentation/pages/admin_create_establishment_page.dart';
+import 'features/admin/presentation/pages/admin_dashboard_page.dart';
+import 'features/admin/presentation/pages/admin_users_page.dart';
+import 'features/admin/presentation/pages/admin_partners_page.dart';
+import 'features/admin/presentation/pages/admin_partner_detail_page.dart';
+import 'features/admin/presentation/pages/admin_user_detail_page.dart';
+import 'features/admin/presentation/pages/admin_pending_establishments_page.dart';
+import 'features/admin/presentation/pages/admin_establishments_page.dart';
+import 'features/admin/presentation/bloc/admin_dashboard_bloc.dart';
+import 'features/admin/presentation/bloc/admin_users_bloc.dart';
+import 'features/admin/presentation/bloc/admin_partners_bloc.dart';
+import 'features/admin/presentation/bloc/admin_establishments_bloc.dart';
+import 'features/admin/presentation/bloc/admin_reviews_bloc.dart';
+import 'features/admin/presentation/pages/admin_reviews_page.dart';
+import 'features/admin/presentation/pages/admin_payments_page.dart';
+import 'features/admin/presentation/bloc/admin_payments_bloc.dart';
+
+// Partner imports
+import 'features/partner/presentation/pages/partner_dashboard_page.dart';
+import 'features/partner/presentation/pages/partner_establishments_page.dart';
+import 'features/partner/presentation/pages/partner_establishment_form_page.dart';
+import 'features/partner/presentation/pages/partner_establishment_details_page.dart';
+import 'features/partner/presentation/pages/partner_subscription_page.dart';
+import 'features/partner/presentation/pages/partner_invoices_page.dart';
+import 'features/partner/presentation/pages/partner_invoice_detail_page.dart';
+import 'features/partner/presentation/bloc/partner_dashboard_bloc.dart';
+import 'features/partner/presentation/bloc/partner_establishments_bloc.dart';
+import 'features/partner/presentation/bloc/partner_subscription_bloc.dart';
+import 'features/partner/presentation/bloc/partner_invoices_bloc.dart';
+
+// Map
+import 'features/map/presentation/pages/map_page.dart';
+
+// Notifications
+import 'features/notifications/presentation/pages/notifications_page.dart';
+import 'features/notifications/presentation/bloc/notifications_bloc.dart';
+
+// Suggestions
+import 'features/suggestions/presentation/pages/suggestions_list_page.dart';
+import 'features/suggestions/presentation/pages/suggest_establishment_page.dart';
+import 'features/suggestions/presentation/pages/my_suggestions_page.dart';
+import 'features/admin/presentation/pages/admin_suggestions_page.dart';
+
+class AppRoutes {
+  static const String splash = '/';
+  static const String onboarding = '/onboarding';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String registerPartner = '/register/partner';
+  static const String forgotPassword = '/forgot-password';
+  static const String verifyOtp = '/verify-otp';
+  static const String main = '/main';
+  static const String home = '/home';
+  static const String search = '/search';
+  static const String map = '/map';
+  static const String favorites = '/favorites';
+  static const String profile = '/profile';
+  static const String establishment = '/establishment/:id';
+  static const String establishmentBySlug = '/e/:slug';
+  static const String category = '/category/:id';
+  static const String writeReview = '/review/:establishmentId';
+  static const String editProfile = '/profile/edit';
+  static const String editPartnerProfile = '/partner/profile/edit';
+  static const String settings = '/settings';
+  static const String myReviews = '/my-reviews';
+  static const String allReviews = '/establishment/:establishmentId/reviews';
+
+  // Partner routes
+  static const String partnerDashboard = '/partner';
+  static const String partnerSubscription = '/partner/subscription';
+  static const String partnerInvoices = '/partner/invoices';
+  static const String _partnerInvoiceDetailPath = '/partner/invoices/:id';
+  static String partnerInvoiceDetail(String id) => '/partner/invoices/$id';
+  static const String partnerEstablishments = '/partner/establishments';
+  static const String partnerEstablishmentCreate = '/partner/establishments/create';
+  static const String partnerEstablishmentDetails = '/partner/establishments/:id';
+  static const String partnerEstablishmentEdit = '/partner/establishments/:id/edit';
+
+  // Admin create routes
+  static const String adminCreatePartner = '/admin/partners/create';
+  static const String adminCreateEstablishment = '/admin/establishments/create';
+
+  // Admin routes
+  static const String adminDashboard = '/admin';
+  static const String adminUsers = '/admin/users';
+  static const String adminUserDetails = '/admin/users/:id';
+  static const String adminPartners = '/admin/partners';
+  static const String adminPendingPartners = '/admin/partners/pending';
+  static const String adminPartnerDetails = '/admin/partners/:id';
+  static const String adminPendingEstablishments = '/admin/establishments/pending';
+  static const String adminEstablishments = '/admin/establishments';
+  static const String adminReviews = '/admin/reviews';
+  static const String adminPendingReviews = '/admin/reviews/pending';
+  static const String adminReportedReviews = '/admin/reviews/reported';
+  static const String adminPendingPayments = '/admin/payments/pending';
+  static const String adminSuggestions = '/admin/suggestions';
+
+  // Notifications
+  static const String notifications = '/notifications';
+
+  // Suggestions
+  static const String suggestions = '/suggestions';
+  static const String newSuggestion = '/suggestions/new';
+  static const String mySuggestions = '/suggestions/mine';
+}
+
+class AppRouter {
+  static bool _onboardingDone = false;
+  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
+  /// Doit être appelé dans main() avant runApp().
+  static Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _onboardingDone = prefs.getBool('onboarding_done') ?? false;
+  }
+
+  /// Appelé depuis OnboardingPage pour débloquer la navigation en mémoire.
+  static void setOnboardingDone() => _onboardingDone = true;
+
+  static final router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: AppRoutes.main,
+    debugLogDiagnostics: true,
+    redirect: (context, state) {
+      if (!_onboardingDone &&
+          state.matchedLocation != AppRoutes.onboarding) {
+        return AppRoutes.onboarding;
+      }
+      return null;
+    },
+    routes: [
+      // Onboarding
+      GoRoute(
+        path: AppRoutes.onboarding,
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
+      // Auth Routes
+      GoRoute(
+        path: AppRoutes.login,
+        name: 'login',
+        builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.registerPartner,
+        name: 'registerPartner',
+        builder: (context, state) => const RegisterPartnerPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        name: 'forgotPassword',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.verifyOtp,
+        name: 'verifyOtp',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return VerifyOtpPage(
+            verificationType: extra['verificationType'] as String? ?? 'email',
+            destination: extra['destination'] as String? ?? '',
+          );
+        },
+      ),
+
+      // Edit Profile (before ShellRoute to avoid conflict with /profile)
+      GoRoute(
+        path: AppRoutes.editProfile,
+        name: 'editProfile',
+        builder: (context, state) => const EditProfilePage(),
+      ),
+
+      // Edit Partner Profile (company info)
+      GoRoute(
+        path: AppRoutes.editPartnerProfile,
+        name: 'editPartnerProfile',
+        builder: (context, state) => const EditPartnerProfilePage(),
+      ),
+
+      // Main Shell Route with Bottom Navigation
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) => MainPage(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.main,
+            name: 'main',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: HomePage()),
+          ),
+          GoRoute(
+            path: AppRoutes.search,
+            name: 'search',
+            pageBuilder: (context, state) {
+              final query = state.uri.queryParameters['q'];
+              final categoryId = state.uri.queryParameters['category'];
+              final wilayaId = state.uri.queryParameters['wilaya'];
+              return NoTransitionPage(
+                child: SearchPage(
+                  initialQuery: query,
+                  categoryId: categoryId,
+                  wilayaId: wilayaId,
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.favorites,
+            name: 'favorites',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: FavoritesPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.profile,
+            name: 'profile',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProfilePage()),
+          ),
+        ],
+      ),
+
+      // Map (full-screen push, no bottom nav)
+      GoRoute(
+        path: AppRoutes.map,
+        name: 'map',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return MapPage(
+            initialQuery: extra['query'] as String?,
+            initialCategoryId: extra['categoryId'] as String?,
+            initialWilayaId: extra['wilayaId'] as String?,
+          );
+        },
+      ),
+
+      // Establishment Details
+      GoRoute(
+        path: AppRoutes.establishment,
+        name: 'establishment',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return EstablishmentDetailsPage(establishmentId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.establishmentBySlug,
+        name: 'establishmentBySlug',
+        builder: (context, state) {
+          final slug = state.pathParameters['slug']!;
+          return EstablishmentDetailsPage(slug: slug);
+        },
+      ),
+
+      // Category
+      GoRoute(
+        path: AppRoutes.category,
+        name: 'category',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final name = state.uri.queryParameters['name'];
+          return CategoryPage(categoryId: id, categoryName: name);
+        },
+      ),
+
+      // Write Review
+      GoRoute(
+        path: AppRoutes.writeReview,
+        name: 'writeReview',
+        builder: (context, state) {
+          final establishmentId = state.pathParameters['establishmentId']!;
+          final establishmentName = state.uri.queryParameters['name'];
+          final categoryName = state.uri.queryParameters['category'];
+          return WriteReviewPage(
+            establishmentId: establishmentId,
+            establishmentName: establishmentName,
+            categoryName: categoryName,
+          );
+        },
+      ),
+
+      // All Reviews for an establishment
+      GoRoute(
+        path: AppRoutes.allReviews,
+        name: 'allReviews',
+        builder: (context, state) {
+          final establishmentId = state.pathParameters['establishmentId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          return AllReviewsPage(
+            establishmentId: establishmentId,
+            establishmentName: extra?['establishmentName'] as String?,
+            categoryName: extra?['categoryName'] as String?,
+            initialData: extra?['reviewsData'] as ReviewsResponse?,
+          );
+        },
+      ),
+
+      // My Reviews
+      GoRoute(
+        path: AppRoutes.myReviews,
+        name: 'myReviews',
+        builder: (context, state) => const MyReviewsPage(),
+      ),
+
+      // Admin Create Routes (avant adminDashboard pour éviter les conflits)
+      GoRoute(
+        path: AppRoutes.adminCreatePartner,
+        name: 'adminCreatePartner',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminPartnersBloc(),
+          child: const AdminCreatePartnerPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminCreateEstablishment,
+        name: 'adminCreateEstablishment',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return AdminCreateEstablishmentPage(
+            partnerId: extra['partnerId'] as String? ?? '',
+            partnerName: extra['partnerName'] as String? ?? '',
+          );
+        },
+      ),
+
+      // Admin Routes
+      GoRoute(
+        path: AppRoutes.adminDashboard,
+        name: 'adminDashboard',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminDashboardBloc(),
+          child: const AdminDashboardPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminUsers,
+        name: 'adminUsers',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminUsersBloc(),
+          child: const AdminUsersPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminUserDetails,
+        name: 'adminUserDetails',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => AdminUsersBloc()
+              ..add(AdminUserLoadDetails(userId: id)),
+            child: const AdminUserDetailPage(),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.adminPartners,
+        name: 'adminPartners',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminPartnersBloc(),
+          child: const AdminPartnersPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminPendingPartners,
+        name: 'adminPendingPartners',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminPartnersBloc(),
+          child: const AdminPartnersPage(pendingOnly: true),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminPartnerDetails,
+        name: 'adminPartnerDetails',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => AdminPartnersBloc()
+              ..add(AdminPartnerLoadDetails(partnerId: id)),
+            child: const AdminPartnerDetailPage(),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.adminEstablishments,
+        name: 'adminEstablishments',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminEstablishmentsBloc(),
+          child: const AdminEstablishmentsPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminPendingEstablishments,
+        name: 'adminPendingEstablishments',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminEstablishmentsBloc(),
+          child: const AdminPendingEstablishmentsPage(),
+        ),
+      ),
+
+      // Admin Reviews Management
+      GoRoute(
+        path: AppRoutes.adminReviews,
+        name: 'adminReviews',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final initialTab = extra['initialTab'] as String? ?? 'pending';
+          return BlocProvider(
+            create: (context) => AdminReviewsBloc(),
+            child: AdminReviewsPage(initialTab: initialTab),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.adminPendingReviews,
+        name: 'adminPendingReviews',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminReviewsBloc(),
+          child: const AdminReviewsPage(initialTab: 'pending'),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminReportedReviews,
+        name: 'adminReportedReviews',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminReviewsBloc(),
+          child: const AdminReviewsPage(initialTab: 'reported'),
+        ),
+      ),
+
+      // Admin Payments
+      GoRoute(
+        path: AppRoutes.adminPendingPayments,
+        name: 'adminPendingPayments',
+        builder: (context, state) => BlocProvider(
+          create: (context) => AdminPaymentsBloc(),
+          child: const AdminPaymentsPage(),
+        ),
+      ),
+
+      // Partner Routes
+      GoRoute(
+        path: AppRoutes.partnerDashboard,
+        name: 'partnerDashboard',
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => PartnerDashboardBloc()),
+            BlocProvider(
+              create: (context) => PartnerSubscriptionBloc()
+                ..add(const LoadSubscriptionStatus()),
+            ),
+          ],
+          child: const PartnerDashboardPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.partnerEstablishments,
+        name: 'partnerEstablishments',
+        builder: (context, state) => BlocProvider(
+          create: (context) => PartnerEstablishmentsBloc(),
+          child: const PartnerEstablishmentsPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.partnerEstablishmentCreate,
+        name: 'partnerEstablishmentCreate',
+        builder: (context, state) => const PartnerEstablishmentFormPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.partnerEstablishmentDetails,
+        name: 'partnerEstablishmentDetails',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PartnerEstablishmentDetailsPage(establishmentId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.partnerEstablishmentEdit,
+        name: 'partnerEstablishmentEdit',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PartnerEstablishmentFormPage(establishmentId: id);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.partnerSubscription,
+        name: 'partnerSubscription',
+        builder: (context, state) => BlocProvider(
+          create: (context) => PartnerSubscriptionBloc()
+            ..add(const LoadSubscriptionStatus()),
+          child: const PartnerSubscriptionPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.partnerInvoices,
+        name: 'partnerInvoices',
+        builder: (context, state) => BlocProvider(
+          create: (context) => PartnerInvoicesBloc()
+            ..add(const LoadInvoices()),
+          child: const PartnerInvoicesPage(),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes._partnerInvoiceDetailPath,
+        name: 'partnerInvoiceDetail',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return BlocProvider(
+            create: (context) => PartnerInvoicesBloc(),
+            child: PartnerInvoiceDetailPage(invoiceId: id),
+          );
+        },
+      ),
+
+      // Notifications
+      GoRoute(
+        path: AppRoutes.notifications,
+        name: 'notifications',
+        builder: (context, state) => BlocProvider(
+          create: (_) => NotificationsBloc()..add(const LoadNotifications()),
+          child: const NotificationsPage(),
+        ),
+      ),
+
+      // Suggestions (community)
+      GoRoute(
+        path: AppRoutes.suggestions,
+        name: 'suggestions',
+        builder: (context, state) => const SuggestionsListPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.newSuggestion,
+        name: 'newSuggestion',
+        builder: (context, state) => const SuggestEstablishmentPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.mySuggestions,
+        name: 'mySuggestions',
+        builder: (context, state) => const MySuggestionsPage(),
+      ),
+
+      // Admin suggestions
+      GoRoute(
+        path: AppRoutes.adminSuggestions,
+        name: 'adminSuggestions',
+        builder: (context, state) => const AdminSuggestionsPage(),
+      ),
+    ],
+
+    // Error Page
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              context.l10n.pageNotFound,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(state.uri.toString()),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.go(AppRoutes.main),
+              child: Text(context.l10n.backToHome),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

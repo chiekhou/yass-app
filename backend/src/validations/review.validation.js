@@ -2,8 +2,22 @@ const { body, param, query } = require("express-validator");
 
 const createReview = [
   body("rating")
+    .optional()
     .isInt({ min: 1, max: 5 })
     .withMessage("Rating must be between 1 and 5"),
+
+  body("sub_ratings")
+    .optional()
+    .isObject()
+    .withMessage("sub_ratings must be an object"),
+
+  body("sub_ratings.quality").optional().isInt({ min: 1, max: 5 }),
+  body("sub_ratings.welcome").optional().isInt({ min: 1, max: 5 }),
+  body("sub_ratings.information").optional().isInt({ min: 1, max: 5 }),
+  body("sub_ratings.value").optional().isInt({ min: 1, max: 5 }),
+  body("sub_ratings.availability").optional().isInt({ min: 1, max: 5 }),
+  body("sub_ratings.reliability").optional().isInt({ min: 1, max: 5 }),
+  body("sub_ratings.comfort").optional().isInt({ min: 1, max: 5 }),
 
   body("title")
     .optional()

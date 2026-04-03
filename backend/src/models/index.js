@@ -32,6 +32,12 @@ const Review = require("./Review")(sequelize);
 const Favorite = require("./Favorite")(sequelize);
 const Promotion = require("./Promotion")(sequelize);
 const RefreshToken = require("./RefreshToken")(sequelize);
+const Invoice = require("./Invoice")(sequelize);
+const Notification = require("./Notification")(sequelize);
+const AppSession = require("./AppSession")(sequelize);
+const EstablishmentSuggestion = require("./EstablishmentSuggestion")(sequelize);
+const SuggestionVote = require("./SuggestionVote")(sequelize);
+const SuggestionDownvote = require("./SuggestionDownvote")(sequelize);
 
 // Create models object
 const models = {
@@ -46,6 +52,12 @@ const models = {
   Favorite,
   Promotion,
   RefreshToken,
+  Invoice,
+  Notification,
+  AppSession,
+  EstablishmentSuggestion,
+  SuggestionVote,
+  SuggestionDownvote,
 };
 
 // Run associations

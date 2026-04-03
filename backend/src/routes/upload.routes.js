@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const uploadController = require("../controllers/upload.controller");
 const { authenticate } = require("../middlewares/auth");
-const { avatarUpload } = require("../config/upload");
+const { avatarUpload, reviewImagesUpload } = require("../config/upload");
 
 // All upload routes require authentication
 router.use(authenticate);
@@ -21,5 +21,13 @@ router.post("/avatar", avatarUpload, uploadController.uploadAvatar);
  * @access  Private
  */
 router.delete("/avatar", uploadController.deleteAvatar);
+
+/**
+ * @route   POST /api/v1/upload/review-images
+ * @desc    Upload images for a review (max 5)
+ * @access  Private
+ * @body    FormData with 'images' field
+ */
+router.post("/review-images", reviewImagesUpload, uploadController.uploadReviewImages);
 
 module.exports = router;

@@ -125,10 +125,24 @@ class ReviewService {
     // Verify establishment exists and is active
     const establishment = await Establishment.findOne({
       where: { id: establishmentId, status: "active" },
+      include: [{ model: require("../models").Partner, as: "partner", attributes: ["subscription_plan", "subscription_expires_at"] }],
     });
 
     if (!establishment) {
       throw ApiError.notFound("Establishment not found");
+    }
+
+    // Vérifier que le partenaire a un abonnement Premium ou Gold actif
+    const partner = establishment.partner;
+    const now = new Date();
+    const isPremiumOrAbove =
+      partner &&
+      ["premium", "gold"].includes(partner.subscription_plan) &&
+      partner.subscription_expires_at != null &&
+      new Date(partner.subscription_expires_at) > now;
+
+    if (!isPremiumOrAbove) {
+      throw ApiError.forbidden("Les avis ne sont disponibles que pour les établissements Premium ou Gold.");
     }
 
     // Check if user already reviewed this establishment
@@ -140,17 +154,29 @@ class ReviewService {
       throw ApiError.badRequest("You have already reviewed this establishment");
     }
 
+    // Compute global rating from sub_ratings if provided
+    let globalRating = data.rating;
+    if (data.sub_ratings && typeof data.sub_ratings === "object") {
+      const values = Object.values(data.sub_ratings).filter(
+        (v) => Number.isInteger(v) && v >= 1 && v <= 5
+      );
+      if (values.length > 0) {
+        globalRating = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+      }
+    }
+
     // Create review
     const review = await Review.create({
       user_id: userId,
       establishment_id: establishmentId,
-      rating: data.rating,
+      rating: globalRating,
       title: data.title,
       comment: data.comment,
       pros: data.pros || [],
       cons: data.cons || [],
       images: data.images || [],
       visit_date: data.visit_date,
+      sub_ratings: data.sub_ratings || null,
       status: "pending", // Requires moderation
     });
 
@@ -373,6 +399,65 @@ class ReviewService {
         totalPages: Math.ceil(count / limit),
       },
     };
+  }
+
+  /**
+   * Get all reviews with optional status filter (admin)
+   */
+  async getAllReviews(options = {}) {
+    const { page = 1, limit = 20, status, search } = options;
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (status && status !== 'all') where.status = status;
+    if (search) {
+      where[Op.or] = [
+        { comment: { [Op.iLike]: `%${search}%` } },
+        { title: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const { count, rows } = await Review.findAndCountAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'first_name', 'last_name', 'email', 'avatar'],
+        },
+        {
+          model: Establishment,
+          as: 'establishment',
+          attributes: ['id', 'name', 'name_ar', 'slug'],
+        },
+      ],
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+    });
+
+    return {
+      reviews: rows,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
+  }
+
+  /**
+   * Revoke an approved review back to pending (admin)
+   */
+  async revokeReview(reviewId, adminId) {
+    const review = await Review.findByPk(reviewId);
+    if (!review) throw ApiError.notFound('Review not found');
+    if (review.status !== 'approved') {
+      throw ApiError.badRequest('Seuls les avis approuvés peuvent être révoqués');
+    }
+    await review.update({ status: 'pending', moderated_by: adminId, moderated_at: new Date() });
+    return review;
   }
 
   /**

@@ -159,6 +159,38 @@ class ReviewController {
   // ==================== ADMIN ROUTES ====================
 
   /**
+   * Get all reviews with optional status filter
+   * GET /api/v1/admin/reviews
+   */
+  async getAllReviews(req, res, next) {
+    try {
+      const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 20,
+        status: req.query.status || 'all',
+        search: req.query.search || null,
+      };
+      const result = await reviewService.getAllReviews(options);
+      ApiResponse.success(result, 'Reviews retrieved successfully').send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Revoke an approved review back to pending
+   * POST /api/v1/admin/reviews/:id/revoke
+   */
+  async revokeReview(req, res, next) {
+    try {
+      const review = await reviewService.revokeReview(req.params.id, req.userId);
+      ApiResponse.success(review, 'Review revoked successfully').send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Get pending reviews
    * GET /api/v1/admin/reviews/pending
    */

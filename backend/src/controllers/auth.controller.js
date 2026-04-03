@@ -202,6 +202,36 @@ class AuthController {
   }
 
   /**
+   * Send OTP to user's email for verification
+   * POST /api/v1/auth/email/send-otp
+   */
+  async sendEmailOtp(req, res, next) {
+    try {
+      const result = await authService.sendEmailOtp(req.userId);
+
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Verify email OTP code
+   * POST /api/v1/auth/email/verify-otp
+   */
+  async verifyEmailOtp(req, res, next) {
+    try {
+      const { otp } = req.body;
+
+      const result = await authService.verifyEmailOtp(req.userId, otp);
+
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Resend verification email
    * POST /api/v1/auth/resend-verification
    */
@@ -254,6 +284,96 @@ class AuthController {
       const result = await authService.updateFcmToken(req.userId, fcm_token);
 
       ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Register new user with phone number
+   * POST /api/v1/auth/register/phone
+   */
+  async registerWithPhone(req, res, next) {
+    try {
+      const deviceInfo = {
+        user_agent: req.headers["user-agent"],
+        platform: req.body.platform || "unknown",
+      };
+
+      const result = await authService.registerWithPhone({
+        ...req.body,
+        device_info: deviceInfo,
+      });
+
+      ApiResponse.created(result, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Login with phone number + password
+   * POST /api/v1/auth/login/phone
+   */
+  async loginWithPhone(req, res, next) {
+    try {
+      const { phone, password } = req.body;
+      const deviceInfo = {
+        user_agent: req.headers["user-agent"],
+        platform: req.body.platform || "unknown",
+      };
+      const ipAddress = req.ip || req.connection.remoteAddress;
+
+      const result = await authService.loginWithPhone(phone, password, deviceInfo, ipAddress);
+
+      ApiResponse.success(result, "Login successful").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Send OTP to user's phone
+   * POST /api/v1/auth/phone/send-otp
+   */
+  async sendPhoneOtp(req, res, next) {
+    try {
+      const result = await authService.sendPhoneOtp(req.userId);
+
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Verify OTP code
+   * POST /api/v1/auth/phone/verify-otp
+   */
+  async verifyPhoneOtp(req, res, next) {
+    try {
+      const { otp } = req.body;
+
+      const result = await authService.verifyPhoneOtp(req.userId, otp);
+
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update partner profile (company info)
+   * PUT /api/v1/auth/partner-profile
+   */
+  async updatePartnerProfile(req, res, next) {
+    try {
+      const result = await authService.updatePartnerProfile(
+        req.userId,
+        req.body
+      );
+
+      ApiResponse.success(result.partner, result.message).send(res);
     } catch (error) {
       next(error);
     }

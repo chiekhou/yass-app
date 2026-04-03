@@ -80,6 +80,18 @@ class EstablishmentService {
   }
 
   /**
+   * Include partner with subscription_plan exposed (all plans visible, Basic is free)
+   */
+  getPartnerInclude() {
+    return {
+      model: Partner,
+      as: "partner",
+      attributes: ["id", "subscription_plan", "subscription_expires_at"],
+      required: true,
+    };
+  }
+
+  /**
    * Public attributes (hide sensitive data)
    */
   getPublicAttributes() {
@@ -119,13 +131,46 @@ class EstablishmentService {
     const where = { status: "active" };
     const offset = (page - 1) * limit;
 
-    // Text search
+    // Text search (inclut catégorie et sous-catégorie)
     if (q) {
+      const [matchingCategories, matchingSubCategories] = await Promise.all([
+        Category.findAll({
+          where: {
+            [Op.or]: [
+              { name: { [Op.iLike]: `%${q}%` } },
+              { name_ar: { [Op.iLike]: `%${q}%` } },
+              { slug: { [Op.iLike]: `%${q}%` } },
+            ],
+          },
+          attributes: ["id"],
+        }),
+        SubCategory.findAll({
+          where: {
+            [Op.or]: [
+              { name: { [Op.iLike]: `%${q}%` } },
+              { name_ar: { [Op.iLike]: `%${q}%` } },
+              { slug: { [Op.iLike]: `%${q}%` } },
+            ],
+          },
+          attributes: ["id"],
+        }),
+      ]);
+
+      const categoryIds = matchingCategories.map((c) => c.id);
+      const subcategoryIds = matchingSubCategories.map((sc) => sc.id);
+
       where[Op.or] = [
         { name: { [Op.iLike]: `%${q}%` } },
         { name_ar: { [Op.iLike]: `%${q}%` } },
+        { slug: { [Op.iLike]: `%${q}%` } },
         { description: { [Op.iLike]: `%${q}%` } },
         { address: { [Op.iLike]: `%${q}%` } },
+        ...(categoryIds.length > 0
+          ? [{ category_id: { [Op.in]: categoryIds } }]
+          : []),
+        ...(subcategoryIds.length > 0
+          ? [{ subcategory_id: { [Op.in]: subcategoryIds } }]
+          : []),
       ];
     }
 
@@ -179,7 +224,7 @@ class EstablishmentService {
 
     const { count, rows } = await Establishment.findAndCountAll({
       where,
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
       order,
       limit: Math.min(limit, 100),
@@ -232,7 +277,7 @@ class EstablishmentService {
 
     const establishment = await Establishment.findOne({
       where: { id, status: "active" },
-      include: this.getDefaultIncludes({ includeReviews: true }),
+      include: [...this.getDefaultIncludes({ includeReviews: true }), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
     });
 
@@ -266,7 +311,7 @@ class EstablishmentService {
 
     const establishment = await Establishment.findOne({
       where: { slug, status: "active" },
-      include: this.getDefaultIncludes({ includeReviews: true }),
+      include: [...this.getDefaultIncludes({ includeReviews: true }), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
     });
 
@@ -296,9 +341,17 @@ class EstablishmentService {
    * Get featured establishments
    */
   async getFeatured(limit = 10) {
+    const now = new Date();
     const establishments = await Establishment.findAll({
-      where: { status: "active", is_featured: true },
-      include: this.getDefaultIncludes(),
+      where: {
+        status: "active",
+        is_featured: true,
+        [Op.or]: [
+          { featured_until: null },
+          { featured_until: { [Op.gt]: now } },
+        ],
+      },
+      include: [...this.getDefaultIncludes(), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
       order: [
         ["average_rating", "DESC"],
@@ -325,7 +378,7 @@ class EstablishmentService {
         latitude: { [Op.ne]: null },
         longitude: { [Op.ne]: null },
       },
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
     });
 
@@ -362,7 +415,7 @@ class EstablishmentService {
 
     const { count, rows } = await Establishment.findAndCountAll({
       where,
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
       order: [
         ["average_rating", "DESC"],
@@ -370,6 +423,7 @@ class EstablishmentService {
       ],
       limit,
       offset,
+      distinct: true,
     });
 
     return {
@@ -395,7 +449,7 @@ class EstablishmentService {
 
     const { count, rows } = await Establishment.findAndCountAll({
       where,
-      include: this.getDefaultIncludes(),
+      include: [...this.getDefaultIncludes(), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
       order: [
         ["average_rating", "DESC"],
@@ -403,6 +457,7 @@ class EstablishmentService {
       ],
       limit,
       offset,
+      distinct: true,
     });
 
     return {
@@ -433,6 +488,54 @@ class EstablishmentService {
     const establishment = await Establishment.findByPk(establishmentId);
     if (establishment) {
       await establishment.increment("total_whatsapp_clicks");
+    }
+  }
+
+  /**
+   * Track contact form submission
+   */
+  async trackContact(establishmentId, { name, senderEmail, message }) {
+    const { Partner, User } = require("../models");
+    const establishment = await Establishment.findByPk(establishmentId, {
+      include: [
+        {
+          model: Partner,
+          as: "partner",
+          include: [{ model: User, as: "user", attributes: ["id", "email"] }],
+        },
+      ],
+    });
+    if (!establishment) throw ApiError.notFound("Establishment not found");
+
+    await establishment.increment("total_contacts");
+
+    const toEmail = establishment.email || establishment.partner?.user?.email;
+
+    // Send email (fire-and-forget)
+    if (toEmail) {
+      const mailService = require("./mail.service");
+      mailService
+        .sendContactMessage({
+          to: toEmail,
+          establishmentName: establishment.name,
+          senderName: name,
+          senderEmail,
+          message,
+        })
+        .catch((err) => console.error('[Mail] Contact email failed:', err.message));
+    }
+
+    // In-app notification (fire-and-forget)
+    if (establishment.partner?.user?.id) {
+      const notificationService = require("./notification.service");
+      notificationService
+        .notifyPartnerNewContact(
+          establishment.partner.user.id,
+          establishment.name,
+          name,
+          senderEmail
+        )
+        .catch(() => {});
     }
   }
 
@@ -473,7 +576,14 @@ class EstablishmentService {
   async getPartnerEstablishmentById(partnerId, establishmentId) {
     const establishment = await Establishment.findOne({
       where: { id: establishmentId, partner_id: partnerId },
-      include: this.getDefaultIncludes({ includeReviews: true }),
+      include: [
+        ...this.getDefaultIncludes({ includeReviews: true }),
+        {
+          model: Partner,
+          as: 'partner',
+          attributes: ['id', 'subscription_plan', 'subscription_expires_at'],
+        },
+      ],
     });
 
     if (!establishment) {
@@ -633,6 +743,7 @@ class EstablishmentService {
       "facebook",
       "instagram",
       "tiktok",
+      "snapchat",
       "logo",
       "cover_image",
       "images",
@@ -712,6 +823,7 @@ class EstablishmentService {
         "total_favorites",
         "total_calls",
         "total_whatsapp_clicks",
+        "total_contacts",
         "total_reviews",
         "average_rating",
       ],
@@ -730,6 +842,7 @@ class EstablishmentService {
         favorites: 0,
         calls: 0,
         whatsapp_clicks: 0,
+        contacts: 0,
         reviews: 0,
       },
       average_rating: 0,
@@ -749,6 +862,7 @@ class EstablishmentService {
       stats.totals.favorites += est.total_favorites || 0;
       stats.totals.calls += est.total_calls || 0;
       stats.totals.whatsapp_clicks += est.total_whatsapp_clicks || 0;
+      stats.totals.contacts += est.total_contacts || 0;
       stats.totals.reviews += est.total_reviews || 0;
 
       // Average rating
