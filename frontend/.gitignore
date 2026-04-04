@@ -47,4 +47,5 @@ app.*.map.json
 # Environment files (contiennent des secrets / IP locales)
 .env.dev.json
 .env.prod.json
+.env.device.json
 # .env.example.json est versionné intentionnellement (template sans secrets)
