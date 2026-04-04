@@ -9,6 +9,8 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/register_partner_page.dart';
 import 'features/auth/presentation/pages/forgot_password_page.dart';
+import 'features/auth/presentation/pages/reset_password_page.dart';
+import 'features/auth/presentation/pages/verify_email_page.dart';
 import 'features/auth/presentation/pages/verify_otp_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/home/presentation/pages/main_page.dart';
@@ -126,6 +128,10 @@ class AppRoutes {
   // Notifications
   static const String notifications = '/notifications';
 
+  // Deep link targets
+  static const String verifyEmail = '/verify-email';
+  static const String resetPassword = '/reset-password';
+
   // Suggestions
   static const String suggestions = '/suggestions';
   static const String newSuggestion = '/suggestions/new';
@@ -151,6 +157,14 @@ class AppRouter {
     initialLocation: AppRoutes.main,
     debugLogDiagnostics: true,
     redirect: (context, state) {
+      // GoRouter intercepte les deep links win:// de la plateforme avant
+      // app_links — on les convertit ici en chemin GoRouter valide.
+      if (state.uri.scheme == 'win') {
+        final host = state.uri.host;   // ex: "reset-password"
+        final path = state.uri.path;   // ex: "" ou "/subscription"
+        final query = state.uri.query; // ex: "token=abc"
+        return '/$host$path${query.isNotEmpty ? '?$query' : ''}';
+      }
       if (!_onboardingDone &&
           state.matchedLocation != AppRoutes.onboarding) {
         return AppRoutes.onboarding;
@@ -503,7 +517,16 @@ class AppRouter {
         name: 'partnerEstablishmentDetails',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return PartnerEstablishmentDetailsPage(establishmentId: id);
+          final q = state.uri.queryParameters;
+          final paymentResult = q.containsKey('featured_success')
+              ? 'featured_success'
+              : q.containsKey('featured_failed')
+                  ? 'featured_failed'
+                  : null;
+          return PartnerEstablishmentDetailsPage(
+            establishmentId: id,
+            paymentResult: paymentResult,
+          );
         },
       ),
       GoRoute(
@@ -517,11 +540,19 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.partnerSubscription,
         name: 'partnerSubscription',
-        builder: (context, state) => BlocProvider(
-          create: (context) => PartnerSubscriptionBloc()
-            ..add(const LoadSubscriptionStatus()),
-          child: const PartnerSubscriptionPage(),
-        ),
+        builder: (context, state) {
+          final q = state.uri.queryParameters;
+          final paymentResult = q.containsKey('success')
+              ? 'success'
+              : q.containsKey('failed')
+                  ? 'failed'
+                  : null;
+          return BlocProvider(
+            create: (context) => PartnerSubscriptionBloc()
+              ..add(const LoadSubscriptionStatus()),
+            child: PartnerSubscriptionPage(paymentResult: paymentResult),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.partnerInvoices,
@@ -541,6 +572,24 @@ class AppRouter {
             create: (context) => PartnerInvoicesBloc(),
             child: PartnerInvoiceDetailPage(invoiceId: id),
           );
+        },
+      ),
+
+      // Deep link targets — email verification & password reset
+      GoRoute(
+        path: AppRoutes.verifyEmail,
+        name: 'verifyEmail',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'] ?? '';
+          return VerifyEmailPage(token: token);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        name: 'resetPassword',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'] ?? '';
+          return ResetPasswordPage(token: token);
         },
       ),
 

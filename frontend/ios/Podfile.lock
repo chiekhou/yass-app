@@ -1,4 +1,6 @@
 PODS:
+  - app_links (6.4.1):
+    - Flutter
   - connectivity_plus (0.0.1):
     - Flutter
   - Firebase/CoreOnly (11.15.0):
@@ -102,6 +104,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - app_links (from `.symlinks/plugins/app_links/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
@@ -134,6 +137,8 @@ SPEC REPOS:
     - TOCropViewController
 
 EXTERNAL SOURCES:
+  app_links:
+    :path: ".symlinks/plugins/app_links/ios"
   connectivity_plus:
     :path: ".symlinks/plugins/connectivity_plus/ios"
   firebase_core:
@@ -170,6 +175,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
+  app_links: 585674be3c6661708e6cd794ab4f39fb9d8356f9
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
   Firebase: d99ac19b909cd2c548339c2241ecd0d1599ab02e
   firebase_core: 99a37263b3c27536063a7b601d9e2a49400a433c

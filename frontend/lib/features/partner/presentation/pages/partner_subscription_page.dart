@@ -11,7 +11,9 @@ import '../../data/models/invoice_model.dart';
 import '../bloc/partner_subscription_bloc.dart';
 
 class PartnerSubscriptionPage extends StatefulWidget {
-  const PartnerSubscriptionPage({super.key});
+  final String? paymentResult; // 'success' | 'failed' | null
+
+  const PartnerSubscriptionPage({super.key, this.paymentResult});
 
   @override
   State<PartnerSubscriptionPage> createState() =>
@@ -31,6 +33,26 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
   void initState() {
     super.initState();
     context.read<PartnerSubscriptionBloc>().add(const LoadSubscriptionStatus());
+    if (widget.paymentResult != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (widget.paymentResult == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Paiement accepté — abonnement activé !'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (widget.paymentResult == 'failed') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Le paiement a échoué. Veuillez réessayer.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    }
   }
 
   @override

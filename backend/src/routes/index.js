@@ -29,6 +29,28 @@ router.post("/app/visit", async (req, res) => {
   res.status(204).send();
 });
 
+// ── Deep link redirects (pour les emails — win:// non supporté partout) ──────
+// Les emails contiennent https://.../r/reset?token=... qui redirige vers win://
+router.get("/r/reset", (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("Token manquant");
+  res.redirect(`win://reset-password?token=${token}`);
+});
+
+router.get("/r/verify", (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("Token manquant");
+  res.redirect(`win://verify-email?token=${token}`);
+});
+
+router.get("/r/partner-dashboard", (_req, res) => {
+  res.redirect("win://partner");
+});
+
+router.get("/r/admin-partners", (_req, res) => {
+  res.redirect("win://admin/partners/pending");
+});
+
 // Health check
 router.get("/health", (req, res) => {
   res.json({

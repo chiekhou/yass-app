@@ -120,7 +120,7 @@ class EmailService {
    * Send verification email
    */
   async sendVerificationEmail(user, token) {
-    const verificationUrl = `${config.urls.frontend}/verify-email?token=${token}`;
+    const verificationUrl = `${config.urls.app}/api/${config.apiVersion}/r/verify?token=${token}`;
 
     // Use API URL if no frontend URL
     const apiVerificationUrl = `${config.urls.app}/api/${config.apiVersion}/auth/verify-email/${token}`;
@@ -240,7 +240,7 @@ class EmailService {
    * Send password reset email
    */
   async sendPasswordResetEmail(user, token) {
-    const resetUrl = `${config.urls.frontend}/reset-password?token=${token}`;
+    const resetUrl = `${config.urls.app}/api/${config.apiVersion}/r/reset?token=${token}`;
 
     const context = {
       firstName: user.first_name,
@@ -311,7 +311,7 @@ class EmailService {
       firstName: user.first_name,
       lastName: user.last_name,
       appName: "Win",
-      appUrl: config.urls.frontend,
+      appUrl: config.urls.app,
       year: new Date().getFullYear(),
     };
 
@@ -433,7 +433,7 @@ class EmailService {
       firstName: user.first_name,
       lastName: user.last_name,
       companyName: partner.company_name,
-      dashboardUrl: `${config.urls.frontend}/partner/dashboard`,
+      dashboardUrl: `${config.urls.app}/api/${config.apiVersion}/r/partner-dashboard`,
       appName: "Win",
       year: new Date().getFullYear(),
     };
@@ -589,7 +589,7 @@ class EmailService {
               <p><strong>Téléphone :</strong> ${user.phone || "Non renseigné"}</p>
             </div>
             <p style="text-align: center;">
-              <a href="${config.urls.frontend}/admin/partners/pending" class="button">Examiner la demande</a>
+              <a href="${config.urls.app}/api/${config.apiVersion}/r/admin-partners" class="button">Examiner la demande</a>
             </p>
           </div>
           <div class="footer">

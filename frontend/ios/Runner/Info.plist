@@ -10,6 +10,17 @@
 		<string>mailto</string>
 		<string>whatsapp</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.dz.win.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>win</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
