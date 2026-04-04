@@ -151,8 +151,6 @@ module.exports = {
       status: { type: Sequelize.ENUM('pending', 'approved', 'rejected', 'suspended'), defaultValue: 'pending' },
       subscription_plan: { type: Sequelize.ENUM('free', 'premium', 'gold'), defaultValue: 'free' },
       subscription_expires_at: { type: Sequelize.DATE, allowNull: true },
-      chargily_checkout_id: { type: Sequelize.STRING(255), allowNull: true },
-      trial_ends_at: { type: Sequelize.DATE, allowNull: true },
       documents: { type: Sequelize.JSONB, allowNull: true, defaultValue: [] },
       verified_at: { type: Sequelize.DATE, allowNull: true },
       verified_by: {
@@ -361,53 +359,9 @@ module.exports = {
     await queryInterface.addIndex('promotions', ['start_date', 'end_date']);
     await queryInterface.addIndex('promotions', ['is_featured']);
 
-    // 12. invoices (dépend de partners, users, establishments)
-    await queryInterface.createTable('invoices', {
-      id: { type: Sequelize.UUID, defaultValue: Sequelize.UUIDV4, primaryKey: true },
-      invoice_number: { type: Sequelize.STRING(50), allowNull: false, unique: true },
-      partner_id: {
-        type: Sequelize.UUID, allowNull: false,
-        references: { model: 'partners', key: 'id' },
-        onUpdate: 'CASCADE', onDelete: 'RESTRICT',
-      },
-      type: { type: Sequelize.ENUM('subscription', 'featured'), allowNull: false, defaultValue: 'subscription' },
-      plan: {
-        type: Sequelize.ENUM('monthly', 'yearly', 'featured_7', 'featured_15', 'featured_30'),
-        allowNull: false,
-      },
-      establishment_id: {
-        type: Sequelize.UUID, allowNull: true,
-        references: { model: 'establishments', key: 'id' },
-        onUpdate: 'CASCADE', onDelete: 'SET NULL',
-      },
-      featured_duration_days: { type: Sequelize.INTEGER, allowNull: true },
-      amount: { type: Sequelize.DECIMAL(10, 2), allowNull: false },
-      currency: { type: Sequelize.STRING(10), allowNull: false, defaultValue: 'DZD' },
-      payment_method: { type: Sequelize.ENUM('chargily', 'manual', 'cash'), allowNull: false },
-      status: {
-        type: Sequelize.ENUM('pending_validation', 'paid', 'failed', 'cancelled'),
-        allowNull: false, defaultValue: 'pending_validation',
-      },
-      chargily_checkout_id: { type: Sequelize.STRING(255), allowNull: true },
-      chargily_checkout_url: { type: Sequelize.TEXT, allowNull: true },
-      transfer_reference: { type: Sequelize.STRING(255), allowNull: true },
-      period_start: { type: Sequelize.DATEONLY, allowNull: true },
-      period_end: { type: Sequelize.DATEONLY, allowNull: true },
-      notes: { type: Sequelize.TEXT, allowNull: true },
-      paid_at: { type: Sequelize.DATE, allowNull: true },
-      validated_by: {
-        type: Sequelize.UUID, allowNull: true,
-        references: { model: 'users', key: 'id' },
-        onUpdate: 'CASCADE', onDelete: 'SET NULL',
-      },
-      validated_at: { type: Sequelize.DATE, allowNull: true },
-      created_at: { type: Sequelize.DATE, allowNull: false },
-      updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('invoices');
     await queryInterface.dropTable('promotions');
     await queryInterface.dropTable('favorites');
     await queryInterface.dropTable('reviews');
