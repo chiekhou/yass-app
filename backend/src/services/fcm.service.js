@@ -6,22 +6,17 @@ function initializeFirebase() {
   if (initialized) return;
 
   try {
-    const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-    const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    const projectId    = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail  = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey   = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-    if (serviceAccountJson) {
-      const serviceAccount = JSON.parse(serviceAccountJson);
+    if (projectId && clientEmail && privateKey) {
       admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      initialized = true;
-    } else if (credentialsPath) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
+        credential: admin.credential.cert({ projectId, clientEmail, privateKey }),
       });
       initialized = true;
     } else {
-      console.warn('[FCM] No Firebase credentials found. Push notifications disabled.');
+      console.warn('[FCM] Firebase credentials missing in .env. Push notifications disabled.');
     }
   } catch (err) {
     console.error('[FCM] Firebase initialization error:', err.message);

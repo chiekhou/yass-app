@@ -15,8 +15,10 @@ class AppConfig {
 
   // ── Localisation de test (DEV uniquement) ──────────────────────────────────
   // Coordonnées d'Alger — utilisées uniquement en kDebugMode quand définies.
-  static const String _devLatStr = String.fromEnvironment('DEV_LATITUDE',  defaultValue: '');
-  static const String _devLngStr = String.fromEnvironment('DEV_LONGITUDE', defaultValue: '');
+  static const String _devLatStr =
+      String.fromEnvironment('DEV_LATITUDE', defaultValue: '');
+  static const String _devLngStr =
+      String.fromEnvironment('DEV_LONGITUDE', defaultValue: '');
 
   /// Retourne les coordonnées de test si elles sont configurées ET qu'on est
   /// en mode debug. Retourne null en production ou si non configurées.

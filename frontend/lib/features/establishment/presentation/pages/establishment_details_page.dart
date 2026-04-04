@@ -976,7 +976,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                   urlTemplate:
                       'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                   subdomains: const ['a', 'b', 'c', 'd'],
-                  userAgentPackageName: 'com.win.app',
+                  userAgentPackageName: 'com.dz.win.app',
                 ),
                 if (_routePoints.isNotEmpty)
                   PolylineLayer(

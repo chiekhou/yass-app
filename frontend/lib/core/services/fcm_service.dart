@@ -70,6 +70,14 @@ class FcmService {
     }
   }
 
+  /// Called after login to ensure the FCM token is registered with the backend.
+  static Future<void> registerTokenIfAvailable() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null) await _registerToken(token);
+    } catch (_) {}
+  }
+
   static Future<void> _handleForegroundMessage(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
