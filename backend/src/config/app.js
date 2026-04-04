@@ -50,6 +50,7 @@ module.exports = {
   urls: {
     app: process.env.APP_URL || "http://localhost:3000",
     frontend: process.env.FRONTEND_URL || "http://localhost:8080",
+    api: process.env.API_BASE_URL || `http://localhost:${parseInt(process.env.PORT, 10) || 3000}`,
   },
 
   // Email

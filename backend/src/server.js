@@ -21,6 +21,7 @@ const startServer = async () => {
 
     // Start server
     app.listen(PORT, () => {
+      const apiUrl = `${config.urls.api}/api/${config.apiVersion}`;
       console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║                                                   ║
@@ -28,7 +29,7 @@ const startServer = async () => {
 ║                                                   ║
 ║   Environment: ${config.env.padEnd(33)}║
 ║   Port: ${PORT.toString().padEnd(40)}║
-║   API: http://localhost:${PORT}/api/${config.apiVersion}             ║
+║   API: ${apiUrl.padEnd(42)}║
 ║                                                   ║
 ╚═══════════════════════════════════════════════════╝
       `);
