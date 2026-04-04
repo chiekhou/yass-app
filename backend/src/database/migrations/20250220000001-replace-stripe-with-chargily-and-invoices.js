@@ -7,11 +7,16 @@ module.exports = {
     await queryInterface.removeColumn("partners", "stripe_subscription_id");
 
     // 2. Ajouter le champ Chargily à la table partners
-    await queryInterface.addColumn("partners", "chargily_checkout_id", {
-      type: Sequelize.STRING(255),
-      allowNull: true,
-      after: "trial_ends_at",
-    });
+    const [chk] = await queryInterface.sequelize.query(
+      `SELECT 1 FROM information_schema.columns WHERE table_name = 'partners' AND column_name = 'chargily_checkout_id'`
+    );
+    if (chk.length === 0) {
+      await queryInterface.addColumn("partners", "chargily_checkout_id", {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+        after: "trial_ends_at",
+      });
+    }
 
     // 3. Créer la table invoices
     await queryInterface.createTable("invoices", {
