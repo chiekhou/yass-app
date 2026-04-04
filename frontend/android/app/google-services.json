@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:879774213776:android:a8d7f57e667ed5cb0a5a15",
+        "mobilesdk_app_id": "1:879774213776:android:b18e4a82a75b30e20a5a15",
         "android_client_info": {
-          "package_name": "com.win.app"
+          "package_name": "com.dz.win.app"
         }
       },
       "oauth_client": [],

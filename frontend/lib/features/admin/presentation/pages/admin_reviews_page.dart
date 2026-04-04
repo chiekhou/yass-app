@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/widgets/pagination_bar.dart';
 import '../../../../app_router.dart';
 import '../../../reviews/data/models/review_model.dart';
 import '../bloc/admin_reviews_bloc.dart';
@@ -30,7 +31,6 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
     super.initState();
     _activeTab = widget.initialTab;
     _loadReviews();
-    _scrollController.addListener(_onScroll);
   }
 
   @override
@@ -48,13 +48,6 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
       context.read<AdminReviewsBloc>().add(AdminReviewsLoadAll(status: _statusFilter));
     } else {
       context.read<AdminReviewsBloc>().add(const AdminReviewsLoadPending());
-    }
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      context.read<AdminReviewsBloc>().add(AdminReviewsLoadMore());
     }
   }
 
@@ -293,37 +286,37 @@ class _AdminReviewsPageState extends State<AdminReviewsPage> {
               _buildCountHeader(context, state.filteredReviews.length),
               Expanded(
                 child: RefreshIndicator(
-            onRefresh: () async {
-              context.read<AdminReviewsBloc>().add(AdminReviewsRefresh());
-              await Future.delayed(const Duration(milliseconds: 500));
-            },
-            color: AppColors.primaryGreen,
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
-              itemCount:
-                  state.filteredReviews.length + (state.isLoadingMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= state.filteredReviews.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppDimens.paddingM),
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
-
-                final review = state.filteredReviews[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingM,
-                    vertical: AppDimens.paddingXS,
+                  onRefresh: () async {
+                    context.read<AdminReviewsBloc>().add(AdminReviewsRefresh());
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  color: AppColors.primaryGreen,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+                    itemCount: state.filteredReviews.length,
+                    itemBuilder: (context, index) {
+                      final review = state.filteredReviews[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.paddingM,
+                          vertical: AppDimens.paddingXS,
+                        ),
+                        child: _buildReviewCard(review),
+                      );
+                    },
                   ),
-                  child: _buildReviewCard(review),
-                );
-              },
-            ),
-          ),
+                ),
+              ),
+              PaginationBar(
+                currentPage: state.currentPage,
+                totalPages: state.totalPages,
+                total: state.totalCount,
+                isLoading: state.isPageLoading,
+                onPageChanged: (page) {
+                  context.read<AdminReviewsBloc>().add(AdminReviewsGoToPage(page: page));
+                  _scrollController.jumpTo(0);
+                },
               ),
             ],
           );

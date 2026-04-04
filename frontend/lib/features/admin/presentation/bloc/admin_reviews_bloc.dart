@@ -37,6 +37,13 @@ class AdminReviewsLoadAll extends AdminReviewsEvent {
 
 class AdminReviewsLoadMore extends AdminReviewsEvent {}
 
+class AdminReviewsGoToPage extends AdminReviewsEvent {
+  final int page;
+  const AdminReviewsGoToPage({required this.page});
+  @override
+  List<Object?> get props => [page];
+}
+
 class AdminReviewsRefresh extends AdminReviewsEvent {}
 
 class AdminReviewsSearch extends AdminReviewsEvent {
@@ -100,10 +107,12 @@ class AdminReviewsLoaded extends AdminReviewsState {
   final List<Review> filteredReviews;
   final int totalCount;
   final int currentPage;
+  final int totalPages;
   final bool hasMore;
   final ReviewTab activeTab;
   final String statusFilter; // 'all' | 'approved' | 'pending' | 'rejected'
   final bool isLoadingMore;
+  final bool isPageLoading;
   final String? searchQuery;
 
   const AdminReviewsLoaded({
@@ -111,10 +120,12 @@ class AdminReviewsLoaded extends AdminReviewsState {
     required this.filteredReviews,
     required this.totalCount,
     required this.currentPage,
+    required this.totalPages,
     required this.hasMore,
     this.activeTab = 'pending',
     this.statusFilter = 'all',
     this.isLoadingMore = false,
+    this.isPageLoading = false,
     this.searchQuery,
   });
 
@@ -126,10 +137,12 @@ class AdminReviewsLoaded extends AdminReviewsState {
     List<Review>? filteredReviews,
     int? totalCount,
     int? currentPage,
+    int? totalPages,
     bool? hasMore,
     ReviewTab? activeTab,
     String? statusFilter,
     bool? isLoadingMore,
+    bool? isPageLoading,
     String? searchQuery,
   }) {
     return AdminReviewsLoaded(
@@ -137,10 +150,12 @@ class AdminReviewsLoaded extends AdminReviewsState {
       filteredReviews: filteredReviews ?? this.filteredReviews,
       totalCount: totalCount ?? this.totalCount,
       currentPage: currentPage ?? this.currentPage,
+      totalPages: totalPages ?? this.totalPages,
       hasMore: hasMore ?? this.hasMore,
       activeTab: activeTab ?? this.activeTab,
       statusFilter: statusFilter ?? this.statusFilter,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      isPageLoading: isPageLoading ?? this.isPageLoading,
       searchQuery: searchQuery ?? this.searchQuery,
     );
   }
@@ -151,10 +166,12 @@ class AdminReviewsLoaded extends AdminReviewsState {
         filteredReviews,
         totalCount,
         currentPage,
+        totalPages,
         hasMore,
         activeTab,
         statusFilter,
         isLoadingMore,
+        isPageLoading,
         searchQuery,
       ];
 }
@@ -187,6 +204,7 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
     on<AdminReviewsLoadReported>(_onLoadReported);
     on<AdminReviewsLoadAll>(_onLoadAll);
     on<AdminReviewsLoadMore>(_onLoadMore);
+    on<AdminReviewsGoToPage>(_onGoToPage);
     on<AdminReviewsRefresh>(_onRefresh);
     on<AdminReviewsSearch>(_onSearch);
     on<AdminReviewApprove>(_onApprove);
@@ -232,6 +250,7 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
         filteredReviews: reviews,
         totalCount: _total(data, reviews),
         currentPage: event.page,
+        totalPages: _totalPages(data),
         hasMore: event.page < _totalPages(data),
         activeTab: 'pending',
       ));
@@ -253,6 +272,7 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
         filteredReviews: reviews,
         totalCount: _total(data, reviews),
         currentPage: event.page,
+        totalPages: _totalPages(data),
         hasMore: event.page < _totalPages(data),
         activeTab: 'reported',
       ));
@@ -277,6 +297,7 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
         filteredReviews: reviews,
         totalCount: _total(data, reviews),
         currentPage: event.page,
+        totalPages: _totalPages(data),
         hasMore: event.page < _totalPages(data),
         activeTab: 'all',
         statusFilter: event.status,
@@ -317,6 +338,7 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
         filteredReviews: _filterReviews(allReviews, currentState.searchQuery),
         totalCount: currentState.totalCount,
         currentPage: nextPage,
+        totalPages: _totalPages(data),
         hasMore: nextPage < _totalPages(data),
         activeTab: currentState.activeTab,
         statusFilter: currentState.statusFilter,
@@ -403,6 +425,44 @@ class AdminReviewsBloc extends Bloc<AdminReviewsEvent, AdminReviewsState> {
       emit(const AdminReviewActionSuccess(message: 'Avis révoqué'));
     } catch (e) {
       emit(AdminReviewsError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onGoToPage(
+    AdminReviewsGoToPage event,
+    Emitter<AdminReviewsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AdminReviewsLoaded) return;
+
+    emit(currentState.copyWith(isPageLoading: true));
+    try {
+      late Map<String, dynamic> data;
+      if (currentState.activeTab == 'reported') {
+        data = await _repository.getReportedReviews(page: event.page);
+      } else if (currentState.activeTab == 'all') {
+        data = await _repository.getAllReviews(
+          page: event.page,
+          status: currentState.statusFilter,
+        );
+      } else {
+        data = await _repository.getPendingReviews(page: event.page);
+      }
+
+      final reviews = _parseReviews(data);
+      emit(AdminReviewsLoaded(
+        reviews: reviews,
+        filteredReviews: _filterReviews(reviews, currentState.searchQuery),
+        totalCount: _total(data, reviews),
+        currentPage: event.page,
+        totalPages: _totalPages(data),
+        hasMore: event.page < _totalPages(data),
+        activeTab: currentState.activeTab,
+        statusFilter: currentState.statusFilter,
+        searchQuery: currentState.searchQuery,
+      ));
+    } catch (e) {
+      emit(currentState.copyWith(isPageLoading: false));
     }
   }
 }

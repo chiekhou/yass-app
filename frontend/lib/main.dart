@@ -123,6 +123,8 @@ class WinApp extends StatelessWidget {
           if (state is AuthAuthenticated) {
             // Reload notifications with valid token
             context.read<NotificationsBloc>().add(const LoadNotifications());
+            // Register FCM token now that the user is authenticated
+            FcmService.registerTokenIfAvailable();
           } else if (state is AuthUnauthenticated) {
             // Reset on logout
             context.read<HomeBloc>().add(HomeLoadData());

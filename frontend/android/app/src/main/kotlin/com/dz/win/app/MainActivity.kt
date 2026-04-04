@@ -1,4 +1,4 @@
-package com.win.app
+package com.dz.win.app
 
 import io.flutter.embedding.android.FlutterActivity
 
