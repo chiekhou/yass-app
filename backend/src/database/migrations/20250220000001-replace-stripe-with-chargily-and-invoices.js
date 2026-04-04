@@ -2,9 +2,20 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // 1. Supprimer les champs Stripe de la table partners
-    await queryInterface.removeColumn("partners", "stripe_customer_id");
-    await queryInterface.removeColumn("partners", "stripe_subscription_id");
+    const colExists = async (table, column) => {
+      const [r] = await queryInterface.sequelize.query(
+        `SELECT 1 FROM information_schema.columns WHERE table_name = '${table}' AND column_name = '${column}'`
+      );
+      return r.length > 0;
+    };
+
+    // 1. Supprimer les champs Stripe de la table partners (seulement s'ils existent)
+    if (await colExists("partners", "stripe_customer_id")) {
+      await queryInterface.removeColumn("partners", "stripe_customer_id");
+    }
+    if (await colExists("partners", "stripe_subscription_id")) {
+      await queryInterface.removeColumn("partners", "stripe_subscription_id");
+    }
 
     // 2. Ajouter le champ Chargily à la table partners
     const [chk] = await queryInterface.sequelize.query(
@@ -18,7 +29,12 @@ module.exports = {
       });
     }
 
-    // 3. Créer la table invoices
+    // 3. Créer la table invoices (seulement si elle n'existe pas)
+    const [tableCheck] = await queryInterface.sequelize.query(
+      `SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices'`
+    );
+    if (tableCheck.length > 0) return; // table already exists, skip
+
     await queryInterface.createTable("invoices", {
       id: {
         type: Sequelize.UUID,
