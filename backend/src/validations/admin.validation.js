@@ -1,7 +1,7 @@
 const { body, param } = require("express-validator");
 
 const updateUserStatus = [
-  param("id").isUUID().withMessage("Invalid user ID"),
+  param("id").isUUID(4).withMessage("Invalid user ID"),
 
   body("status")
     .isIn(["active", "inactive", "suspended", "pending"])
@@ -9,7 +9,7 @@ const updateUserStatus = [
 ];
 
 const rejectPartner = [
-  param("id").isUUID().withMessage("Invalid partner ID"),
+  param("id").isUUID(4).withMessage("Invalid partner ID"),
 
   body("reason")
     .trim()
@@ -20,7 +20,7 @@ const rejectPartner = [
 ];
 
 const suspendPartner = [
-  param("id").isUUID().withMessage("Invalid partner ID"),
+  param("id").isUUID(4).withMessage("Invalid partner ID"),
 
   body("reason")
     .trim()
@@ -31,7 +31,7 @@ const suspendPartner = [
 ];
 
 const rejectEstablishment = [
-  param("id").isUUID().withMessage("Invalid establishment ID"),
+  param("id").isUUID(4).withMessage("Invalid establishment ID"),
 
   body("reason")
     .trim()
@@ -82,7 +82,7 @@ const createPartner = [
     .isIn(["fr", "ar", "en"])
     .withMessage("Language must be fr, ar, or en"),
 
-  body("wilaya_id").optional().isUUID().withMessage("Invalid wilaya ID"),
+  body("wilaya_id").optional().isUUID(4).withMessage("Invalid wilaya ID"),
 
   body("company_name")
     .trim()
@@ -106,15 +106,15 @@ const createPartner = [
 
 const createEstablishment = [
   body("partner_id")
-    .isUUID()
+    .isUUID(4)
     .withMessage("Invalid partner ID"),
 
   body("subcategory_id")
-    .isUUID()
+    .isUUID(4)
     .withMessage("Invalid subcategory ID"),
 
   body("commune_id")
-    .isUUID()
+    .isUUID(4)
     .withMessage("Invalid commune ID"),
 
   body("name")
