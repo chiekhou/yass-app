@@ -29,23 +29,23 @@ const createEstablishment = [
   body("category_id")
     .notEmpty()
     .withMessage("La catégorie est requise")
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de catégorie invalide"),
 
   body("subcategory_id")
     .optional()
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de sous-catégorie invalide"),
 
   body("wilaya_id")
     .notEmpty()
     .withMessage("La wilaya est requise")
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de wilaya invalide"),
 
   body("commune_id")
     .optional()
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de commune invalide"),
 
   body("address")
@@ -195,7 +195,7 @@ const createEstablishment = [
 ];
 
 const updateEstablishment = [
-  param("id").isUUID().withMessage("Identifiant d'établissement invalide"),
+  param("id").isUUID(4).withMessage("Identifiant d'établissement invalide"),
 
   body("name")
     .optional()
@@ -223,22 +223,22 @@ const updateEstablishment = [
 
   body("category_id")
     .optional()
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de catégorie invalide"),
 
   body("subcategory_id")
     .optional()
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de sous-catégorie invalide"),
 
   body("wilaya_id")
     .optional()
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de wilaya invalide"),
 
   body("commune_id")
     .optional()
-    .isUUID()
+    .isUUID(4)
     .withMessage("Identifiant de commune invalide"),
 
   body("address")
@@ -324,7 +324,7 @@ const updateEstablishment = [
 ];
 
 const updateStatus = [
-  param("id").isUUID().withMessage("Identifiant d'établissement invalide"),
+  param("id").isUUID(4).withMessage("Identifiant d'établissement invalide"),
 
   body("status")
     .isIn(["inactive", "pending"])

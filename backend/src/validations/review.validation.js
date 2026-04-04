@@ -65,7 +65,7 @@ const createReview = [
 ];
 
 const updateReview = [
-  param("id").isUUID().withMessage("Invalid review ID"),
+  param("id").isUUID(4).withMessage("Invalid review ID"),
 
   body("rating")
     .optional()
@@ -100,7 +100,7 @@ const updateReview = [
 ];
 
 const reportReview = [
-  param("id").isUUID().withMessage("Invalid review ID"),
+  param("id").isUUID(4).withMessage("Invalid review ID"),
 
   body("reason")
     .trim()
@@ -111,7 +111,7 @@ const reportReview = [
 ];
 
 const partnerReply = [
-  param("id").isUUID().withMessage("Invalid review ID"),
+  param("id").isUUID(4).withMessage("Invalid review ID"),
 
   body("reply")
     .trim()
@@ -122,7 +122,7 @@ const partnerReply = [
 ];
 
 const rejectReview = [
-  param("id").isUUID().withMessage("Invalid review ID"),
+  param("id").isUUID(4).withMessage("Invalid review ID"),
 
   body("reason")
     .trim()
