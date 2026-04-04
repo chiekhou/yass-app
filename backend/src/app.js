@@ -27,7 +27,12 @@ app.use(helmet());
 // CORS configuration
 app.use(
   cors({
-    origin: config.env === "production" ? [config.urls.frontend] : "*",
+    // Mobile app clients don't send Origin headers — CORS only matters for
+    // browser-based tools (admin panel, webhooks tested via browser, etc.).
+    // In production we allow the server's own domain; in dev we allow all.
+    origin: config.env === "production"
+      ? [config.urls.app, ...(process.env.ALLOWED_ORIGINS || "").split(",").filter(Boolean)]
+      : "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept-Language"],

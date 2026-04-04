@@ -15,10 +15,12 @@ import '../../data/repositories/partner_repository.dart';
 
 class PartnerEstablishmentDetailsPage extends StatefulWidget {
   final String establishmentId;
+  final String? paymentResult; // 'featured_success' | 'featured_failed' | null
 
   const PartnerEstablishmentDetailsPage({
     super.key,
     required this.establishmentId,
+    this.paymentResult,
   });
 
   @override
@@ -40,6 +42,26 @@ class _PartnerEstablishmentDetailsPageState
   void initState() {
     super.initState();
     _loadEstablishment();
+    if (widget.paymentResult != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (widget.paymentResult == 'featured_success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Mise à la une activée avec succès !'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (widget.paymentResult == 'featured_failed') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Le paiement a échoué. Veuillez réessayer.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    }
   }
 
   Future<void> _loadEstablishment() async {

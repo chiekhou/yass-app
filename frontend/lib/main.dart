@@ -19,6 +19,7 @@ import 'features/search/presentation/bloc/search_bloc.dart';
 import 'features/reviews/presentation/bloc/review_bloc.dart';
 import 'features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'core/services/fcm_service.dart';
+import 'core/services/deep_link_service.dart';
 
 final _languageCubit = LanguageCubit();
 
@@ -53,6 +54,9 @@ void main() async {
 
   // Init router (onboarding flag)
   await AppRouter.init();
+
+  // Deep links — doit être après AppRouter.init() pour avoir accès au router
+  DeepLinkService.initialize(AppRouter.router);
 
   // Enregistre la visite (fire-and-forget, jamais bloquant)
   _trackVisit();
