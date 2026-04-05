@@ -65,8 +65,8 @@ class SubscriptionService {
       throw ApiError.badRequest(`Plan invalide : ${plan}`);
     }
 
-    const successUrl = `win://partner/subscription?success=1`;
-    const failureUrl = `win://partner/subscription?failed=1`;
+    const successUrl = `${config.urls.app}/api/${config.apiVersion}/r/payment/success`;
+    const failureUrl = `${config.urls.app}/api/${config.apiVersion}/r/payment/failed`;
     const webhookUrl = `${config.urls.app}/api/${config.apiVersion}/chargily/webhook`;
 
     const payload = {
@@ -117,8 +117,8 @@ class SubscriptionService {
       throw ApiError.badRequest(`Plan featured invalide : ${plan}`);
     }
 
-    const successUrl = `win://partner/establishments/${establishmentId}?featured_success=1`;
-    const failureUrl = `win://partner/establishments/${establishmentId}?featured_failed=1`;
+    const successUrl = `${config.urls.app}/api/${config.apiVersion}/r/payment/success?establishment_id=${establishmentId}`;
+    const failureUrl = `${config.urls.app}/api/${config.apiVersion}/r/payment/failed?establishment_id=${establishmentId}`;
     const webhookUrl = `${config.urls.app}/api/${config.apiVersion}/chargily/webhook`;
 
     const payload = {

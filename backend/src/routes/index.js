@@ -51,6 +51,24 @@ router.get("/r/admin-partners", (_req, res) => {
   res.redirect("win://admin/partners/pending");
 });
 
+router.get("/r/payment/success", (req, res) => {
+  const { establishment_id } = req.query;
+  if (establishment_id) {
+    res.redirect(`win://partner/establishments/${establishment_id}?featured_success=1`);
+  } else {
+    res.redirect("win://partner/subscription?success=1");
+  }
+});
+
+router.get("/r/payment/failed", (req, res) => {
+  const { establishment_id } = req.query;
+  if (establishment_id) {
+    res.redirect(`win://partner/establishments/${establishment_id}?featured_failed=1`);
+  } else {
+    res.redirect("win://partner/subscription?failed=1");
+  }
+});
+
 // Health check
 router.get("/health", (req, res) => {
   res.json({
