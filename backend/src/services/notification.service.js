@@ -138,12 +138,21 @@ class NotificationService {
   }
 
   async notifyPaymentValidated(invoice, partnerUserId) {
-    const planLabel = invoice.plan === 'yearly' ? 'Annuel' : 'Mensuel';
+    const planLabels = {
+      monthly: 'Mensuel', yearly: 'Annuel',
+      featured_7: '7 jours', featured_15: '15 jours', featured_30: '30 jours',
+    };
+    const planLabel = planLabels[invoice.plan] || invoice.plan;
+    const isFeatured = invoice.type === 'featured';
+    const title = isFeatured ? 'Mise à la une activée ⭐' : 'Paiement confirmé ✅';
+    const body = isFeatured
+      ? `Votre mise à la une (${planLabel}) a été activée.`
+      : `Votre abonnement ${planLabel} est actif. (${invoice.invoice_number})`;
     return this.create(
       partnerUserId,
       'payment_validated',
-      'Paiement validé 💳',
-      `Votre paiement (${invoice.invoice_number}) a été validé. Abonnement ${planLabel} activé.`,
+      title,
+      body,
       { invoice_id: invoice.id, invoice_number: invoice.invoice_number }
     );
   }

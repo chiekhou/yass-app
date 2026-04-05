@@ -69,7 +69,7 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                     route: AppRoutes.partnerDashboard,
                     isSelected: false,
                   ),
-                  _buildSectionTitle(context, 'Compte'),
+                  _buildSectionTitle(context, 'Mon compte'),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.award,
@@ -77,6 +77,14 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                     route: AppRoutes.partnerSubscription,
                     isSelected:
                         widget.currentRoute == AppRoutes.partnerSubscription,
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.receipt,
+                    title: 'Mes factures',
+                    route: AppRoutes.partnerInvoices,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.partnerInvoices,
                   ),
                 ],
               ),

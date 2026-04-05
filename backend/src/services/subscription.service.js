@@ -351,6 +351,9 @@ class SubscriptionService {
     });
 
     await invoiceService.activateFeatured(invoice);
+
+    const notificationService = require("./notification.service");
+    notificationService.notifyPaymentValidated(invoice, partner.user_id).catch(() => {});
   }
 
   // ─── Activation abonnement ───────────────────────────────────────────────
@@ -384,7 +387,7 @@ class SubscriptionService {
     }
 
     const invoiceService = require("./invoice.service");
-    await invoiceService.createInvoice({
+    const invoice = await invoiceService.createInvoice({
       partner,
       plan,
       method: "chargily",
@@ -394,6 +397,9 @@ class SubscriptionService {
       status: "paid",
       paidAt: now,
     });
+
+    const notificationService = require("./notification.service");
+    notificationService.notifyPaymentValidated(invoice, partner.user_id).catch(() => {});
   }
 }
 
