@@ -322,6 +322,12 @@ class ReviewService {
       partner_reply_at: new Date(),
     });
 
+    // Notifier l'auteur de l'avis que le partenaire a répondu
+    const notificationService = require('./notification.service');
+    notificationService
+      .notifyReviewReply(review, review.establishment.name, review.user_id)
+      .catch(() => {});
+
     return review;
   }
 
@@ -478,6 +484,17 @@ class ReviewService {
 
     // Recalculate establishment rating
     await this.recalculateEstablishmentRating(review.establishment_id);
+
+    // Notifier le partenaire qu'un avis est publié sur son établissement
+    const establishment = await Establishment.findByPk(review.establishment_id, {
+      include: [{ model: Partner, as: 'partner', attributes: ['user_id'] }],
+    });
+    if (establishment?.partner?.user_id) {
+      const notificationService = require('./notification.service');
+      notificationService
+        .notifyPartnerReviewApproved(review, establishment.name, establishment.partner.user_id)
+        .catch(() => {});
+    }
 
     return review;
   }

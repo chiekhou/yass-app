@@ -272,6 +272,7 @@ class _NotificationCard extends StatelessWidget {
                 .read<NotificationsBloc>()
                 .add(MarkNotificationRead(notification.id));
           }
+          _navigate(context, notification);
         },
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         child: Container(
@@ -365,6 +366,39 @@ class _NotificationCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _navigate(BuildContext context, NotificationModel n) {
+    final data = n.data;
+    switch (n.type) {
+      // Partenaire : un avis a été validé sur son établissement → page détail établissement
+      case 'review_approved':
+        final establishmentId = data?['establishment_id'] as String?;
+        if (establishmentId != null) {
+          context.push('/partner/establishments/$establishmentId');
+        }
+        break;
+      // Utilisateur : le partenaire a répondu à son avis → mes avis
+      case 'review_reply':
+        context.push(AppRoutes.myReviews);
+        break;
+      // Partenaire : abonnement / paiement → abonnement
+      case 'payment_validated':
+        context.push(AppRoutes.partnerSubscription);
+        break;
+      // Partenaire : établissement approuvé → liste établissements
+      case 'establishment_approved':
+      case 'establishment_rejected':
+        context.push(AppRoutes.partnerEstablishments);
+        break;
+      // Partenaire : compte approuvé → dashboard
+      case 'partner_approved':
+      case 'partner_rejected':
+        context.push(AppRoutes.partnerDashboard);
+        break;
+      default:
+        break;
+    }
   }
 
   String _timeAgo(DateTime date) {

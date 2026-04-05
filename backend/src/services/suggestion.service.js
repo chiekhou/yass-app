@@ -160,15 +160,34 @@ class SuggestionService {
       await existing.destroy();
       await suggestion.decrement("vote_count");
       await suggestion.reload();
-      return { voted: false, vote_count: suggestion.vote_count };
+      return {
+        voted: false,
+        vote_count: suggestion.vote_count,
+        downvoted: null, // inchangé
+        downvote_count: null,
+      };
     } else {
+      // Annuler le downvote s'il existe
+      const existingDownvote = await SuggestionDownvote.findOne({
+        where: { suggestion_id: suggestionId, user_id: userId },
+      });
+      if (existingDownvote) {
+        await existingDownvote.destroy();
+        await suggestion.decrement("downvote_count");
+      }
+
       await SuggestionVote.create({
         suggestion_id: suggestionId,
         user_id: userId,
       });
       await suggestion.increment("vote_count");
       await suggestion.reload();
-      return { voted: true, vote_count: suggestion.vote_count };
+      return {
+        voted: true,
+        vote_count: suggestion.vote_count,
+        downvoted: false,
+        downvote_count: suggestion.downvote_count,
+      };
     }
   }
 
@@ -190,15 +209,36 @@ class SuggestionService {
       await existing.destroy();
       await suggestion.decrement("downvote_count");
       await suggestion.reload();
-      return { downvoted: false, downvote_count: suggestion.downvote_count };
+      return {
+        downvoted: false,
+        downvote_count: suggestion.downvote_count,
+        voted: null, // inchangé
+        vote_count: null,
+      };
     } else {
+      // Annuler l'upvote s'il existe (sauf si c'est le soumetteur)
+      if (suggestion.suggested_by !== userId) {
+        const existingVote = await SuggestionVote.findOne({
+          where: { suggestion_id: suggestionId, user_id: userId },
+        });
+        if (existingVote) {
+          await existingVote.destroy();
+          await suggestion.decrement("vote_count");
+        }
+      }
+
       await SuggestionDownvote.create({
         suggestion_id: suggestionId,
         user_id: userId,
       });
       await suggestion.increment("downvote_count");
       await suggestion.reload();
-      return { downvoted: true, downvote_count: suggestion.downvote_count };
+      return {
+        downvoted: true,
+        downvote_count: suggestion.downvote_count,
+        voted: false,
+        vote_count: suggestion.vote_count,
+      };
     }
   }
 
