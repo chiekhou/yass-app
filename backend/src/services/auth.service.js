@@ -175,19 +175,11 @@ class AuthService {
     // Generate tokens
     const tokens = await this.generateTokens(user, userData.device_info);
 
-    // Send verification email
-    await emailService.sendVerificationEmail(user, emailVerificationToken);
-
-    // Send partner pending email
-    await emailService.sendPartnerPendingEmail(user, partner);
-
-    // Notify admin about new partner registration
-    const adminEmail = "admin@annuaire-dz.com"; // Could be from config
-    await emailService.sendAdminNewPartnerNotification(
-      adminEmail,
-      user,
-      partner,
-    );
+    // Send emails (fire-and-forget — ne bloque pas la réponse)
+    emailService.sendVerificationEmail(user, emailVerificationToken).catch(() => {});
+    emailService.sendPartnerPendingEmail(user, partner).catch(() => {});
+    const adminEmail = "admin@annuaire-dz.com";
+    emailService.sendAdminNewPartnerNotification(adminEmail, user, partner).catch(() => {});
 
     return {
       user: user.toJSON(),
@@ -369,8 +361,8 @@ class AuthService {
       password_reset_expires: resetExpires,
     });
 
-    // Send password reset email
-    await emailService.sendPasswordResetEmail(user, resetToken);
+    // Send password reset email (fire-and-forget)
+    emailService.sendPasswordResetEmail(user, resetToken).catch(() => {});
 
     return {
       message:
@@ -466,8 +458,7 @@ class AuthService {
       email_verification_expires: null,
     });
 
-    // Send welcome email
-    await emailService.sendWelcomeEmail(user);
+    emailService.sendWelcomeEmail(user).catch(() => {});
 
     return { message: "Email verified successfully. Welcome to Win!" };
   }
@@ -496,8 +487,7 @@ class AuthService {
       email_verification_expires: emailVerificationExpires,
     });
 
-    // Send verification email
-    await emailService.sendVerificationEmail(user, emailVerificationToken);
+    emailService.sendVerificationEmail(user, emailVerificationToken).catch(() => {});
 
     return { message: "Verification email sent. Please check your inbox." };
   }
@@ -821,8 +811,7 @@ class AuthService {
       status: "active",
     });
 
-    // Send welcome email
-    await emailService.sendWelcomeEmail(user);
+    emailService.sendWelcomeEmail(user).catch(() => {});
 
     return {
       message: "Email verified successfully. Your account is now active.",

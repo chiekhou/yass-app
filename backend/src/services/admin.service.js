@@ -400,8 +400,8 @@ class AdminService {
     // Update user status to active
     await partner.user.update({ status: "active" });
 
-    // Send approval email
-    await emailService.sendPartnerApprovedEmail(partner.user, partner);
+    // Send approval email (fire-and-forget)
+    emailService.sendPartnerApprovedEmail(partner.user, partner).catch(() => {});
 
     // Send in-app + push notification
     notificationService.notifyPartnerApproved(partner, partner.user.id).catch(() => {});
@@ -436,8 +436,8 @@ class AdminService {
     // Update user status
     await partner.user.update({ status: "inactive" });
 
-    // Send rejection email
-    await emailService.sendPartnerRejectedEmail(partner.user, partner, reason);
+    // Send rejection email (fire-and-forget)
+    emailService.sendPartnerRejectedEmail(partner.user, partner, reason).catch(() => {});
 
     // Send in-app + push notification
     notificationService.notifyPartnerRejected(partner, partner.user.id, reason).catch(() => {});
