@@ -29,7 +29,8 @@ class SubscriptionService {
 
     const daysRemaining = isActive
       ? Math.ceil(
-          (new Date(partner.subscription_expires_at) - now) / (1000 * 60 * 60 * 24)
+          (new Date(partner.subscription_expires_at) - now) /
+            (1000 * 60 * 60 * 24),
         )
       : 0;
 
@@ -90,7 +91,7 @@ class SubscriptionService {
             Authorization: `Bearer ${config.chargily.apiKey}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       return {
@@ -98,6 +99,7 @@ class SubscriptionService {
         checkoutUrl: response.data.checkout_url,
       };
     } catch (err) {
+      console.error("Chargily error details:", err.response?.data);
       const msg = err.response?.data?.message || err.message;
       throw ApiError.internal(`Erreur Chargily : ${msg}`);
     }
@@ -144,7 +146,7 @@ class SubscriptionService {
             Authorization: `Bearer ${config.chargily.apiKey}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       return {
@@ -159,7 +161,13 @@ class SubscriptionService {
 
   // ─── Paiement manuel / espèces pour mise à la une ───────────────────────
 
-  async createFeaturedManualRequest(partner, establishmentId, plan, transferReference, paymentMethod = "manual") {
+  async createFeaturedManualRequest(
+    partner,
+    establishmentId,
+    plan,
+    transferReference,
+    paymentMethod = "manual",
+  ) {
     const planConfig = config.chargily.featuredPlans[plan];
     if (!planConfig) {
       throw ApiError.badRequest(`Plan featured invalide : ${plan}`);
@@ -175,7 +183,9 @@ class SubscriptionService {
       },
     });
     if (existing) {
-      throw ApiError.conflict("Un paiement pour cet établissement est déjà en attente de validation.");
+      throw ApiError.conflict(
+        "Un paiement pour cet établissement est déjà en attente de validation.",
+      );
     }
 
     const invoiceService = require("./invoice.service");
@@ -192,7 +202,9 @@ class SubscriptionService {
 
     // Notifie tous les admins (fire-and-forget)
     const notificationService = require("./notification.service");
-    notificationService.notifyAdminNewPayment(invoice, partner.company_name).catch(() => {});
+    notificationService
+      .notifyAdminNewPayment(invoice, partner.company_name)
+      .catch(() => {});
 
     return {
       invoice,
@@ -220,7 +232,9 @@ class SubscriptionService {
 
     // Notifie tous les admins (fire-and-forget)
     const notificationService = require("./notification.service");
-    notificationService.notifyAdminNewPayment(invoice, partner.company_name).catch(() => {});
+    notificationService
+      .notifyAdminNewPayment(invoice, partner.company_name)
+      .catch(() => {});
 
     return {
       invoice,
@@ -244,7 +258,7 @@ class SubscriptionService {
     try {
       isValid = crypto.timingSafeEqual(
         Buffer.from(calculated),
-        Buffer.from(signature)
+        Buffer.from(signature),
       );
     } catch {
       isValid = false;
@@ -258,16 +272,26 @@ class SubscriptionService {
 
     if (event.type === "checkout.paid") {
       const checkout = event.data;
-      const { partner_id, plan, invoice_type, establishment_id, featured_duration_days } =
-        checkout.metadata || {};
+      const {
+        partner_id,
+        plan,
+        invoice_type,
+        establishment_id,
+        featured_duration_days,
+      } = checkout.metadata || {};
 
-      if (invoice_type === "featured" && partner_id && plan && establishment_id) {
+      if (
+        invoice_type === "featured" &&
+        partner_id &&
+        plan &&
+        establishment_id
+      ) {
         await this._activateFeaturedPayment(
           partner_id,
           plan,
           establishment_id,
           Number(featured_duration_days),
-          checkout.id
+          checkout.id,
         );
       } else if (partner_id && plan) {
         await this._activateSubscription(partner_id, plan, checkout.id);
@@ -301,7 +325,13 @@ class SubscriptionService {
 
   // ─── Activation mise à la une via Chargily ───────────────────────────────
 
-  async _activateFeaturedPayment(partnerId, plan, establishmentId, durationDays, chargilyCheckoutId) {
+  async _activateFeaturedPayment(
+    partnerId,
+    plan,
+    establishmentId,
+    durationDays,
+    chargilyCheckoutId,
+  ) {
     const partner = await Partner.findByPk(partnerId);
     if (!partner) return;
 
@@ -334,7 +364,7 @@ class SubscriptionService {
 
     const now = new Date();
     const expiresAt = new Date(
-      now.getTime() + planConfig.days * 24 * 60 * 60 * 1000
+      now.getTime() + planConfig.days * 24 * 60 * 60 * 1000,
     );
     const subscriptionPlan = plan === "yearly" ? "gold" : "premium";
 
@@ -349,7 +379,7 @@ class SubscriptionService {
       const { Establishment } = require("../models");
       await Establishment.update(
         { is_featured: true, featured_until: expiresAt },
-        { where: { partner_id: partnerId, status: "active" } }
+        { where: { partner_id: partnerId, status: "active" } },
       );
     }
 
