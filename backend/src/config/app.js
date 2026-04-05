@@ -53,13 +53,10 @@ module.exports = {
     api: process.env.API_BASE_URL || `http://localhost:${parseInt(process.env.PORT, 10) || 3000}`,
   },
 
-  // Email
+  // Email (Brevo API)
   email: {
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT, 10) || 587,
-    user: process.env.SMTP_USER,
-    password: process.env.SMTP_PASSWORD,
-    from: process.env.EMAIL_FROM || "noreply@annuaire-dz.com",
+    apiKey: process.env.BREVO_API_KEY,
+    from: process.env.EMAIL_FROM || "noreply@win-dz.com",
   },
 
   // Twilio SMS
