@@ -166,6 +166,34 @@ class AuthController {
   }
 
   /**
+   * Forgot password via phone OTP
+   * POST /api/v1/auth/forgot-password/phone
+   */
+  async forgotPasswordByPhone(req, res, next) {
+    try {
+      const { phone } = req.body;
+      const result = await authService.forgotPasswordByPhone(phone);
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Reset password via phone OTP
+   * POST /api/v1/auth/reset-password/phone
+   */
+  async resetPasswordByPhone(req, res, next) {
+    try {
+      const { phone, otp, new_password } = req.body;
+      const result = await authService.resetPasswordByPhone(phone, otp, new_password);
+      ApiResponse.success(null, result.message).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Change password (authenticated)
    * POST /api/v1/auth/change-password
    */

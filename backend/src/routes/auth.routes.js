@@ -135,7 +135,7 @@ router.post("/logout-all", authenticate, authController.logoutAll);
 
 /**
  * @route   POST /api/v1/auth/forgot-password
- * @desc    Request password reset
+ * @desc    Request password reset (email)
  * @access  Public
  */
 router.post(
@@ -146,14 +146,37 @@ router.post(
 );
 
 /**
+ * @route   POST /api/v1/auth/forgot-password/phone
+ * @desc    Request password reset via phone OTP
+ * @access  Public
+ */
+router.post(
+  "/forgot-password/phone",
+  passwordResetLimiter,
+  validate(authValidation.forgotPasswordByPhone),
+  authController.forgotPasswordByPhone,
+);
+
+/**
  * @route   POST /api/v1/auth/reset-password
- * @desc    Reset password with token
+ * @desc    Reset password with token (email)
  * @access  Public
  */
 router.post(
   "/reset-password",
   validate(authValidation.resetPassword),
   authController.resetPassword,
+);
+
+/**
+ * @route   POST /api/v1/auth/reset-password/phone
+ * @desc    Reset password via phone OTP
+ * @access  Public
+ */
+router.post(
+  "/reset-password/phone",
+  validate(authValidation.resetPasswordByPhone),
+  authController.resetPasswordByPhone,
 );
 
 /**

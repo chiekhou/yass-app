@@ -10,6 +10,7 @@ import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/register_partner_page.dart';
 import 'features/auth/presentation/pages/forgot_password_page.dart';
 import 'features/auth/presentation/pages/reset_password_page.dart';
+import 'features/auth/presentation/pages/reset_password_phone_page.dart';
 import 'features/auth/presentation/pages/verify_email_page.dart';
 import 'features/auth/presentation/pages/verify_otp_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
@@ -131,6 +132,7 @@ class AppRoutes {
   // Deep link targets
   static const String verifyEmail = '/verify-email';
   static const String resetPassword = '/reset-password';
+  static const String resetPasswordPhone = '/reset-password/phone';
 
   // Suggestions
   static const String suggestions = '/suggestions';
@@ -198,6 +200,13 @@ class AppRouter {
         path: AppRoutes.forgotPassword,
         name: 'forgotPassword',
         builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPasswordPhone,
+        name: 'resetPasswordPhone',
+        builder: (context, state) => ResetPasswordPhonePage(
+          phone: state.extra as String? ?? '',
+        ),
       ),
       GoRoute(
         path: AppRoutes.verifyOtp,
