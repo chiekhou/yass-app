@@ -119,6 +119,26 @@ class AuthForgotPasswordRequested extends AuthEvent {
   List<Object?> get props => [email];
 }
 
+class AuthForgotPasswordByPhoneRequested extends AuthEvent {
+  final String phone;
+  const AuthForgotPasswordByPhoneRequested({required this.phone});
+  @override
+  List<Object?> get props => [phone];
+}
+
+class AuthResetPasswordByPhoneRequested extends AuthEvent {
+  final String phone;
+  final String otp;
+  final String newPassword;
+  const AuthResetPasswordByPhoneRequested({
+    required this.phone,
+    required this.otp,
+    required this.newPassword,
+  });
+  @override
+  List<Object?> get props => [phone, otp, newPassword];
+}
+
 class AuthRegisterPartnerRequested extends AuthEvent {
   final String firstName;
   final String lastName;
@@ -256,6 +276,17 @@ class AuthForgotPasswordSuccess extends AuthState {
   List<Object?> get props => [message];
 }
 
+class AuthForgotPasswordPhoneSent extends AuthState {
+  final String phone;
+  const AuthForgotPasswordPhoneSent({required this.phone});
+  @override
+  List<Object?> get props => [phone];
+}
+
+class AuthResetPasswordByPhoneSuccess extends AuthState {
+  const AuthResetPasswordByPhoneSuccess();
+}
+
 class AuthVerificationSuccess extends AuthState {
   final User user;
 
@@ -281,6 +312,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthUpdateProfile>(_onAuthUpdateProfile);
     on<AuthUpdatePartnerProfile>(_onAuthUpdatePartnerProfile);
     on<AuthForgotPasswordRequested>(_onAuthForgotPasswordRequested);
+    on<AuthForgotPasswordByPhoneRequested>(_onAuthForgotPasswordByPhoneRequested);
+    on<AuthResetPasswordByPhoneRequested>(_onAuthResetPasswordByPhoneRequested);
     on<AuthSendEmailOtpRequested>(_onAuthSendEmailOtpRequested);
     on<AuthSendPhoneOtpRequested>(_onAuthSendPhoneOtpRequested);
     on<AuthVerifyEmailOtpRequested>(_onAuthVerifyEmailOtpRequested);
@@ -513,6 +546,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(message: e.toString()));
     }
     emit(AuthUnauthenticated());
+  }
+
+  Future<void> _onAuthForgotPasswordByPhoneRequested(
+    AuthForgotPasswordByPhoneRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      await _authRepository.forgotPasswordByPhone(phone: event.phone);
+      emit(AuthForgotPasswordPhoneSent(phone: event.phone));
+    } catch (e) {
+      emit(AuthError(message: e.toString()));
+      emit(AuthUnauthenticated());
+    }
+  }
+
+  Future<void> _onAuthResetPasswordByPhoneRequested(
+    AuthResetPasswordByPhoneRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      await _authRepository.resetPasswordByPhone(
+        phone: event.phone,
+        otp: event.otp,
+        newPassword: event.newPassword,
+      );
+      emit(const AuthResetPasswordByPhoneSuccess());
+    } catch (e) {
+      emit(AuthError(message: e.toString()));
+    }
   }
 
   Future<void> _onAuthSendEmailOtpRequested(

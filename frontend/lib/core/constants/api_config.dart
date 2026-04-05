@@ -18,7 +18,9 @@ class ApiConfig {
   static const String registerPartner = '$auth/register/partner';
   static const String refreshToken = '$auth/refresh-token';
   static const String forgotPassword = '$auth/forgot-password';
+  static const String forgotPasswordPhone = '$auth/forgot-password/phone';
   static const String resetPassword = '$auth/reset-password';
+  static const String resetPasswordPhone = '$auth/reset-password/phone';
   static const String verifyEmail = '$auth/verify-email';
   static const String resendVerification = '$auth/resend-verification';
   static const String changePassword = '$auth/change-password';

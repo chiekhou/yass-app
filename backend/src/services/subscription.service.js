@@ -99,7 +99,7 @@ class SubscriptionService {
         checkoutUrl: response.data.checkout_url,
       };
     } catch (err) {
-      console.error("Chargily error details:", err.response?.data);
+      // console.error("Chargily error details:", err.response?.data); // peut exposer des données de paiement
       const msg = err.response?.data?.message || err.message;
       throw ApiError.internal(`Erreur Chargily : ${msg}`);
     }
@@ -314,11 +314,22 @@ class SubscriptionService {
       throw ApiError.badRequest("Aucun abonnement actif à annuler");
     }
 
+    const wasGold = partner.subscription_plan === "gold";
+
     await partner.update({
       subscription_plan: "free",
       subscription_expires_at: null,
       chargily_checkout_id: null,
     });
+
+    // Si le plan était Gold, retirer la mise à la une automatique des établissements
+    if (wasGold) {
+      const { Establishment } = require("../models");
+      await Establishment.update(
+        { is_featured: false, featured_until: null },
+        { where: { partner_id: partner.id, is_featured: true } }
+      );
+    }
 
     return { message: "Abonnement annulé avec succès" };
   }

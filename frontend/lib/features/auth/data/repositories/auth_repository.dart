@@ -175,11 +175,31 @@ class AuthRepository {
     return PartnerProfile.fromJson(response.data['data']);
   }
 
-  // Forgot Password
+  // Forgot Password (email)
   Future<void> forgotPassword({required String email}) async {
     await _apiClient.post(
       ApiConfig.forgotPassword,
       data: {'email': email},
+    );
+  }
+
+  // Forgot Password (phone OTP)
+  Future<void> forgotPasswordByPhone({required String phone}) async {
+    await _apiClient.post(
+      ApiConfig.forgotPasswordPhone,
+      data: {'phone': phone},
+    );
+  }
+
+  // Reset Password (phone OTP)
+  Future<void> resetPasswordByPhone({
+    required String phone,
+    required String otp,
+    required String newPassword,
+  }) async {
+    await _apiClient.post(
+      ApiConfig.resetPasswordPhone,
+      data: {'phone': phone, 'otp': otp, 'new_password': newPassword},
     );
   }
 

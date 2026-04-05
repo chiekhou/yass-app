@@ -49,7 +49,8 @@ class EmailService {
     const { to, subject, template, context, html } = options;
 
     if (!config.email.apiKey) {
-      console.log(`📧 [Email skipped — BREVO_API_KEY absent] To: ${to} | Subject: ${subject}`);
+      // console.log(`📧 [Email skipped — BREVO_API_KEY absent] To: ${to} | Subject: ${subject}`); // expose l'email
+      console.log(`📧 [Email skipped — BREVO_API_KEY absent]`);
       return { success: false, error: "BREVO_API_KEY not configured" };
     }
 
@@ -76,7 +77,8 @@ class EmailService {
         }
       );
 
-      console.log(`📧 Email sent to ${to} | messageId: ${response.data.messageId}`);
+      // console.log(`📧 Email sent to ${to} | messageId: ${response.data.messageId}`); // expose l'email
+      console.log(`📧 Email sent | messageId: ${response.data.messageId}`);
       return { success: true, messageId: response.data.messageId };
     } catch (error) {
       const msg = error.response?.data?.message || error.message;
@@ -280,7 +282,7 @@ class EmailService {
       firstName: user.first_name,
       lastName: user.last_name,
       appName: "Win",
-      appUrl: config.urls.app,
+      appUrl: `${config.urls.app}/api/${config.apiVersion}/r/welcome`,
       year: new Date().getFullYear(),
     };
 

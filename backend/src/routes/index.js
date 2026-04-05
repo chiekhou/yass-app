@@ -43,6 +43,10 @@ router.get("/r/verify", (req, res) => {
   res.redirect(`win://verify-email?token=${token}`);
 });
 
+router.get("/r/welcome", (_req, res) => {
+  res.redirect("win://main");
+});
+
 router.get("/r/partner-dashboard", (_req, res) => {
   res.redirect("win://partner");
 });

@@ -303,6 +303,22 @@ const verifyPhoneOtp = [
 // L'OTP par e-mail utilise les mêmes règles de validation que l'OTP par téléphone
 const verifyEmailOtp = verifyPhoneOtp;
 
+const forgotPasswordByPhone = [
+  body("phone").notEmpty().withMessage("Le numéro de téléphone est requis"),
+];
+
+const resetPasswordByPhone = [
+  body("phone").notEmpty().withMessage("Le numéro de téléphone est requis"),
+  body("otp")
+    .notEmpty().withMessage("Le code OTP est requis")
+    .isLength({ min: 6, max: 6 }).withMessage("Le code OTP doit contenir 6 chiffres")
+    .isNumeric().withMessage("Le code OTP ne doit contenir que des chiffres"),
+  body("new_password")
+    .isLength({ min: 8 }).withMessage("Le mot de passe doit contenir au moins 8 caractères")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage("Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre"),
+];
+
 module.exports = {
   register,
   registerPartner,
@@ -311,6 +327,8 @@ module.exports = {
   loginWithPhone,
   forgotPassword,
   resetPassword,
+  forgotPasswordByPhone,
+  resetPasswordByPhone,
   changePassword,
   refreshToken,
   updateProfile,

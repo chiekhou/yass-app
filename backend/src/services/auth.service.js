@@ -405,6 +405,58 @@ class AuthService {
   }
 
   /**
+   * Request password reset via phone OTP
+   */
+  async forgotPasswordByPhone(phone) {
+    const user = await User.findOne({ where: { phone } });
+
+    // Ne pas révéler si le numéro existe
+    if (!user) {
+      return { message: "Si ce numéro est enregistré, vous recevrez un code par SMS." };
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 10);
+
+    await user.update({ phone_otp: otp, phone_otp_expires: expires });
+    smsService.sendOtp(phone, otp).catch(() => {});
+
+    return { message: "Si ce numéro est enregistré, vous recevrez un code par SMS." };
+  }
+
+  /**
+   * Reset password via phone OTP
+   */
+  async resetPasswordByPhone(phone, otp, newPassword) {
+    const user = await User.findOne({ where: { phone } });
+
+    if (!user || !user.phone_otp || !user.phone_otp_expires) {
+      throw ApiError.badRequest("Code invalide ou expiré");
+    }
+
+    if (new Date() > user.phone_otp_expires) {
+      await user.update({ phone_otp: null, phone_otp_expires: null });
+      throw ApiError.badRequest("Le code a expiré");
+    }
+
+    if (user.phone_otp !== otp) {
+      throw ApiError.badRequest("Code incorrect");
+    }
+
+    await user.update({
+      password: newPassword,
+      phone_otp: null,
+      phone_otp_expires: null,
+    });
+
+    // Révoquer tous les refresh tokens
+    await this.logoutAll(user.id);
+
+    return { message: "Mot de passe réinitialisé avec succès." };
+  }
+
+  /**
    * Change password (authenticated user)
    */
   async changePassword(userId, currentPassword, newPassword) {
