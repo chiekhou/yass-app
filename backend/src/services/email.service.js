@@ -15,29 +15,25 @@ class EmailService {
    * Initialize email transporter
    */
   init() {
-    // Create transporter based on environment
-    if (config.env === "production") {
-      this.transporter = nodemailer.createTransport({
-        host: config.email.host,
-        port: config.email.port,
-        secure: config.email.port === 465,
-        auth: {
-          user: config.email.user,
-          pass: config.email.password,
-        },
-      });
-    } else {
-      // For development, use Ethereal (fake SMTP) or console logging
-      this.transporter = nodemailer.createTransport({
-        host: config.email.host || "smtp.ethereal.email",
-        port: config.email.port || 587,
-        secure: false,
-        auth: {
-          user: config.email.user,
-          pass: config.email.password,
-        },
-      });
+    // Si SMTP_HOST n'est pas configuré, on n'initialise pas le transporter
+    if (!config.email.host || !config.email.user) {
+      console.warn("⚠️  Email service: SMTP_HOST ou SMTP_USER non configuré — les emails seront désactivés.");
+      this.loadTemplates();
+      return;
     }
+
+    this.transporter = nodemailer.createTransport({
+      host: config.email.host,
+      port: config.email.port,
+      secure: config.email.port === 465,
+      auth: {
+        user: config.email.user,
+        pass: config.email.password,
+      },
+      connectionTimeout: 5000,  // 5s max pour se connecter
+      greetingTimeout: 5000,
+      socketTimeout: 10000,
+    });
 
     // Load email templates
     this.loadTemplates();
@@ -90,14 +86,10 @@ class EmailService {
     };
 
     try {
-      // In development, log instead of sending
-      if (config.env === "development" && !config.email.user) {
-        console.log("📧 Email would be sent:");
-        console.log("To:", to);
-        console.log("Subject:", subject);
-        console.log("Template:", template);
-        console.log("Context:", context);
-        return { success: true, messageId: "dev-mode" };
+      // SMTP non configuré → log et skip silencieusement
+      if (!this.transporter) {
+        console.log(`📧 [Email skipped — SMTP not configured] To: ${to} | Subject: ${subject}`);
+        return { success: false, error: "SMTP not configured" };
       }
 
       const info = await this.transporter.sendMail(mailOptions);
