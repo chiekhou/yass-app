@@ -14,7 +14,7 @@ class InvoiceService {
       ),
     });
     const padded = String(count + 1).padStart(4, "0");
-    return `YASS-${year}-${padded}`;
+    return `WIN-${year}-${padded}`;
   }
 
   // ─── Créer une facture ───────────────────────────────────────────────────

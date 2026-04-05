@@ -54,6 +54,7 @@ import 'features/partner/presentation/pages/partner_establishment_details_page.d
 import 'features/partner/presentation/pages/partner_subscription_page.dart';
 import 'features/partner/presentation/pages/partner_invoices_page.dart';
 import 'features/partner/presentation/pages/partner_invoice_detail_page.dart';
+import 'features/partner/presentation/pages/partner_reviews_page.dart';
 import 'features/partner/presentation/bloc/partner_dashboard_bloc.dart';
 import 'features/partner/presentation/bloc/partner_establishments_bloc.dart';
 import 'features/partner/presentation/bloc/partner_subscription_bloc.dart';
@@ -102,6 +103,7 @@ class AppRoutes {
   static const String partnerInvoices = '/partner/invoices';
   static const String _partnerInvoiceDetailPath = '/partner/invoices/:id';
   static String partnerInvoiceDetail(String id) => '/partner/invoices/$id';
+  static const String partnerReviews = '/partner/reviews';
   static const String partnerEstablishments = '/partner/establishments';
   static const String partnerEstablishmentCreate = '/partner/establishments/create';
   static const String partnerEstablishmentDetails = '/partner/establishments/:id';
@@ -562,6 +564,11 @@ class AppRouter {
             child: PartnerSubscriptionPage(paymentResult: paymentResult),
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutes.partnerReviews,
+        name: 'partnerReviews',
+        builder: (context, state) => const PartnerReviewsPage(),
       ),
       GoRoute(
         path: AppRoutes.partnerInvoices,

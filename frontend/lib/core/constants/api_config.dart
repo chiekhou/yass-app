@@ -124,6 +124,7 @@ class ApiConfig {
       '$partner/establishments/$id/cover';
   static String partnerEstablishmentGallery(String id) =>
       '$partner/establishments/$id/gallery';
+  static const String partnerReviews = '$partner/reviews';
   static String partnerReviewReply(String id) => '$partner/reviews/$id/reply';
 
   // Partner Subscription

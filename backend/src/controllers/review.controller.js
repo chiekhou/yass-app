@@ -139,6 +139,23 @@ class ReviewController {
   // ==================== PARTNER ROUTES ====================
 
   /**
+   * Get all reviews for partner's establishments
+   * GET /api/v1/partner/reviews
+   */
+  async getPartnerReviews(req, res, next) {
+    try {
+      const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 20,
+      };
+      const result = await reviewService.getPartnerReviews(req.partnerId, options);
+      ApiResponse.success(result, 'Reviews retrieved successfully').send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Reply to review
    * POST /api/v1/partner/reviews/:id/reply
    */

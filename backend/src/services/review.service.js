@@ -300,6 +300,45 @@ class ReviewService {
   }
 
   /**
+   * Get all reviews for partner's establishments
+   */
+  async getPartnerReviews(partnerId, options = {}) {
+    const { page = 1, limit = 20 } = options;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Review.findAndCountAll({
+      include: [
+        {
+          model: Establishment,
+          as: 'establishment',
+          where: { partner_id: partnerId },
+          attributes: ['id', 'name', 'name_ar', 'slug', 'logo'],
+        },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'first_name', 'last_name', 'avatar'],
+        },
+      ],
+      where: { status: 'approved' },
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+    });
+
+    return {
+      reviews: rows,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+        hasNext: page * limit < count,
+      },
+    };
+  }
+
+  /**
    * Partner reply to review
    */
   async partnerReply(partnerId, reviewId, reply) {
