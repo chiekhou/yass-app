@@ -207,13 +207,23 @@ class NotificationService {
     await Promise.allSettled(promises);
   }
 
-  async notifyReviewReply(review, reviewAuthorUserId) {
+  async notifyPartnerReviewApproved(review, establishmentName, partnerUserId) {
+    return this.create(
+      partnerUserId,
+      'review_approved',
+      'Nouvel avis publié ⭐',
+      `Un avis a été publié sur "${establishmentName}". Vous pouvez y répondre.`,
+      { review_id: review.id, establishment_id: review.establishment_id }
+    );
+  }
+
+  async notifyReviewReply(review, establishmentName, reviewAuthorUserId) {
     return this.create(
       reviewAuthorUserId,
       'review_reply',
-      'Nouvelle réponse à votre avis',
-      'Le partenaire a répondu à votre avis.',
-      { review_id: review.id }
+      'Réponse à votre avis',
+      `Le partenaire a répondu à votre avis sur "${establishmentName}".`,
+      { review_id: review.id, establishment_id: review.establishment_id }
     );
   }
 

@@ -56,6 +56,8 @@ class NotificationModel {
         return Iconsax.wallet_check;
       case 'subscription_expiring':
         return Iconsax.clock;
+      case 'review_approved':
+        return Iconsax.star_1;
       case 'review_new':
         return Iconsax.star;
       case 'review_reply':
@@ -77,6 +79,7 @@ class NotificationModel {
         return AppColors.error;
       case 'subscription_expiring':
         return AppColors.warning;
+      case 'review_approved':
       case 'review_new':
       case 'review_reply':
         return AppColors.primaryGreen;

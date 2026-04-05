@@ -130,11 +130,17 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
 
   Future<void> _vote(int index) async {
     final s = _suggestions[index];
+    // Optimiste : toggle upvote + annule downvote si on ajoute un upvote
+    final addingVote = !s.hasVoted;
     setState(() {
       _suggestions[index] = _copyWith(
         s,
-        voteCount: s.hasVoted ? s.voteCount - 1 : s.voteCount + 1,
-        hasVoted: !s.hasVoted,
+        voteCount: addingVote ? s.voteCount + 1 : s.voteCount - 1,
+        hasVoted: addingVote,
+        // Si on ajoute un upvote et qu'un downvote était actif, on l'annule
+        downvoteCount:
+            addingVote && s.hasDownvoted ? s.downvoteCount - 1 : s.downvoteCount,
+        hasDownvoted: addingVote && s.hasDownvoted ? false : s.hasDownvoted,
       );
     });
 
@@ -146,6 +152,12 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
             _suggestions[index],
             voteCount: result['vote_count'] as int,
             hasVoted: result['voted'] as bool,
+            downvoteCount: result['downvote_count'] != null
+                ? result['downvote_count'] as int
+                : _suggestions[index].downvoteCount,
+            hasDownvoted: result['downvoted'] != null
+                ? result['downvoted'] as bool
+                : _suggestions[index].hasDownvoted,
           );
         });
       }
@@ -162,12 +174,18 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
 
   Future<void> _downvote(int index) async {
     final s = _suggestions[index];
+    // Optimiste : toggle downvote + annule upvote si on ajoute un downvote
+    final addingDownvote = !s.hasDownvoted;
     setState(() {
       _suggestions[index] = _copyWith(
         s,
         downvoteCount:
-            s.hasDownvoted ? s.downvoteCount - 1 : s.downvoteCount + 1,
-        hasDownvoted: !s.hasDownvoted,
+            addingDownvote ? s.downvoteCount + 1 : s.downvoteCount - 1,
+        hasDownvoted: addingDownvote,
+        // Si on ajoute un downvote et qu'un upvote était actif, on l'annule
+        voteCount:
+            addingDownvote && s.hasVoted ? s.voteCount - 1 : s.voteCount,
+        hasVoted: addingDownvote && s.hasVoted ? false : s.hasVoted,
       );
     });
 
@@ -179,6 +197,12 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
             _suggestions[index],
             downvoteCount: result['downvote_count'] as int,
             hasDownvoted: result['downvoted'] as bool,
+            voteCount: result['vote_count'] != null
+                ? result['vote_count'] as int
+                : _suggestions[index].voteCount,
+            hasVoted: result['voted'] != null
+                ? result['voted'] as bool
+                : _suggestions[index].hasVoted,
           );
         });
       }

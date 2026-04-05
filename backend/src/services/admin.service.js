@@ -706,15 +706,30 @@ class AdminService {
       throw ApiError.notFound("Establishment not found");
     }
 
+    // Charger le partenaire pour vérifier l'abonnement Gold
+    const partner = await Partner.findByPk(establishment.partner_id, {
+      attributes: ["user_id", "subscription_plan", "subscription_expires_at"],
+    });
+
+    const now = new Date();
+    const hasGold =
+      partner?.subscription_plan === "gold" &&
+      partner.subscription_expires_at != null &&
+      new Date(partner.subscription_expires_at) > now;
+
     await establishment.update({
       status: "active",
       is_verified: true,
       verified_at: new Date(),
       verified_by: adminId,
+      // Si le partenaire a Gold actif, mise à la une automatique
+      ...(hasGold && {
+        is_featured: true,
+        featured_until: partner.subscription_expires_at,
+      }),
     });
 
     // Notify partner
-    const partner = await Partner.findByPk(establishment.partner_id, { attributes: ["user_id"] });
     if (partner) {
       notificationService.notifyEstablishmentApproved(establishment, partner.user_id).catch(() => {});
     }

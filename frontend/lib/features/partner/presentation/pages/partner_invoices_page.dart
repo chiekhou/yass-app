@@ -9,6 +9,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
 import '../../data/models/invoice_model.dart';
 import '../bloc/partner_invoices_bloc.dart';
+import '../widgets/partner_drawer.dart';
 
 class PartnerInvoicesPage extends StatefulWidget {
   const PartnerInvoicesPage({super.key});
@@ -28,6 +29,7 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: PartnerDrawer(currentRoute: AppRoutes.partnerInvoices),
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
