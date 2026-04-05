@@ -841,7 +841,8 @@ class AuthService {
     expires.setMinutes(expires.getMinutes() + 10); // 10 minutes
 
     await user.update({ phone_otp: otp, phone_otp_expires: expires });
-    await smsService.sendOtp(user.phone, otp);
+    // Fire-and-forget — un échec SMS ne bloque pas l'inscription
+    smsService.sendOtp(user.phone, otp).catch(() => {});
 
     return { otp };
   }
