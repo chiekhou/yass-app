@@ -37,13 +37,17 @@ class SmsService {
       return { success: true, dev: true };
     }
 
-    await this.client.messages.create({
-      body: message,
-      from,
-      to: this._normalizePhone(phone),
-    });
-
-    return { success: true };
+    try {
+      await this.client.messages.create({
+        body: message,
+        from,
+        to: this._normalizePhone(phone),
+      });
+      return { success: true };
+    } catch (err) {
+      console.error(`[SMS] Erreur envoi OTP vers ${phone}:`, err.message);
+      return { success: false, error: err.message };
+    }
   }
 
   /**
