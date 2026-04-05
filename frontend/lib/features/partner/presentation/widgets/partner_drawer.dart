@@ -61,6 +61,13 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                     isSelected: widget.currentRoute ==
                         AppRoutes.partnerEstablishmentCreate,
                   ),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.star,
+                    title: 'Mes avis',
+                    route: AppRoutes.partnerReviews,
+                    isSelected: widget.currentRoute == AppRoutes.partnerReviews,
+                  ),
                   _buildSectionTitle(context, 'Statistiques'),
                   _buildMenuItem(
                     context,

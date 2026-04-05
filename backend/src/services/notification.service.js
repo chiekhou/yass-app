@@ -94,7 +94,7 @@ class NotificationService {
       partnerUserId,
       'partner_approved',
       'Compte approuvé 🎉',
-      `Bienvenue sur YASS ! Votre compte partenaire "${partner.company_name}" a été approuvé. Votre essai de 14 jours commence maintenant.`,
+      `Bienvenue sur Win-وين ! Votre compte partenaire "${partner.company_name}" a été approuvé. Votre essai de 14 jours commence maintenant.`,
       { partner_id: partner.id }
     );
   }
@@ -118,7 +118,7 @@ class NotificationService {
       partnerUserId,
       'establishment_approved',
       'Établissement approuvé ✅',
-      `Votre établissement "${establishment.name}" est maintenant visible sur YASS.`,
+      `Votre établissement "${establishment.name}" est maintenant visible sur Win-وين.`,
       { establishment_id: establishment.id }
     );
   }

@@ -209,6 +209,13 @@ router.get("/invoices/:id", invoiceController.getInvoice);
 // ==================== REVIEW ROUTES ====================
 
 /**
+ * @route   GET /api/v1/partner/reviews
+ * @desc    Get all reviews for partner's establishments
+ * @access  Partner
+ */
+router.get('/reviews', reviewController.getPartnerReviews);
+
+/**
  * @route   POST /api/v1/partner/reviews/:id/reply
  * @desc    Reply to a review
  * @access  Partner
