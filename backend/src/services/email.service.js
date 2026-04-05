@@ -22,6 +22,8 @@ class EmailService {
       return;
     }
 
+    console.log(`📧 Email service init: host=${config.email.host} port=${config.email.port} user=${config.email.user} secure=${config.email.port === 465}`);
+
     this.transporter = nodemailer.createTransport({
       host: config.email.host,
       port: config.email.port,
@@ -30,7 +32,7 @@ class EmailService {
         user: config.email.user,
         pass: config.email.password,
       },
-      connectionTimeout: 5000,  // 5s max pour se connecter
+      connectionTimeout: 5000,
       greetingTimeout: 5000,
       socketTimeout: 10000,
     });
