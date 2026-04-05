@@ -1,44 +1,21 @@
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 const handlebars = require("handlebars");
 const fs = require("fs");
 const path = require("path");
 const config = require("../config/app");
 
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+
 class EmailService {
   constructor() {
-    this.transporter = null;
     this.templates = {};
-    this.init();
-  }
-
-  /**
-   * Initialize email transporter
-   */
-  init() {
-    // Si SMTP_HOST n'est pas configuré, on n'initialise pas le transporter
-    if (!config.email.host || !config.email.user) {
-      console.warn("⚠️  Email service: SMTP_HOST ou SMTP_USER non configuré — les emails seront désactivés.");
-      this.loadTemplates();
-      return;
-    }
-
-    console.log(`📧 Email service init: host=${config.email.host} port=${config.email.port} user=${config.email.user} secure=${config.email.port === 465}`);
-
-    this.transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.port === 465,
-      auth: {
-        user: config.email.user,
-        pass: config.email.password,
-      },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000,
-    });
-
-    // Load email templates
     this.loadTemplates();
+
+    if (!config.email.apiKey) {
+      console.warn("⚠️  Email service: BREVO_API_KEY non configuré — les emails seront désactivés.");
+    } else {
+      console.log(`📧 Email service init: Brevo API — from=${config.email.from}`);
+    }
   }
 
   /**
@@ -66,47 +43,45 @@ class EmailService {
   }
 
   /**
-   * Send email
+   * Send email via Brevo API (HTTP — pas de SMTP, pas de port bloqué)
    */
   async send(options) {
-    const { to, subject, template, context, html, text } = options;
+    const { to, subject, template, context, html } = options;
+
+    if (!config.email.apiKey) {
+      console.log(`📧 [Email skipped — BREVO_API_KEY absent] To: ${to} | Subject: ${subject}`);
+      return { success: false, error: "BREVO_API_KEY not configured" };
+    }
 
     let htmlContent = html;
-    let textContent = text;
-
-    // Use template if provided
     if (template && this.templates[template]) {
       htmlContent = this.templates[template](context);
     }
 
-    const mailOptions = {
-      from: `"Win" <${config.email.from}>`,
-      to,
-      subject,
-      html: htmlContent,
-      text: textContent,
-    };
-
     try {
-      // SMTP non configuré → log et skip silencieusement
-      if (!this.transporter) {
-        console.log(`📧 [Email skipped — SMTP not configured] To: ${to} | Subject: ${subject}`);
-        return { success: false, error: "SMTP not configured" };
-      }
+      const response = await axios.post(
+        BREVO_API_URL,
+        {
+          sender: { name: "Win-وين", email: config.email.from },
+          to: [{ email: to }],
+          subject,
+          htmlContent,
+        },
+        {
+          headers: {
+            "api-key": config.email.apiKey,
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
 
-      const info = await this.transporter.sendMail(mailOptions);
-
-      console.log("📧 Email sent:", info.messageId);
-
-      // For Ethereal, log preview URL
-      if (config.env === "development") {
-        console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
-      }
-
-      return { success: true, messageId: info.messageId };
+      console.log(`📧 Email sent to ${to} | messageId: ${response.data.messageId}`);
+      return { success: true, messageId: response.data.messageId };
     } catch (error) {
-      console.error("❌ Email error:", error.message);
-      return { success: false, error: error.message };
+      const msg = error.response?.data?.message || error.message;
+      console.error("❌ Email error:", msg);
+      return { success: false, error: msg };
     }
   }
 
