@@ -32,8 +32,8 @@ class SmsService {
     const message = `Votre code de vérification est : ${otp}. Il expire dans 10 minutes.`;
 
     if (!this.client) {
-      // Development fallback: log OTP to console
-      console.log(`[SMS DEV] OTP pour ${phone} : ${otp}`);
+      // Development fallback — NE PAS activer en production (expose l'OTP)
+      // console.log(`[SMS DEV] OTP pour ${phone} : ${otp}`);
       return { success: true, dev: true };
     }
 
@@ -45,7 +45,8 @@ class SmsService {
       });
       return { success: true };
     } catch (err) {
-      console.error(`[SMS] Erreur envoi OTP vers ${phone}:`, err.message);
+      // console.error(`[SMS] Erreur envoi OTP vers ${phone}:`, err.message); // expose le numéro
+      console.error(`[SMS] Erreur envoi OTP:`, err.message);
       return { success: false, error: err.message };
     }
   }

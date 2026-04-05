@@ -99,7 +99,7 @@ class SubscriptionService {
         checkoutUrl: response.data.checkout_url,
       };
     } catch (err) {
-      console.error("Chargily error details:", err.response?.data);
+      // console.error("Chargily error details:", err.response?.data); // peut exposer des données de paiement
       const msg = err.response?.data?.message || err.message;
       throw ApiError.internal(`Erreur Chargily : ${msg}`);
     }
