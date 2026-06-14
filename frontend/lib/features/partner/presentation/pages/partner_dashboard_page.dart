@@ -34,7 +34,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: Text(context.l10n.dashboard),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         actions: const [NotificationBellWidget()],
@@ -55,7 +55,9 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
           if (state is PartnerDashboardLoaded) {
             return RefreshIndicator(
               onRefresh: () async {
-                context.read<PartnerDashboardBloc>().add(PartnerDashboardRefresh());
+                context
+                    .read<PartnerDashboardBloc>()
+                    .add(PartnerDashboardRefresh());
                 await Future.delayed(const Duration(milliseconds: 500));
               },
               color: AppColors.primaryGreen,
@@ -124,8 +126,9 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
             ),
             const SizedBox(height: AppDimens.paddingL),
             ElevatedButton.icon(
-              onPressed: () =>
-                  context.read<PartnerDashboardBloc>().add(PartnerDashboardLoad()),
+              onPressed: () => context
+                  .read<PartnerDashboardBloc>()
+                  .add(PartnerDashboardLoad()),
               icon: const Icon(Icons.refresh),
               label: Text(context.l10n.retry),
             ),
@@ -242,7 +245,8 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
     );
   }
 
-  Widget _buildEngagementStats(BuildContext context, PartnerDashboardLoaded state) {
+  Widget _buildEngagementStats(
+      BuildContext context, PartnerDashboardLoaded state) {
     final stats = state.stats;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

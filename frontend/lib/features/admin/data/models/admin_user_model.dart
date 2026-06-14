@@ -18,6 +18,11 @@ class AdminUser extends Equatable {
   final PartnerProfile? partnerProfile;
   final int reviewsCount;
   final int favoritesCount;
+  final int? age;
+  final String? gender;
+  final DateTime? lastLogin;
+  final int loginCount;
+  final bool isElite;
 
   const AdminUser({
     required this.id,
@@ -36,6 +41,11 @@ class AdminUser extends Equatable {
     this.partnerProfile,
     this.reviewsCount = 0,
     this.favoritesCount = 0,
+    this.age,
+    this.gender,
+    this.lastLogin,
+    this.loginCount = 0,
+    this.isElite = false,
   });
 
   String get fullName => '$firstName $lastName';
@@ -46,6 +56,30 @@ class AdminUser extends Equatable {
   bool get isSuspended => status == 'suspended';
   bool get isPending => status == 'pending';
   bool get isInactive => status == 'inactive';
+
+  String get genderLabel {
+    switch (gender) {
+      case 'male':
+        return 'Homme';
+      case 'female':
+        return 'Femme';
+      case 'young':
+        return 'Jeune';
+      case 'child':
+        return 'Enfant';
+      default:
+        return 'Non renseigné';
+    }
+  }
+
+  String get ageCategory {
+    if (age == null) return 'Non renseigné';
+    if (age! < 18) return 'Moins de 18 ans';
+    if (age! <= 25) return '18-25 ans';
+    if (age! <= 35) return '26-35 ans';
+    if (age! <= 50) return '36-50 ans';
+    return 'Plus de 50 ans';
+  }
 
   String get statusLabel {
     switch (status) {
@@ -107,6 +141,13 @@ class AdminUser extends Equatable {
               : null,
       reviewsCount: json['reviews_count'] ?? json['reviewsCount'] ?? 0,
       favoritesCount: json['favorites_count'] ?? json['favoritesCount'] ?? 0,
+      age: json['age'],
+      gender: json['gender'],
+      lastLogin: json['last_login'] != null
+          ? DateTime.tryParse(json['last_login'])
+          : null,
+      loginCount: json['login_count'] ?? json['loginCount'] ?? 0,
+      isElite: json['is_elite'] ?? false,
     );
   }
 
@@ -128,6 +169,11 @@ class AdminUser extends Equatable {
         partnerProfile,
         reviewsCount,
         favoritesCount,
+        age,
+        gender,
+        lastLogin,
+        loginCount,
+        isElite,
       ];
 }
 

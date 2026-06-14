@@ -238,6 +238,26 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      contact_first_name: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      contact_last_name: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      contact_phone: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+      },
+      contact_email: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      contact_position: {
+        type: DataTypes.STRING(150),
+        allowNull: true,
+      },
     },
     {
       tableName: "establishments",

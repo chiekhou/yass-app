@@ -138,8 +138,9 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
         voteCount: addingVote ? s.voteCount + 1 : s.voteCount - 1,
         hasVoted: addingVote,
         // Si on ajoute un upvote et qu'un downvote était actif, on l'annule
-        downvoteCount:
-            addingVote && s.hasDownvoted ? s.downvoteCount - 1 : s.downvoteCount,
+        downvoteCount: addingVote && s.hasDownvoted
+            ? s.downvoteCount - 1
+            : s.downvoteCount,
         hasDownvoted: addingVote && s.hasDownvoted ? false : s.hasDownvoted,
       );
     });
@@ -183,8 +184,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
             addingDownvote ? s.downvoteCount + 1 : s.downvoteCount - 1,
         hasDownvoted: addingDownvote,
         // Si on ajoute un downvote et qu'un upvote était actif, on l'annule
-        voteCount:
-            addingDownvote && s.hasVoted ? s.voteCount - 1 : s.voteCount,
+        voteCount: addingDownvote && s.hasVoted ? s.voteCount - 1 : s.voteCount,
         hasVoted: addingDownvote && s.hasVoted ? false : s.hasVoted,
       );
     });
@@ -220,10 +220,10 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.kleinBlue,
       appBar: AppBar(
         title: const Text('Suggestions de la communauté'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.kleinBlue,
         foregroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
@@ -241,7 +241,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _load,
-        color: AppColors.primaryGreen,
+        color: AppColors.accentGreen,
         child: _buildBody(),
       ),
     );
@@ -258,13 +258,13 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               width: 96,
               height: 96,
               decoration: BoxDecoration(
-                color: AppColors.primaryRed.withValues(alpha: 0.1),
+                color: Colors.white.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Iconsax.profile_circle,
                 size: 48,
-                color: AppColors.primaryRed,
+                color: AppColors.white,
               ),
             ),
             const SizedBox(height: AppDimens.paddingL),
@@ -273,7 +273,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.grey800,
+                color: AppColors.white,
               ),
               textAlign: TextAlign.center,
             ),
@@ -282,7 +282,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               'Connectez-vous pour accéder aux suggestions de la communauté et voter pour vos établissements préférés.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.grey500,
+                color: Colors.white70,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -293,8 +293,8 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               child: ElevatedButton(
                 onPressed: () => context.push(AppRoutes.login),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: AppColors.accentGreen,
+                  foregroundColor: AppColors.black,
                   padding:
                       const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
                   shape: RoundedRectangleBorder(
@@ -313,8 +313,8 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               child: OutlinedButton(
                 onPressed: () => context.push(AppRoutes.register),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primaryGreen,
-                  side: const BorderSide(color: AppColors.primaryGreen),
+                  foregroundColor: AppColors.white,
+                  side: const BorderSide(color: AppColors.white),
                   padding:
                       const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
                   shape: RoundedRectangleBorder(
@@ -336,7 +336,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
   Widget _buildBody() {
     if (_loading) {
       return const Center(
-          child: CircularProgressIndicator(color: AppColors.primaryGreen));
+          child: CircularProgressIndicator(color: AppColors.white));
     }
     if (_isAuthError) {
       return _buildLoginRequired();
@@ -346,9 +346,9 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Iconsax.warning_2, size: 48, color: AppColors.grey400),
+            const Icon(Iconsax.warning_2, size: 48, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
-            Text(_error!, style: const TextStyle(color: AppColors.grey600)),
+            Text(_error!, style: const TextStyle(color: AppColors.white)),
             const SizedBox(height: AppDimens.paddingM),
             ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
           ],
@@ -360,17 +360,17 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Iconsax.shop_add, size: 64, color: AppColors.grey300),
+            const Icon(Iconsax.shop_add, size: 64, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
             const Text(
               'Aucune suggestion pour le moment',
               style: TextStyle(
-                  fontWeight: FontWeight.w600, color: AppColors.grey600),
+                  fontWeight: FontWeight.w600, color: AppColors.white),
             ),
             const SizedBox(height: AppDimens.paddingS),
             const Text(
               'Soyez le premier à suggérer un établissement !',
-              style: TextStyle(color: AppColors.grey500, fontSize: 13),
+              style: TextStyle(color: Colors.white70, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             if (context.read<AuthBloc>().state is AuthAuthenticated) ...[
@@ -381,8 +381,8 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
                 icon: const Icon(Iconsax.add),
                 label: const Text('Faire une suggestion'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: AppColors.accentGreen,
+                  foregroundColor: AppColors.black,
                   minimumSize: Size.zero,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingL,
@@ -406,7 +406,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(AppDimens.paddingM),
-              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              child: CircularProgressIndicator(color: AppColors.white),
             ),
           );
         }
@@ -486,10 +486,12 @@ class _SuggestionCard extends StatelessWidget {
                         ),
                       Text(
                         s.name,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.scaffoldBackground),
                       ),
                     ],
                   ),

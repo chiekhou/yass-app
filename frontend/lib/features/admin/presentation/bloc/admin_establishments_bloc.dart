@@ -63,6 +63,15 @@ class AdminEstablishmentsFilterByStatus extends AdminEstablishmentsEvent {
   List<Object?> get props => [status];
 }
 
+class AdminEstablishmentsFilterBySubscription extends AdminEstablishmentsEvent {
+  final String? plan; // null = tous, 'free' | 'premium' | 'gold'
+
+  const AdminEstablishmentsFilterBySubscription({this.plan});
+
+  @override
+  List<Object?> get props => [plan];
+}
+
 class AdminEstablishmentsSearch extends AdminEstablishmentsEvent {
   final String query;
 
@@ -138,6 +147,7 @@ class AdminEstablishmentsLoaded extends AdminEstablishmentsState {
   final bool isUpdating;
   final String? processingId;
   final String? statusFilter;
+  final String? subscriptionFilter;
   final String? searchQuery;
   final bool isPendingMode;
 
@@ -150,6 +160,7 @@ class AdminEstablishmentsLoaded extends AdminEstablishmentsState {
     this.isUpdating = false,
     this.processingId,
     this.statusFilter,
+    this.subscriptionFilter,
     this.searchQuery,
     this.isPendingMode = false,
   });
@@ -168,6 +179,7 @@ class AdminEstablishmentsLoaded extends AdminEstablishmentsState {
     bool? isUpdating,
     Object? processingId = _absent,
     Object? statusFilter = _absent,
+    Object? subscriptionFilter = _absent,
     Object? searchQuery = _absent,
     bool? isPendingMode,
   }) {
@@ -178,9 +190,15 @@ class AdminEstablishmentsLoaded extends AdminEstablishmentsState {
       totalPages: totalPages ?? this.totalPages,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isUpdating: isUpdating ?? this.isUpdating,
-      processingId: processingId == _absent ? this.processingId : processingId as String?,
-      statusFilter: statusFilter == _absent ? this.statusFilter : statusFilter as String?,
-      searchQuery: searchQuery == _absent ? this.searchQuery : searchQuery as String?,
+      processingId:
+          processingId == _absent ? this.processingId : processingId as String?,
+      statusFilter:
+          statusFilter == _absent ? this.statusFilter : statusFilter as String?,
+      subscriptionFilter: subscriptionFilter == _absent
+          ? this.subscriptionFilter
+          : subscriptionFilter as String?,
+      searchQuery:
+          searchQuery == _absent ? this.searchQuery : searchQuery as String?,
       isPendingMode: isPendingMode ?? this.isPendingMode,
     );
   }
@@ -195,6 +213,7 @@ class AdminEstablishmentsLoaded extends AdminEstablishmentsState {
         isUpdating,
         processingId,
         statusFilter,
+        subscriptionFilter,
         searchQuery,
         isPendingMode,
       ];
@@ -225,6 +244,7 @@ class AdminEstablishmentsBloc
     on<AdminEstablishmentsLoad>(_onLoad);
     on<AdminEstablishmentsLoadMore>(_onLoadMore);
     on<AdminEstablishmentsFilterByStatus>(_onFilterByStatus);
+    on<AdminEstablishmentsFilterBySubscription>(_onFilterBySubscription);
     on<AdminEstablishmentsSearch>(_onSearch);
     on<AdminEstablishmentDelete>(_onDelete);
     on<AdminEstablishmentSetFeatured>(_onSetFeatured);
@@ -403,6 +423,9 @@ class AdminEstablishmentsBloc
     final search = currentState is AdminEstablishmentsLoaded
         ? currentState.searchQuery
         : null;
+    final subscription = currentState is AdminEstablishmentsLoaded
+        ? currentState.subscriptionFilter
+        : null;
 
     emit(AdminEstablishmentsLoading());
     try {
@@ -410,6 +433,7 @@ class AdminEstablishmentsBloc
         page: 1,
         status: event.status,
         search: search,
+        subscriptionPlan: subscription,
       );
       emit(AdminEstablishmentsLoaded(
         establishments: result.establishments,
@@ -417,6 +441,41 @@ class AdminEstablishmentsBloc
         page: result.page,
         totalPages: result.totalPages,
         statusFilter: event.status,
+        subscriptionFilter: subscription,
+        searchQuery: search,
+      ));
+    } catch (e) {
+      emit(AdminEstablishmentsError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onFilterBySubscription(
+    AdminEstablishmentsFilterBySubscription event,
+    Emitter<AdminEstablishmentsState> emit,
+  ) async {
+    final currentState = state;
+    final search = currentState is AdminEstablishmentsLoaded
+        ? currentState.searchQuery
+        : null;
+    final status = currentState is AdminEstablishmentsLoaded
+        ? currentState.statusFilter
+        : null;
+
+    emit(AdminEstablishmentsLoading());
+    try {
+      final result = await _adminRepository.getEstablishments(
+        page: 1,
+        status: status,
+        search: search,
+        subscriptionPlan: event.plan,
+      );
+      emit(AdminEstablishmentsLoaded(
+        establishments: result.establishments,
+        total: result.total,
+        page: result.page,
+        totalPages: result.totalPages,
+        statusFilter: status,
+        subscriptionFilter: event.plan,
         searchQuery: search,
       ));
     } catch (e) {
@@ -432,6 +491,9 @@ class AdminEstablishmentsBloc
     final status = currentState is AdminEstablishmentsLoaded
         ? currentState.statusFilter
         : null;
+    final subscription = currentState is AdminEstablishmentsLoaded
+        ? currentState.subscriptionFilter
+        : null;
 
     emit(AdminEstablishmentsLoading());
     try {
@@ -439,6 +501,7 @@ class AdminEstablishmentsBloc
         page: 1,
         status: status,
         search: event.query.isEmpty ? null : event.query,
+        subscriptionPlan: subscription,
       );
       emit(AdminEstablishmentsLoaded(
         establishments: result.establishments,
@@ -446,6 +509,7 @@ class AdminEstablishmentsBloc
         page: result.page,
         totalPages: result.totalPages,
         statusFilter: status,
+        subscriptionFilter: subscription,
         searchQuery: event.query.isEmpty ? null : event.query,
       ));
     } catch (e) {
@@ -522,6 +586,7 @@ class AdminEstablishmentsBloc
           page: event.page,
           status: currentState.statusFilter,
           search: currentState.searchQuery,
+          subscriptionPlan: currentState.subscriptionFilter,
         );
         emit(currentState.copyWith(
           establishments: result.establishments,

@@ -27,6 +27,7 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.scaffoldBackground,
         leading: IconButton(
           icon: const Icon(Iconsax.arrow_left),
           onPressed: () => context.pop(),

@@ -175,8 +175,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       // Evict old avatar from Flutter's image cache + pre-cache new one
       if (newAvatarUrl != null && mounted) {
         if (oldAvatarUrl != null) {
-          PaintingBinding.instance.imageCache
-              .evict(NetworkImage(oldAvatarUrl));
+          PaintingBinding.instance.imageCache.evict(NetworkImage(oldAvatarUrl));
         }
         try {
           await precacheImage(NetworkImage(newAvatarUrl), context);
@@ -230,7 +229,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           onPressed: () => context.pop(),
         ),
         title: const Text('Modifier le profil'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -542,8 +541,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
       enabled: enabled,
       keyboardType: keyboardType,
       validator: validator,
+      style: TextStyle(
+        color: enabled
+            ? AppColors.scaffoldBackground
+            : AppColors.scaffoldBackground.withValues(alpha: 0.5),
+      ),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          color: enabled
+              ? AppColors.scaffoldBackground.withValues(alpha: 0.75)
+              : AppColors.scaffoldBackground.withValues(alpha: 0.4),
+        ),
         prefixIcon:
             Icon(icon, color: enabled ? AppColors.grey500 : AppColors.grey400),
         border: OutlineInputBorder(
@@ -577,8 +586,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }) {
     return DropdownButtonFormField<T>(
       initialValue: value,
+      style: const TextStyle(color: AppColors.scaffoldBackground),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          color: AppColors.scaffoldBackground.withValues(alpha: 0.75),
+        ),
         prefixIcon: Icon(icon, color: AppColors.grey500),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),

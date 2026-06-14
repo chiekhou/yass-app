@@ -112,7 +112,8 @@ class _SearchPageState extends State<SearchPage> {
     // Override dev : position simulée Alger (définie dans .env.dev.json)
     final devLoc = AppConfig.devLocation;
     if (devLoc != null) {
-      if (mounted) setState(() => _userLocation = LatLng(devLoc.lat, devLoc.lng));
+      if (mounted)
+        setState(() => _userLocation = LatLng(devLoc.lat, devLoc.lng));
       return;
     }
 
@@ -217,7 +218,10 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _loadCommunes(String wilayaId) async {
     try {
-      final fromCache = context.read<SearchBloc>().state.wilayas
+      final fromCache = context
+          .read<SearchBloc>()
+          .state
+          .wilayas
           .cast<Wilaya?>()
           .firstWhere((w) => w?.id == wilayaId, orElse: () => null)
           ?.communes;
@@ -232,7 +236,10 @@ class _SearchPageState extends State<SearchPage> {
 
   Future<void> _loadSubcategories(String categoryId) async {
     try {
-      final fromCache = context.read<SearchBloc>().state.categories
+      final fromCache = context
+          .read<SearchBloc>()
+          .state
+          .categories
           .cast<Category?>()
           .firstWhere((c) => c?.id == categoryId, orElse: () => null)
           ?.subcategories;
@@ -327,8 +334,8 @@ class _SearchPageState extends State<SearchPage> {
               // Indicateur de localisation active
               if (_userLocation != null && !_overlayVisible)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppDimens.paddingM, 0, AppDimens.paddingM, AppDimens.paddingS),
+                  padding: const EdgeInsets.fromLTRB(AppDimens.paddingM, 0,
+                      AppDimens.paddingM, AppDimens.paddingS),
                   child: Row(
                     children: [
                       const Icon(Icons.my_location,
@@ -459,7 +466,7 @@ class _SearchPageState extends State<SearchPage> {
             subtitle: _userLocation != null
                 ? const Text(
                     'Les recherches incluent automatiquement votre position',
-                    style: TextStyle(fontSize: 11),
+                    style: TextStyle(fontSize: 11, color: Color(0xFF002FA7)),
                   )
                 : null,
             trailing: const Icon(Iconsax.arrow_right_3,
@@ -500,8 +507,8 @@ class _SearchPageState extends State<SearchPage> {
                 return GestureDetector(
                   onTap: () => _performSearch(keyword: kw),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: AppColors.grey100,
                       borderRadius: BorderRadius.circular(20),
@@ -536,11 +543,18 @@ class _SearchPageState extends State<SearchPage> {
               leading: _circleIcon(Icons.my_location, AppColors.primaryGreen,
                   AppColors.primaryGreen.withValues(alpha: 0.1)),
               title: Text.rich(TextSpan(children: [
-                const TextSpan(text: 'Rechercher "'),
+                const TextSpan(
+                    text: 'Rechercher "',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
                 TextSpan(
                     text: query,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                const TextSpan(text: '" près de moi'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
+                const TextSpan(
+                    text: '" près de moi',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
               ])),
               trailing: const Icon(Iconsax.arrow_right_3,
                   size: 16, color: AppColors.grey400),
@@ -550,11 +564,18 @@ class _SearchPageState extends State<SearchPage> {
             leading: _circleIcon(
                 Iconsax.search_normal, AppColors.grey500, AppColors.grey100),
             title: Text.rich(TextSpan(children: [
-              const TextSpan(text: 'Rechercher "'),
+              const TextSpan(
+                  text: 'Rechercher "',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
               TextSpan(
                   text: query,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              const TextSpan(text: '"'),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
+              const TextSpan(
+                  text: '"',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
             ])),
             trailing: const Icon(Iconsax.arrow_right_3,
                 size: 16, color: AppColors.grey400),
@@ -582,11 +603,18 @@ class _SearchPageState extends State<SearchPage> {
                 : _circleIcon(Iconsax.search_normal, AppColors.grey500,
                     AppColors.grey100),
             title: Text.rich(TextSpan(children: [
-              const TextSpan(text: 'Voir tous les résultats pour "'),
+              const TextSpan(
+                  text: 'Voir tous les résultats pour "',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
               TextSpan(
                   text: query,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              const TextSpan(text: '"'),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
+              const TextSpan(
+                  text: '"',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
               if (_userLocation != null)
                 const TextSpan(
                   text: ' près de moi',
@@ -929,9 +957,8 @@ class _FilterChip extends StatelessWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isSelected
-                        ? AppColors.primaryGreen
-                        : AppColors.white,
+                    color:
+                        isSelected ? AppColors.primaryGreen : AppColors.white,
                     fontWeight: FontWeight.w500,
                   ),
             ),

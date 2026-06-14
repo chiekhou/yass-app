@@ -11,6 +11,11 @@ class PartnerEstablishmentSummary extends Equatable {
   final String? categoryName;
   final String? communeName;
   final String? wilayaName;
+  final String? contactFirstName;
+  final String? contactLastName;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String? contactPosition;
 
   const PartnerEstablishmentSummary({
     required this.id,
@@ -21,6 +26,11 @@ class PartnerEstablishmentSummary extends Equatable {
     this.categoryName,
     this.communeName,
     this.wilayaName,
+    this.contactFirstName,
+    this.contactLastName,
+    this.contactPhone,
+    this.contactEmail,
+    this.contactPosition,
   });
 
   String get statusLabel {
@@ -44,11 +54,16 @@ class PartnerEstablishmentSummary extends Equatable {
       categoryName: json['subcategory']?['name'] ?? json['subcategoryName'],
       communeName: json['commune']?['name'] ?? json['communeName'],
       wilayaName: json['wilaya']?['name'] ?? json['wilayaName'],
+      contactFirstName: json['contact_first_name'],
+      contactLastName: json['contact_last_name'],
+      contactPhone: json['contact_phone'],
+      contactEmail: json['contact_email'],
+      contactPosition: json['contact_position'],
     );
   }
 
   @override
-  List<Object?> get props => [id, name, status, address, phone];
+  List<Object?> get props => [id, name, status, address, phone, contactFirstName, contactLastName, contactPhone, contactEmail, contactPosition];
 }
 
 class AdminPartner extends Equatable {

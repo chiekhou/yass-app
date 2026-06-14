@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:win_app/features/auth/data/models/user_model.dart';
+import 'package:win_app/features/establishment/data/models/establishment_model.dart';
 
 /// Helper function to parse double from dynamic value (String or num)
 double? _parseDouble(dynamic value) {
@@ -45,7 +46,8 @@ class Review extends Equatable {
   final String comment;
   final List<String>? pros;
   final List<String>? cons;
-  final List<String>? images;
+  final List<PhotoItem>? images;
+  final List<PhotoItem>? videos;
   final DateTime? visitDate;
   final int helpfulCount;
   final String? partnerReply;
@@ -69,6 +71,7 @@ class Review extends Equatable {
     this.pros,
     this.cons,
     this.images,
+    this.videos,
     this.visitDate,
     this.helpfulCount = 0,
     this.partnerReply,
@@ -85,6 +88,7 @@ class Review extends Equatable {
 
   bool get hasPartnerReply => partnerReply != null && partnerReply!.isNotEmpty;
   bool get hasImages => images != null && images!.isNotEmpty;
+  bool get hasVideos => videos != null && videos!.isNotEmpty;
   bool get hasPros => pros != null && pros!.isNotEmpty;
   bool get hasCons => cons != null && cons!.isNotEmpty;
   bool get isApproved => status == 'approved';
@@ -102,7 +106,14 @@ class Review extends Equatable {
       comment: json['comment'] ?? '',
       pros: json['pros'] != null ? List<String>.from(json['pros']) : null,
       cons: json['cons'] != null ? List<String>.from(json['cons']) : null,
-      images: json['images'] != null ? List<String>.from(json['images']) : null,
+      images: json['images'] != null
+          ? (json['images'] as List).map((e) => PhotoItem.fromJson(e)).toList()
+          : null,
+      videos: json['videos'] != null
+          ? (json['videos'] as List)
+              .map((e) => PhotoItem.fromJson(e).copyWith(type: 'video'))
+              .toList()
+          : null,
       visitDate: json['visit_date'] != null
           ? DateTime.parse(json['visit_date'])
           : null,
@@ -137,7 +148,8 @@ class Review extends Equatable {
       'comment': comment,
       'pros': pros,
       'cons': cons,
-      'images': images,
+      'images': images?.map((e) => e.toJson()).toList(),
+      'videos': videos?.map((e) => e.toJson()).toList(),
       'visit_date': visitDate?.toIso8601String(),
     };
   }

@@ -116,6 +116,11 @@ module.exports = (sequelize) => {
           key: "id",
         },
       },
+      is_elite: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       tableName: "users",

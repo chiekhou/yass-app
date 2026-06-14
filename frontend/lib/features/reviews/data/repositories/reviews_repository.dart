@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_config.dart';
 import '../../../../shared/models/api_response.dart';
+import '../../../establishment/data/models/establishment_model.dart';
 import '../models/review_model.dart';
 
 class ReviewRepository {
@@ -15,6 +16,8 @@ class ReviewRepository {
     int limit = 20,
     String? sortBy,
     String? sortOrder,
+    bool eliteOnly = false,
+    int? rating,
   }) async {
     final response = await _apiClient.get(
       ApiConfig.establishmentReviews(establishmentId),
@@ -23,6 +26,8 @@ class ReviewRepository {
         'limit': limit,
         if (sortBy != null) 'sort_by': sortBy,
         if (sortOrder != null) 'sort_order': sortOrder,
+        if (eliteOnly) 'elite_only': 'true',
+        if (rating != null) 'rating': rating,
       },
     );
 
@@ -57,7 +62,8 @@ class ReviewRepository {
     required String comment,
     List<String>? pros,
     List<String>? cons,
-    List<String>? images,
+    List<PhotoItem>? images,
+    List<PhotoItem>? videos,
     DateTime? visitDate,
     Map<String, int>? subRatings,
   }) async {
@@ -69,7 +75,8 @@ class ReviewRepository {
         'comment': comment,
         if (pros != null) 'pros': pros,
         if (cons != null) 'cons': cons,
-        if (images != null) 'images': images,
+        if (images != null) 'images': images.map((e) => e.toJson()).toList(),
+        if (videos != null) 'videos': videos.map((e) => e.toJson()).toList(),
         if (visitDate != null) 'visit_date': visitDate.toIso8601String(),
         if (subRatings != null) 'sub_ratings': subRatings,
       },
@@ -86,7 +93,7 @@ class ReviewRepository {
     String? comment,
     List<String>? pros,
     List<String>? cons,
-    List<String>? images,
+    List<PhotoItem>? images,
     DateTime? visitDate,
   }) async {
     final response = await _apiClient.put(
@@ -97,7 +104,7 @@ class ReviewRepository {
         if (comment != null) 'comment': comment,
         if (pros != null) 'pros': pros,
         if (cons != null) 'cons': cons,
-        if (images != null) 'images': images,
+        if (images != null) 'images': images.map((e) => e.toJson()).toList(),
         if (visitDate != null) 'visit_date': visitDate.toIso8601String(),
       },
     );
@@ -124,6 +131,17 @@ class ReviewRepository {
       fieldName: 'images',
     );
     final data = response.data['data']['images'] as List;
+    return data.cast<String>();
+  }
+
+  /// Upload review videos and return their URLs
+  Future<List<String>> uploadVideos(List<XFile> videos) async {
+    final response = await _apiClient.uploadFiles(
+      ApiConfig.uploadReviewVideos,
+      filePaths: videos.map((e) => e.path).toList(),
+      fieldName: 'videos',
+    );
+    final data = response.data['data']['videos'] as List;
     return data.cast<String>();
   }
 

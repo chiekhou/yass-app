@@ -533,7 +533,8 @@ class EstablishmentService {
           establishment.partner.user.id,
           establishment.name,
           name,
-          senderEmail
+          senderEmail,
+          message
         )
         .catch(() => {});
     }
@@ -755,6 +756,11 @@ class EstablishmentService {
       "meta_title",
       "meta_description",
       "slug",
+      "contact_first_name",
+      "contact_last_name",
+      "contact_phone",
+      "contact_email",
+      "contact_position",
     ];
 
     const updateData = {};

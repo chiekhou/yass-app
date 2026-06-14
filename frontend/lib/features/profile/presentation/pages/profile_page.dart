@@ -112,7 +112,7 @@ class ProfilePage extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(AppDimens.paddingL),
             decoration: const BoxDecoration(
-              color: AppColors.primaryGreen,
+              color: AppColors.background,
             ),
             child: SafeArea(
               bottom: false,
@@ -372,6 +372,7 @@ class ProfilePage extends StatelessWidget {
   void _showLanguagePicker(BuildContext context) {
     final current = context.read<LanguageCubit>().state;
     showModalBottomSheet(
+      backgroundColor: AppColors.scaffoldBackground,
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius:
@@ -502,7 +503,8 @@ class ProfilePage extends StatelessWidget {
         ),
         child: Icon(icon, color: AppColors.redDark, size: 20),
       ),
-      title: Text(title),
+      title: Text(title,
+          style: const TextStyle(color: AppColors.scaffoldBackground)),
       trailing: trailing != null
           ? Text(
               trailing,

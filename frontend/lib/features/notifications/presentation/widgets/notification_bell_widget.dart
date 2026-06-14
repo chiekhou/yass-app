@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 
 import '../../../../../app_router.dart';
 import '../../../../../core/constants/app_colors.dart';
+import 'package:win_app/features/auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/notifications_bloc.dart';
 
 class NotificationBellWidget extends StatefulWidget {
@@ -18,6 +19,9 @@ class _NotificationBellWidgetState extends State<NotificationBellWidget> {
   @override
   void initState() {
     super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
     final bloc = context.read<NotificationsBloc>();
     if (bloc.state is NotificationsInitial || bloc.state is NotificationsError) {
       bloc.add(const LoadNotifications());
@@ -32,7 +36,12 @@ class _NotificationBellWidgetState extends State<NotificationBellWidget> {
 
         return IconButton(
           color: AppColors.white,
-          onPressed: () => context.push(AppRoutes.notifications),
+          onPressed: () async {
+            await context.push(AppRoutes.notifications);
+            if (context.mounted) {
+              context.read<NotificationsBloc>().add(const LoadNotifications());
+            }
+          },
           icon: Badge(
             isLabelVisible: unread > 0,
             label: Text(

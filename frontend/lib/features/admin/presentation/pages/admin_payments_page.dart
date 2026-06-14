@@ -29,7 +29,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: const Text('Paiements en attente'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -56,7 +56,8 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
           }
         },
         builder: (context, state) {
-          if (state is AdminPaymentsLoading || state is AdminPaymentValidating) {
+          if (state is AdminPaymentsLoading ||
+              state is AdminPaymentValidating) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primaryGreen),
             );
@@ -149,8 +150,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
 
   // ── Card ────────────────────────────────────────────────────────────────────
 
-  Widget _buildPaymentCard(
-      BuildContext context, Map<String, dynamic> invoice) {
+  Widget _buildPaymentCard(BuildContext context, Map<String, dynamic> invoice) {
     final invoiceId = invoice['id'] as String? ?? '';
     final invoiceNumber = invoice['invoice_number'] as String? ?? '—';
     final plan = invoice['plan'] as String? ?? 'monthly';
@@ -218,11 +218,10 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     children: [
                       Text(
                         companyName,
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.grey900,
-                                ),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.grey900,
+                            ),
                       ),
                       Text(
                         invoiceNumber,
@@ -239,8 +238,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withValues(alpha: 0.12),
-                    borderRadius:
-                        BorderRadius.circular(AppDimens.radiusRound),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusRound),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -250,11 +248,10 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       const SizedBox(width: 4),
                       Text(
                         context.l10n.statusPending,
-                        style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
-                                  color: AppColors.warning,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: AppColors.warning,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ],
                   ),
@@ -277,11 +274,10 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     children: [
                       Text(
                         '$amount DZD',
-                        style:
-                            Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.grey900,
-                                ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.grey900,
+                            ),
                       ),
                       Text(
                         'Montant total',
@@ -299,8 +295,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                     color: isYearly
                         ? AppColors.primaryGreen.withValues(alpha: 0.1)
                         : AppColors.grey100,
-                    borderRadius:
-                        BorderRadius.circular(AppDimens.radiusS),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -315,13 +310,12 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       const SizedBox(width: 4),
                       Text(
                         planLabel,
-                        style:
-                            Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: isYearly
-                                      ? AppColors.primaryGreen
-                                      : AppColors.grey600,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: isYearly
+                                  ? AppColors.primaryGreen
+                                  : AppColors.grey600,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ],
                   ),
@@ -334,8 +328,8 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
           if ((transferRef != null && transferRef.isNotEmpty) ||
               createdAt != null)
             Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.paddingM),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
               child: Column(
                 children: [
                   if (transferRef != null && transferRef.isNotEmpty)
@@ -363,12 +357,11 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                 icon: const Icon(Iconsax.tick_circle, size: 18),
                 label: const Text('Valider le paiement'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
+                  backgroundColor: AppColors.scaffoldBackground,
                   foregroundColor: AppColors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimens.radiusM),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   ),
                 ),
               ),
@@ -429,9 +422,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context
-                  .read<AdminPaymentsBloc>()
-                  .add(ValidatePayment(invoiceId));
+              context.read<AdminPaymentsBloc>().add(ValidatePayment(invoiceId));
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen),

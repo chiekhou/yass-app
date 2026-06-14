@@ -16,6 +16,8 @@ class ReviewController {
         limit: parseInt(req.query.limit) || 20,
         sort_by: req.query.sort_by,
         sort_order: req.query.sort_order,
+        elite_only: req.query.elite_only === 'true',
+        rating: req.query.rating ? parseInt(req.query.rating) : null,
       };
 
       const result = await reviewService.getEstablishmentReviews(

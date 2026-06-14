@@ -39,7 +39,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -72,7 +72,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     const SizedBox(height: AppDimens.paddingL),
                     Text(
                       'Email vérifié !',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(color: AppColors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppDimens.paddingS),
@@ -81,7 +84,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: AppColors.grey600),
+                          ?.copyWith(color: AppColors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppDimens.paddingXL),
@@ -108,7 +111,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     const SizedBox(height: AppDimens.paddingL),
                     Text(
                       'Lien invalide ou expiré',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(color: AppColors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppDimens.paddingS),
@@ -117,7 +123,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.copyWith(color: AppColors.grey600),
+                          ?.copyWith(color: AppColors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppDimens.paddingXL),

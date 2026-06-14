@@ -1,4 +1,4 @@
-const { User, Partner, Establishment, Review, Favorite, Promotion, RefreshToken, SubCategory, Commune, AppSession } = require("../models");
+const { User, Partner, Establishment, Review, Favorite, Promotion, RefreshToken, SubCategory, Commune, Wilaya, AppSession } = require("../models");
 const invoiceService = require("./invoice.service");
 const ApiError = require("../utils/ApiError");
 const { Op, literal } = require("sequelize");
@@ -185,6 +185,17 @@ class AdminService {
         {
           model: Partner,
           as: "partner_profile",
+          include: [
+            {
+              model: Establishment,
+              as: "establishments",
+              attributes: [
+                "id", "name", "status", "address", "phone",
+                "contact_first_name", "contact_last_name",
+                "contact_phone", "contact_email", "contact_position",
+              ],
+            },
+          ],
         },
       ],
     });
@@ -193,7 +204,18 @@ class AdminService {
       throw ApiError.notFound("User not found");
     }
 
-    return user;
+    const [loginCount, reviewsCount, favoritesCount] = await Promise.all([
+      AppSession.count({ where: { user_id: userId } }),
+      Review.count({ where: { user_id: userId } }),
+      Favorite.count({ where: { user_id: userId } }),
+    ]);
+
+    const userJson = user.toJSON();
+    userJson.login_count = loginCount;
+    userJson.reviews_count = reviewsCount;
+    userJson.favorites_count = favoritesCount;
+
+    return userJson;
   }
 
   /**
@@ -212,6 +234,25 @@ class AdminService {
     }
 
     await user.update({ status });
+
+    return user;
+  }
+
+  /**
+   * Toggle elite status for a user
+   */
+  async toggleEliteStatus(userId) {
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
+
+    if (user.role === "super_admin") {
+      throw ApiError.forbidden("Cannot modify super admin");
+    }
+
+    await user.update({ is_elite: !user.is_elite });
 
     return user;
   }
@@ -557,10 +598,20 @@ class AdminService {
       throw ApiError.badRequest("Subcategory not found");
     }
 
-    // Resolve commune → wilaya_id
-    const commune = await Commune.findByPk(commune_id);
-    if (!commune) {
-      throw ApiError.badRequest("Commune not found");
+    // Resolve wilaya_id: from commune if provided, otherwise use wilaya_id directly
+    let resolvedWilayaId = data.wilaya_id || null;
+    let resolvedCommuneId = commune_id || null;
+    if (commune_id) {
+      const commune = await Commune.findByPk(commune_id);
+      if (!commune) {
+        throw ApiError.badRequest("Commune not found");
+      }
+      resolvedWilayaId = commune.wilaya_id;
+      resolvedCommuneId = commune.id;
+    }
+
+    if (!resolvedWilayaId) {
+      throw ApiError.badRequest("Wilaya requise");
     }
 
     // Generate unique slug
@@ -570,8 +621,8 @@ class AdminService {
       partner_id,
       category_id: subcategory.category_id,
       subcategory_id,
-      wilaya_id: commune.wilaya_id,
-      commune_id,
+      wilaya_id: resolvedWilayaId,
+      commune_id: resolvedCommuneId,
       name: data.name,
       name_ar: data.name_ar || null,
       slug,
@@ -593,6 +644,11 @@ class AdminService {
       services: JSON.stringify(data.services || []),
       amenities: JSON.stringify(data.amenities || []),
       tags: JSON.stringify(data.tags || []),
+      contact_first_name: data.contact_first_name || null,
+      contact_last_name: data.contact_last_name || null,
+      contact_phone: data.contact_phone || null,
+      contact_email: data.contact_email || null,
+      contact_position: data.contact_position || null,
       status: "active",
       is_verified: true,
       is_featured: false,
@@ -603,13 +659,85 @@ class AdminService {
     return establishment;
   }
 
+  /**
+   * Get single establishment by id (admin)
+   */
+  async getEstablishmentById(id) {
+    const establishment = await Establishment.findByPk(id, {
+      include: [
+        { model: SubCategory, as: "subcategory", attributes: ["id", "name", "category_id"] },
+        { model: Commune, as: "commune", attributes: ["id", "name", "wilaya_id"] },
+        { model: Wilaya, as: "wilaya", attributes: ["id", "name"] },
+      ],
+    });
+    if (!establishment) {
+      throw ApiError.notFound("Establishment not found");
+    }
+    return establishment;
+  }
+
+  /**
+   * Update establishment fields (admin — no partner restriction)
+   */
+  async updateEstablishment(id, data) {
+    const establishment = await Establishment.findByPk(id);
+    if (!establishment) {
+      throw ApiError.notFound("Establishment not found");
+    }
+
+    const allowedFields = [
+      "name", "name_ar", "description", "description_ar",
+      "address", "address_ar", "latitude", "longitude",
+      "phone", "whatsapp", "email", "website",
+      "price_range", "services", "amenities", "opening_hours",
+      "contact_first_name", "contact_last_name",
+      "contact_phone", "contact_email", "contact_position",
+    ];
+
+    const updateData = {};
+    allowedFields.forEach((field) => {
+      if (data[field] !== undefined) updateData[field] = data[field];
+    });
+
+    // subcategory_id → derive category_id
+    if (data.subcategory_id) {
+      const subcategory = await SubCategory.findByPk(data.subcategory_id);
+      if (!subcategory) throw ApiError.badRequest("Subcategory not found");
+      updateData.subcategory_id = data.subcategory_id;
+      updateData.category_id = subcategory.category_id;
+    }
+
+    // commune_id → derive wilaya_id; or use wilaya_id directly if no commune
+    if (data.commune_id) {
+      const commune = await Commune.findByPk(data.commune_id);
+      if (!commune) throw ApiError.badRequest("Commune not found");
+      updateData.commune_id = data.commune_id;
+      updateData.wilaya_id = commune.wilaya_id;
+    } else if (data.wilaya_id) {
+      updateData.wilaya_id = data.wilaya_id;
+      updateData.commune_id = null;
+    }
+
+    // Update slug if name changed
+    if (data.name && data.name !== establishment.name) {
+      updateData.slug = await generateUniqueSlug(
+        Establishment,
+        generateSlug(data.name),
+        establishment.id,
+      );
+    }
+
+    await establishment.update(updateData);
+    return establishment.reload();
+  }
+
   // ==================== ESTABLISHMENT MANAGEMENT ====================
 
   /**
    * Get all establishments with optional status filter and search
    */
   async getEstablishments(options = {}) {
-    const { page = 1, limit = 20, status, search } = options;
+    const { page = 1, limit = 20, status, search, subscription_plan } = options;
     const offset = (page - 1) * limit;
 
     const where = {};
@@ -621,6 +749,9 @@ class AdminService {
       ];
     }
 
+    const partnerWhere = {};
+    if (subscription_plan) partnerWhere.subscription_plan = subscription_plan;
+
     const { count, rows } = await Establishment.findAndCountAll({
       where,
       limit,
@@ -630,6 +761,8 @@ class AdminService {
         {
           model: Partner,
           as: "partner",
+          where: Object.keys(partnerWhere).length ? partnerWhere : undefined,
+          required: !!subscription_plan,
           include: [
             {
               model: User,

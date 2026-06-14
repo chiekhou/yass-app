@@ -14,6 +14,7 @@ import '../widgets/categories_grid.dart';
 import '../widgets/featured_section.dart';
 import '../widgets/nearby_section.dart';
 import '../../../notifications/presentation/widgets/notification_bell_widget.dart';
+import '../../../../shared/widgets/language_picker_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -83,7 +84,12 @@ class _HomePageState extends State<HomePage> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: AppDimens.paddingL),
                         child: _buildSectionHeader(context,
-                            title: context.l10n.categories, onSeeAll: () {}),
+                            title: context.l10n.categories,
+                            onSeeAll: () => context.push(
+                                AppRoutes.allCategories,
+                                extra: state is HomeLoaded
+                                    ? state.categories
+                                    : null)),
                       ),
                     ),
                     SliverToBoxAdapter(
@@ -213,6 +219,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
+          const LanguagePickerButton(),
           const NotificationBellWidget(),
         ],
       ),
@@ -230,14 +237,19 @@ class _HomePageState extends State<HomePage> {
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
-                  ?.copyWith(color: AppColors.white)),
+                  ?.copyWith(color: const Color(0xFFFFFFFF))),
           if (onSeeAll != null)
             TextButton(
               onPressed: onSeeAll,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(context.l10n.seeAll),
+                Text(context.l10n.seeAll,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(color: AppColors.white)),
                 const SizedBox(width: AppDimens.paddingXS),
-                const Icon(Iconsax.arrow_right_3, size: 16)
+                const Icon(Iconsax.arrow_right_3,
+                    size: 16, color: Color(0xFFFFFFFF))
               ]),
             ),
         ],

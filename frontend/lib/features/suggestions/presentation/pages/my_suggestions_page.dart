@@ -92,10 +92,10 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
+      backgroundColor: AppColors.kleinBlue,
       appBar: AppBar(
         title: const Text('Mes suggestions'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.kleinBlue,
         foregroundColor: AppColors.white,
         elevation: 0,
         actions: [
@@ -108,7 +108,7 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
       ),
       body: RefreshIndicator(
         onRefresh: _load,
-        color: AppColors.primaryGreen,
+        color: AppColors.accentGreen,
         child: _buildBody(),
       ),
     );
@@ -127,9 +127,9 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Iconsax.warning_2, size: 48, color: AppColors.grey400),
+              const Icon(Iconsax.warning_2, size: 48, color: AppColors.white),
               const SizedBox(height: AppDimens.paddingM),
-              Text(_error!, style: const TextStyle(color: AppColors.grey600),
+              Text(_error!, style: const TextStyle(color: AppColors.white),
                   textAlign: TextAlign.center),
               const SizedBox(height: AppDimens.paddingM),
               ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
@@ -150,11 +150,11 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                  color: Colors.white.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Iconsax.shop_add,
-                    size: 48, color: AppColors.primaryGreen),
+                    size: 48, color: AppColors.white),
               ),
               const SizedBox(height: AppDimens.paddingL),
               const Text(
@@ -162,13 +162,13 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
-                    color: AppColors.grey800),
+                    color: AppColors.white),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppDimens.paddingS),
               const Text(
                 'Suggérez un établissement que vous aimeriez voir sur la plateforme.',
-                style: TextStyle(color: AppColors.grey500, fontSize: 13),
+                style: TextStyle(color: Colors.white70, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppDimens.paddingXL),
@@ -177,8 +177,8 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
                 icon: const Icon(Iconsax.add),
                 label: const Text('Faire une suggestion'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: AppColors.accentGreen,
+                  foregroundColor: AppColors.black,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingXL,
                     vertical: AppDimens.paddingM,
@@ -201,7 +201,7 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(AppDimens.paddingM),
-              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              child: CircularProgressIndicator(color: AppColors.white),
             ),
           );
         }

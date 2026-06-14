@@ -12,6 +12,7 @@ const uploadDirs = [
   "uploads/establishments/covers",
   "uploads/establishments/gallery",
   "uploads/reviews",
+  "uploads/reviews/videos",
 ];
 
 uploadDirs.forEach((dir) => {
@@ -25,15 +26,17 @@ uploadDirs.forEach((dir) => {
 const ALLOWED_TYPES = {
   image: ["image/jpeg", "image/jpg", "image/png", "image/webp"],
   document: ["application/pdf"],
+  video: ["video/mp4", "video/quicktime", "video/x-msvideo", "video/webm"],
 };
 
 // Max file sizes (in bytes)
 const MAX_SIZES = {
-  avatar: 2 * 1024 * 1024, // 2MB
-  logo: 2 * 1024 * 1024, // 2MB
-  cover: 5 * 1024 * 1024, // 5MB
-  gallery: 5 * 1024 * 1024, // 5MB
-  review: 5 * 1024 * 1024, // 5MB
+  avatar: 2 * 1024 * 1024,   // 2MB
+  logo: 2 * 1024 * 1024,     // 2MB
+  cover: 5 * 1024 * 1024,    // 5MB
+  gallery: 5 * 1024 * 1024,  // 5MB
+  review: 5 * 1024 * 1024,   // 5MB
+  reviewVideo: 50 * 1024 * 1024, // 50MB
 };
 
 /**
@@ -119,6 +122,17 @@ const reviewImagesUpload = createUploader(
 ).array("images", 5);
 
 /**
+ * File filter for videos
+ */
+const videoFilter = (req, file, cb) => {
+  if (ALLOWED_TYPES.video.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new ApiError(400, "Only MP4, MOV, AVI and WebM videos are allowed"), false);
+  }
+};
+
+/**
  * Middleware wrapper to handle multer errors
  */
 const handleUpload = (uploadMiddleware) => {
@@ -143,12 +157,24 @@ const handleUpload = (uploadMiddleware) => {
   };
 };
 
+/**
+ * Review videos upload (multiple files, max 3, 50MB each)
+ */
+const reviewVideosUpload = handleUpload(
+  multer({
+    storage: createStorage(path.join(process.cwd(), "uploads/reviews/videos")),
+    limits: { fileSize: MAX_SIZES.reviewVideo },
+    fileFilter: videoFilter,
+  }).array("videos", 3),
+);
+
 module.exports = {
   avatarUpload: handleUpload(avatarUpload),
   logoUpload: handleUpload(logoUpload),
   coverUpload: handleUpload(coverUpload),
   galleryUpload: handleUpload(galleryUpload),
   reviewImagesUpload: handleUpload(reviewImagesUpload),
+  reviewVideosUpload,
   ALLOWED_TYPES,
   MAX_SIZES,
 };

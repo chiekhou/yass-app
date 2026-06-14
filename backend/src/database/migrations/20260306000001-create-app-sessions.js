@@ -28,10 +28,10 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-    });
+    }, { ifNotExists: true });
 
-    await queryInterface.addIndex('app_sessions', ['created_at']);
-    await queryInterface.addIndex('app_sessions', ['user_id']);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS app_sessions_created_at ON app_sessions (created_at);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS app_sessions_user_id ON app_sessions (user_id);`);
   },
 
   async down(queryInterface) {

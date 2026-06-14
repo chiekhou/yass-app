@@ -13,6 +13,8 @@ class ReviewService {
       limit = 20,
       sort_by = "created_at",
       sort_order = "DESC",
+      elite_only = false,
+      rating = null,
     } = options;
     const offset = (page - 1) * limit;
 
@@ -29,16 +31,22 @@ class ReviewService {
       : "created_at";
     const orderDirection = sort_order.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
+    const userWhere = elite_only ? { is_elite: true } : {};
+    const reviewWhere = {
+      establishment_id: establishmentId,
+      status: "approved",
+      ...(rating ? { rating: parseInt(rating) } : {}),
+    };
+
     const { count, rows } = await Review.findAndCountAll({
-      where: {
-        establishment_id: establishmentId,
-        status: "approved",
-      },
+      where: reviewWhere,
       include: [
         {
           model: User,
           as: "user",
-          attributes: ["id", "first_name", "last_name", "avatar"],
+          attributes: ["id", "first_name", "last_name", "avatar", "is_elite"],
+          where: Object.keys(userWhere).length ? userWhere : undefined,
+          required: Object.keys(userWhere).length > 0,
         },
       ],
       order: [[orderField, orderDirection]],
@@ -154,15 +162,11 @@ class ReviewService {
       throw ApiError.badRequest("You have already reviewed this establishment");
     }
 
-    // Compute global rating from sub_ratings if provided
-    let globalRating = data.rating;
-    if (data.sub_ratings && typeof data.sub_ratings === "object") {
-      const values = Object.values(data.sub_ratings).filter(
-        (v) => Number.isInteger(v) && v >= 1 && v <= 5
-      );
-      if (values.length > 0) {
-        globalRating = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
-      }
+    // La note d'ensemble est fournie explicitement par l'utilisateur.
+    // Les sub_ratings (critères détaillés) sont conservés mais ne calculent pas la note globale.
+    const globalRating = data.rating;
+    if (!globalRating || globalRating < 1 || globalRating > 5) {
+      throw ApiError.badRequest("Une note d'ensemble entre 1 et 5 est requise");
     }
 
     // Create review
@@ -175,6 +179,7 @@ class ReviewService {
       pros: data.pros || [],
       cons: data.cons || [],
       images: data.images || [],
+      videos: data.videos || [],
       visit_date: data.visit_date,
       sub_ratings: data.sub_ratings || null,
       status: "pending", // Requires moderation
@@ -190,6 +195,15 @@ class ReviewService {
         },
       ],
     });
+
+    // Notifier les admins qu'un nouvel avis est en attente de modération
+    const reviewerName = createdReview.user
+      ? `${createdReview.user.first_name} ${createdReview.user.last_name}`.trim()
+      : 'Un utilisateur';
+    const notificationService = require('./notification.service');
+    notificationService
+      .notifyAdminNewReview(createdReview, establishment, reviewerName)
+      .catch(() => {});
 
     return createdReview;
   }

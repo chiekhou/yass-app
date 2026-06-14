@@ -42,7 +42,7 @@ const authLimiter = rateLimit({
  */
 const passwordResetLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 5, // 5 attempts per hour
+  max: config.env === "development" ? 10000 : 5,
   message: {
     success: false,
     message: "Too many password reset attempts, please try again after an hour",

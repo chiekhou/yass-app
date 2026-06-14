@@ -41,6 +41,10 @@ class DeleteNotification extends NotificationsEvent {
   List<Object?> get props => [id];
 }
 
+class ClearNotifications extends NotificationsEvent {
+  const ClearNotifications();
+}
+
 // ─── States ──────────────────────────────────────────────────────────────────
 
 abstract class NotificationsState extends Equatable {
@@ -96,6 +100,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     on<MarkNotificationRead>(_onMarkRead);
     on<MarkAllNotificationsRead>(_onMarkAllRead);
     on<DeleteNotification>(_onDelete);
+    on<ClearNotifications>((_, emit) => emit(NotificationsInitial()));
   }
 
   Future<void> _onLoad(

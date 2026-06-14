@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +30,7 @@ class AdminPartnersPage extends StatefulWidget {
 class _AdminPartnersPageState extends State<AdminPartnersPage> {
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -35,10 +38,12 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
     context.read<AdminPartnersBloc>().add(
           AdminPartnersLoad(pendingOnly: widget.pendingOnly),
         );
+    _searchController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -46,13 +51,27 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<AdminPartnersBloc, AdminPartnersState>(
+      listenWhen: (previous, current) =>
+          current is AdminPartnersError && previous is AdminPartnersLoaded,
+      listener: (context, state) {
+        if (state is AdminPartnersError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: Text(widget.pendingOnly
             ? 'Partenaires en attente'
             : 'Gestion des partenaires'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         actions: [
@@ -75,6 +94,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
           Expanded(child: _buildPartnersList(context)),
         ],
       ),
+      ),
     );
   }
 
@@ -83,6 +103,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
       padding: const EdgeInsets.all(AppDimens.paddingM),
       color: AppColors.white,
       child: TextField(
+        style: TextStyle(color: AppColors.grey700),
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Rechercher un partenaire...',
@@ -92,6 +113,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                   icon: const Icon(Iconsax.close_circle, size: 20),
                   onPressed: () {
                     _searchController.clear();
+                    _searchDebounce?.cancel();
                     context
                         .read<AdminPartnersBloc>()
                         .add(const AdminPartnersSearch(query: ''));
@@ -110,9 +132,12 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
           ),
         ),
         onChanged: (value) {
-          context
-              .read<AdminPartnersBloc>()
-              .add(AdminPartnersSearch(query: value));
+          _searchDebounce?.cancel();
+          _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+            context
+                .read<AdminPartnersBloc>()
+                .add(AdminPartnersSearch(query: value));
+          });
         },
       ),
     );
@@ -225,6 +250,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
 
   Widget _buildPartnersList(BuildContext context) {
     return BlocBuilder<AdminPartnersBloc, AdminPartnersState>(
+      buildWhen: (previous, current) =>
+          !(current is AdminPartnersError && previous is AdminPartnersLoaded),
       builder: (context, state) {
         if (state is AdminPartnersLoading) {
           return const Center(
@@ -252,7 +279,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AppDimens.paddingM),
                     itemCount: state.partners.length,
                     itemBuilder: (context, index) {
                       final partner = state.partners[index];
@@ -283,7 +311,9 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                   total: state.total,
                   isLoading: state.isUpdating,
                   onPageChanged: (page) {
-                    context.read<AdminPartnersBloc>().add(AdminPartnersGoToPage(page: page));
+                    context
+                        .read<AdminPartnersBloc>()
+                        .add(AdminPartnersGoToPage(page: page));
                     _scrollController.jumpTo(0);
                   },
                 ),
@@ -367,7 +397,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                 color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
+              child: const Icon(Iconsax.warning_2,
+                  size: 64, color: AppColors.error),
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
@@ -571,11 +602,13 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (reasonController.text.trim().isEmpty) {
+              final reason = reasonController.text.trim();
+              if (reason.length < 10) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Veuillez entrer une raison'),
+                    content: Text('La raison doit faire au moins 10 caractères'),
                     backgroundColor: AppColors.error,
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
                 return;
@@ -584,7 +617,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
               context.read<AdminPartnersBloc>().add(
                     AdminPartnerSuspend(
                       partnerId: partner.id,
-                      reason: reasonController.text.trim(),
+                      reason: reason,
                     ),
                   );
             },

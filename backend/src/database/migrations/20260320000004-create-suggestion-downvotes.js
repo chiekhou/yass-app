@@ -30,12 +30,9 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-    });
+    }, { ifNotExists: true });
 
-    await queryInterface.addIndex("suggestion_downvotes", ["suggestion_id", "user_id"], {
-      unique: true,
-      name: "unique_suggestion_downvote",
-    });
+    await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS unique_suggestion_downvote ON suggestion_downvotes (suggestion_id, user_id);`);
   },
 
   async down(queryInterface) {

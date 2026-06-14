@@ -148,12 +148,16 @@ class PartnerRepository {
     String establishmentId, {
     int page = 1,
     int limit = 20,
+    bool eliteOnly = false,
+    int? rating,
   }) async {
     final response = await _apiClient.get(
       ApiConfig.establishmentReviews(establishmentId),
       queryParameters: {
         'page': page,
         'limit': limit,
+        if (eliteOnly) 'elite_only': 'true',
+        if (rating != null) 'rating': rating,
       },
     );
     return ReviewsResponse.fromJson(response.data['data']);

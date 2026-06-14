@@ -30,7 +30,7 @@ class AdminPartnerDetailPage extends StatelessWidget {
         if (state is AdminPartnerDetailsLoading) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: AppColors.scaffoldBackground,
               foregroundColor: AppColors.white,
               leading: IconButton(
                 icon: const Icon(Iconsax.arrow_left),
@@ -98,7 +98,7 @@ class _PartnerDetailView extends StatelessWidget {
           style: const TextStyle(fontSize: 16),
           overflow: TextOverflow.ellipsis,
         ),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
@@ -134,6 +134,7 @@ class _PartnerDetailView extends StatelessWidget {
 
   Widget _buildPartnerInfoCard(BuildContext context) {
     return Card(
+      color: AppColors.scaffoldBackground,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -176,14 +177,14 @@ class _PartnerDetailView extends StatelessWidget {
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.grey900,
+                                  color: AppColors.white,
                                 ),
                       ),
                       const SizedBox(height: AppDimens.paddingXS),
                       Text(
                         'Plan: ${partner.subscriptionPlan}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.grey600,
+                              color: AppColors.white,
                             ),
                       ),
                     ],
@@ -284,6 +285,7 @@ class _PartnerDetailView extends StatelessWidget {
   Widget _buildUserInfoCard(BuildContext context) {
     final user = partner.user!;
     return Card(
+      color: AppColors.scaffoldBackground,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -307,16 +309,15 @@ class _PartnerDetailView extends StatelessWidget {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: AppColors.grey200,
-                  backgroundImage: user.avatar != null
-                      ? NetworkImage(user.avatar!)
-                      : null,
+                  backgroundImage:
+                      user.avatar != null ? NetworkImage(user.avatar!) : null,
                   child: user.avatar == null
                       ? Text(
                           user.firstName.isNotEmpty
                               ? user.firstName[0].toUpperCase()
                               : '?',
                           style: const TextStyle(
-                            color: AppColors.grey600,
+                            color: AppColors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         )
@@ -329,11 +330,10 @@ class _PartnerDetailView extends StatelessWidget {
                     children: [
                       Text(
                         user.fullName,
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.grey900,
-                                ),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,
+                            ),
                       ),
                       const SizedBox(height: AppDimens.paddingXS),
                       _infoRow(context, Iconsax.sms, user.email),
@@ -354,6 +354,7 @@ class _PartnerDetailView extends StatelessWidget {
 
   Widget _buildActionCard(BuildContext context) {
     return Card(
+      color: AppColors.scaffoldBackground,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -379,8 +380,7 @@ class _PartnerDetailView extends StatelessWidget {
                   if (partner.isPending)
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () =>
-                            _showRejectDialog(context, partner.id),
+                        onPressed: () => _showRejectDialog(context, partner.id),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),
@@ -416,11 +416,10 @@ class _PartnerDetailView extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () =>
-                          _showSuspendDialog(context, partner.id),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.warning,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showSuspendDialog(context, partner.id),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.warning,
                         side: const BorderSide(color: AppColors.warning),
                         padding: const EdgeInsets.symmetric(
                             vertical: AppDimens.paddingS),
@@ -461,6 +460,7 @@ class _PartnerDetailView extends StatelessWidget {
   Widget _buildEstablishmentsSection(BuildContext context) {
     final establishments = partner.establishments;
     return Card(
+      color: AppColors.scaffoldBackground,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -504,8 +504,8 @@ class _PartnerDetailView extends StatelessWidget {
             if (establishments == null || establishments.isEmpty)
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: AppDimens.paddingL),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: AppDimens.paddingL),
                   child: Column(
                     children: [
                       Icon(Iconsax.building,
@@ -514,7 +514,7 @@ class _PartnerDetailView extends StatelessWidget {
                       Text(
                         'Aucun établissement',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.grey500,
+                              color: AppColors.white,
                             ),
                       ),
                     ],
@@ -556,71 +556,139 @@ class _PartnerDetailView extends StatelessWidget {
         statusColor = AppColors.grey500;
     }
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+              ),
+              child: const Icon(Iconsax.building,
+                  size: 20, color: AppColors.grey600),
+            ),
+            const SizedBox(width: AppDimens.paddingM),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    est.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.white,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (est.categoryName != null || est.communeName != null)
+                    Text(
+                      [est.categoryName, est.communeName]
+                          .where((e) => e != null)
+                          .join(' · '),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.white,
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppDimens.paddingS),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.paddingS,
+                vertical: AppDimens.paddingXS,
+              ),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppDimens.radiusXS),
+              ),
+              child: Text(
+                est.statusLabel,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 10,
+                    ),
+              ),
+            ),
+            const SizedBox(width: AppDimens.paddingXS),
+            IconButton(
+              icon: const Icon(Iconsax.trash, size: 18, color: AppColors.error),
+              tooltip: 'Supprimer',
+              onPressed: () => _showDeleteEstablishmentDialog(context, est),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppDimens.paddingS),
         Container(
-          width: 40,
-          height: 40,
+          padding: const EdgeInsets.all(AppDimens.paddingS),
           decoration: BoxDecoration(
-            color: AppColors.grey100,
+            color: AppColors.grey50,
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
           ),
-          child: const Icon(Iconsax.building, size: 20, color: AppColors.grey600),
-        ),
-        const SizedBox(width: AppDimens.paddingM),
-        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                est.name,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                'Interlocuteur',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.primaryGreen,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.grey900,
                     ),
-                overflow: TextOverflow.ellipsis,
               ),
-              if (est.categoryName != null || est.communeName != null)
-                Text(
-                  [est.categoryName, est.communeName]
-                      .where((e) => e != null)
-                      .join(' · '),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.grey500,
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              const SizedBox(height: AppDimens.paddingXS),
+              _interlocuteurRow(context, Iconsax.user, 'Prénom',
+                  est.contactFirstName ?? 'Non renseigné'),
+              _interlocuteurRow(context, Iconsax.user, 'Nom',
+                  est.contactLastName ?? 'Non renseigné'),
+              _interlocuteurRow(context, Iconsax.briefcase, 'Poste',
+                  est.contactPosition ?? 'Non renseigné'),
+              _interlocuteurRow(context, Iconsax.call, 'Tél.',
+                  est.contactPhone ?? 'Non renseigné'),
+              _interlocuteurRow(context, Iconsax.sms, 'Email',
+                  est.contactEmail ?? 'Non renseigné'),
             ],
           ),
         ),
-        const SizedBox(width: AppDimens.paddingS),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.paddingS,
-            vertical: AppDimens.paddingXS,
-          ),
-          decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(AppDimens.radiusXS),
-          ),
-          child: Text(
-            est.statusLabel,
+      ],
+    );
+  }
+
+  Widget _interlocuteurRow(
+      BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 12, color: AppColors.grey500),
+          const SizedBox(width: AppDimens.paddingXS),
+          Text(
+            '$label : ',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: statusColor,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 10,
+                  color: AppColors.grey500,
+                  fontSize: 11,
                 ),
           ),
-        ),
-        const SizedBox(width: AppDimens.paddingXS),
-        IconButton(
-          icon: const Icon(Iconsax.trash, size: 18, color: AppColors.error),
-          tooltip: 'Supprimer',
-          onPressed: () => _showDeleteEstablishmentDialog(context, est),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-        ),
-      ],
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.grey800,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 11,
+                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -663,13 +731,13 @@ class _PartnerDetailView extends StatelessWidget {
       {Color? color}) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: color ?? AppColors.grey500),
+        Icon(icon, size: 14, color: color ?? AppColors.white),
         const SizedBox(width: AppDimens.paddingXS),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: color ?? AppColors.grey600,
+                  color: color ?? AppColors.white,
                 ),
             overflow: TextOverflow.ellipsis,
           ),

@@ -51,11 +51,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         );
         context.go(AppRoutes.login);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        final msg = _extractErrorMessage(e);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lien invalide ou expiré. Veuillez recommencer.'),
+          SnackBar(
+            content: Text(msg),
             backgroundColor: AppColors.error,
           ),
         );
@@ -65,12 +66,31 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     }
   }
 
+  String _extractErrorMessage(Object e) {
+    final str = e.toString();
+    if (str.contains('expired') || str.contains('expiré')) {
+      return 'Le lien a expiré. Veuillez recommencer la procédure.';
+    }
+    if (str.contains('Invalid') ||
+        str.contains('invalide') ||
+        str.contains('token')) {
+      return 'Lien invalide. Veuillez recommencer la procédure.';
+    }
+    if (str.contains('majuscule') || str.contains('uppercase')) {
+      return 'Le mot de passe doit contenir au moins une majuscule.';
+    }
+    if (str.contains('password') || str.contains('mot de passe')) {
+      return 'Mot de passe invalide. Vérifiez les critères ci-dessous.';
+    }
+    return 'Une erreur est survenue. Veuillez réessayer.';
+  }
+
   @override
   Widget build(BuildContext context) {
     return LoadingOverlay(
       isLoading: _isLoading,
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -106,7 +126,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   const SizedBox(height: AppDimens.paddingL),
                   Text(
                     'Nouveau mot de passe',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(color: AppColors.white),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppDimens.paddingS),
@@ -115,11 +138,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: AppColors.grey600),
+                        ?.copyWith(color: AppColors.white),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppDimens.paddingXL),
                   CustomTextField(
+                    textColor: AppColors.greenAccent,
                     controller: _passwordController,
                     label: 'Nouveau mot de passe',
                     hint: '••••••••',
@@ -137,11 +161,21 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                         return 'Le mot de passe est requis';
                       }
                       if (value.length < 8) return 'Minimum 8 caractères';
+                      if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                        return 'Au moins une lettre majuscule requise';
+                      }
+                      if (!RegExp(r'[a-z]').hasMatch(value)) {
+                        return 'Au moins une lettre minuscule requise';
+                      }
+                      if (!RegExp(r'[0-9]').hasMatch(value)) {
+                        return 'Au moins un chiffre requis';
+                      }
                       return null;
                     },
                   ),
                   const SizedBox(height: AppDimens.paddingM),
                   CustomTextField(
+                    textColor: AppColors.greenAccent,
                     controller: _confirmController,
                     label: 'Confirmer le mot de passe',
                     hint: '••••••••',
@@ -170,8 +204,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                       minimumSize:
                           const Size.fromHeight(AppDimens.buttonHeight),
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.radiusM),
+                        borderRadius: BorderRadius.circular(AppDimens.radiusM),
                       ),
                     ),
                     child: const Text(

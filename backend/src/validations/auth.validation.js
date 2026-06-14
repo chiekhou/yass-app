@@ -5,7 +5,7 @@ const register = [
     .trim()
     .isEmail()
     .withMessage("Veuillez fournir une adresse e-mail valide")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body("password")
     .isLength({ min: 8 })
@@ -59,7 +59,7 @@ const registerPartner = [
     .trim()
     .isEmail()
     .withMessage("Veuillez fournir une adresse e-mail valide")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body("password")
     .isLength({ min: 8 })
@@ -123,7 +123,7 @@ const login = [
     .trim()
     .isEmail()
     .withMessage("Veuillez fournir une adresse e-mail valide")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body("password").notEmpty().withMessage("Le mot de passe est requis"),
 ];
@@ -133,7 +133,7 @@ const forgotPassword = [
     .trim()
     .isEmail()
     .withMessage("Veuillez fournir une adresse e-mail valide")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 ];
 
 const resetPassword = [
@@ -258,7 +258,7 @@ const registerWithPhone = [
     .trim()
     .isEmail()
     .withMessage("Veuillez fournir une adresse e-mail valide")
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body("language")
     .optional()

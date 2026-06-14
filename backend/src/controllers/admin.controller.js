@@ -69,6 +69,19 @@ class AdminController {
   }
 
   /**
+   * Toggle elite status
+   * PATCH /api/v1/admin/users/:id/elite
+   */
+  async toggleEliteStatus(req, res, next) {
+    try {
+      const user = await adminService.toggleEliteStatus(req.params.id);
+      ApiResponse.success(user, `Statut Elite ${user.is_elite ? 'activé' : 'désactivé'}`).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Delete user
    * DELETE /api/v1/admin/users/:id
    */
@@ -243,12 +256,13 @@ class AdminController {
    */
   async getEstablishments(req, res, next) {
     try {
-      const { page, limit, status, search } = req.query;
+      const { page, limit, status, search, subscription_plan } = req.query;
       const result = await adminService.getEstablishments({
         page: parseInt(page) || 1,
         limit: parseInt(limit) || 20,
         status,
         search,
+        subscription_plan,
       });
       ApiResponse.success(result, "Establishments retrieved successfully").send(res);
     } catch (error) {
@@ -264,6 +278,32 @@ class AdminController {
     try {
       const establishment = await adminService.createEstablishment(req.body, req.userId);
       ApiResponse.success(establishment, "Establishment created successfully", 201).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get single establishment by id
+   * GET /api/v1/admin/establishments/:id
+   */
+  async getEstablishmentById(req, res, next) {
+    try {
+      const establishment = await adminService.getEstablishmentById(req.params.id);
+      ApiResponse.success(establishment, "Establishment retrieved successfully").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update establishment
+   * PATCH /api/v1/admin/establishments/:id
+   */
+  async updateEstablishment(req, res, next) {
+    try {
+      const establishment = await adminService.updateEstablishment(req.params.id, req.body);
+      ApiResponse.success(establishment, "Establishment updated successfully").send(res);
     } catch (error) {
       next(error);
     }

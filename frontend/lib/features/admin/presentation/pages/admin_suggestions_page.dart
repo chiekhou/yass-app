@@ -214,7 +214,7 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: const Text('Suggestions communauté'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -255,10 +255,11 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
                   setState(() => _statusFilter = f.$1);
                   _load();
                 },
-                selectedColor: AppColors.primaryGreen.withValues(alpha: 0.15),
+                backgroundColor: AppColors.scaffoldBackground,
+                selectedColor: AppColors.primaryGreen.withValues(alpha: 0.2),
                 checkmarkColor: AppColors.primaryGreen,
                 labelStyle: TextStyle(
-                  color: selected ? AppColors.primaryGreen : AppColors.grey700,
+                  color: selected ? AppColors.primaryGreen : AppColors.white,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -561,7 +562,7 @@ class _AdminSuggestionCard extends StatelessWidget {
                         icon: const Icon(Iconsax.tick_circle, size: 16),
                         label: const Text('Approuver'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
+                          backgroundColor: AppColors.greenDark,
                           foregroundColor: AppColors.white,
                         ),
                       ),

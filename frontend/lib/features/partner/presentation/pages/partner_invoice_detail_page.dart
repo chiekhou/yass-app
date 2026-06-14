@@ -29,7 +29,7 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF002FA7),
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
@@ -77,7 +77,7 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(AppDimens.paddingL),
                   decoration: const BoxDecoration(
-                    color: Color(0xFF006233),
+                    color: Color(0xFF70E010),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(AppDimens.radiusL),
                       topRight: Radius.circular(AppDimens.radiusL),
@@ -108,7 +108,7 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                         child: Text(
                           'Reçu de paiement',
                           style: TextStyle(
-                              color: Colors.white70,
+                              color: Colors.white,
                               fontSize: 13,
                               fontWeight: FontWeight.w400),
                         ),
@@ -194,7 +194,7 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                                 .textTheme
                                 .titleLarge
                                 ?.copyWith(
-                                  color: const Color(0xFF006233),
+                                  color: const Color(0xFF002FA7),
                                   fontWeight: FontWeight.w900,
                                 ),
                           ),
@@ -274,12 +274,12 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
         children: [
           Text(
             label,
-            style: const TextStyle(color: Colors.black54, fontSize: 13),
+            style: const TextStyle(color: Colors.black, fontSize: 13),
           ),
           Text(
             value,
             style: TextStyle(
-              color: const Color(0xFF1A1A1A),
+              color: const Color(0xFF002FA7),
               fontSize: 13,
               fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
             ),
@@ -317,14 +317,14 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         label,
-        style:
-            TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+        style: TextStyle(
+            color: AppColors.white, fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }

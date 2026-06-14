@@ -124,7 +124,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                   const EdgeInsets.symmetric(vertical: AppDimens.paddingXL),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.primaryGreen, AppColors.greenDark],
+                  colors: [AppColors.primaryBlue, AppColors.primaryBlueDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -200,7 +200,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.accentGreen,
                         foregroundColor: AppColors.white,
                       ),
                       child: const Text('Retour à la liste'),
@@ -246,7 +246,10 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
     return LoadingOverlay(
       isLoading: _loading,
       child: Scaffold(
+        backgroundColor: AppColors.kleinBlue,
         appBar: AppBar(
+          backgroundColor: AppColors.kleinBlue,
+          foregroundColor: AppColors.white,
           title: const Text('Suggérer un établissement'),
         ),
         body: _buildForm(),
@@ -266,13 +269,13 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingM),
               decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withValues(alpha: 0.08),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
               ),
               child: Row(
                 children: [
                   const Icon(Iconsax.info_circle,
-                      color: AppColors.primaryGreen, size: 20),
+                      color: AppColors.accentGreen, size: 20),
                   const SizedBox(width: AppDimens.paddingS),
                   Expanded(
                     child: Text(
@@ -366,8 +369,8 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                 icon: const Icon(Iconsax.send_1),
                 label: const Text('Envoyer ma suggestion'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.white,
-                  foregroundColor: AppColors.primaryRed,
+                  backgroundColor: AppColors.accentGreen,
+                  foregroundColor: AppColors.black,
                   minimumSize: Size.zero,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingL,
@@ -424,7 +427,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide:
-              const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+              const BorderSide(color: AppColors.accentGreen, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
@@ -454,7 +457,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide:
-              const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+              const BorderSide(color: AppColors.accentGreen, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
@@ -493,7 +496,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide:
-              const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+              const BorderSide(color: AppColors.accentGreen, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,

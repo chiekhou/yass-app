@@ -23,6 +23,12 @@ class CustomTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final TextCapitalization textCapitalization;
 
+  /// Passe à true sur les pages à fond sombre (login, register).
+  final bool isDark;
+
+  /// Couleur personnalisée pour le label et le texte saisi (mode clair uniquement).
+  final Color? textColor;
+
   const CustomTextField({
     super.key,
     this.controller,
@@ -42,10 +48,21 @@ class CustomTextField extends StatelessWidget {
     this.inputFormatters,
     this.focusNode,
     this.textCapitalization = TextCapitalization.none,
+    this.isDark = false,
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final labelColor = isDark
+        ? Colors.white.withValues(alpha: 0.85)
+        : (textColor ?? AppColors.grey700);
+    final inputTextColor = isDark ? Colors.white : textColor;
+    final hintColor = isDark ? Colors.white.withValues(alpha: 0.4) : null;
+    final iconColor = isDark
+        ? Colors.white.withValues(alpha: 0.65)
+        : textColor?.withValues(alpha: 0.6);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -53,7 +70,7 @@ class CustomTextField extends StatelessWidget {
           Text(
             label!,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.grey700,
+                  color: labelColor,
                 ),
           ),
           const SizedBox(height: AppDimens.paddingS),
@@ -72,14 +89,44 @@ class CustomTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           focusNode: focusNode,
           textCapitalization: textCapitalization,
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: inputTextColor != null
+              ? TextStyle(color: inputTextColor, fontSize: 15)
+              : Theme.of(context).textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: hintColor != null ? TextStyle(color: hintColor) : null,
             prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, size: AppDimens.iconS)
+                ? Icon(prefixIcon, size: AppDimens.iconS, color: iconColor)
                 : null,
             suffixIcon: suffixIcon,
             counterText: '',
+            filled: true,
+            fillColor: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : AppColors.white,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              borderSide: BorderSide(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.25)
+                    : AppColors.grey300,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.accentGreen : AppColors.primaryGreen,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+              borderSide: const BorderSide(color: AppColors.error, width: 2),
+            ),
           ),
         ),
       ],

@@ -46,6 +46,11 @@ module.exports = (sequelize) => {
         allowNull: true,
         defaultValue: [],
       },
+      videos: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+        defaultValue: [],
+      },
       status: {
         type: DataTypes.ENUM("pending", "approved", "rejected", "hidden"),
         defaultValue: "approved",

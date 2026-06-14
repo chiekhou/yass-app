@@ -25,7 +25,6 @@ class AdminDrawer extends StatefulWidget {
 class _AdminDrawerState extends State<AdminDrawer> {
   int _pendingPartners = 0;
   int _pendingEstablishments = 0;
-  int _pendingReviews = 0;
   int _reportedReviews = 0;
   int _pendingPayments = 0;
   int _pendingSuggestions = 0;
@@ -41,11 +40,17 @@ class _AdminDrawerState extends State<AdminDrawer> {
     final repo = AdminRepository();
 
     // Chaque appel est indépendant — une erreur n'annule pas les autres
-    final statsFuture = repo.getDashboardStats().then<AdminStats?>((v) => v).catchError((_) => null);
-    final paymentsFuture = repo.getPendingPayments().catchError((_) => <Map<String, dynamic>>[]);
-    final suggestionsFuture = repo.getPendingSuggestionsCount().catchError((_) => 0);
+    final statsFuture = repo
+        .getDashboardStats()
+        .then<AdminStats?>((v) => v)
+        .catchError((_) => null);
+    final paymentsFuture =
+        repo.getPendingPayments().catchError((_) => <Map<String, dynamic>>[]);
+    final suggestionsFuture =
+        repo.getPendingSuggestionsCount().catchError((_) => 0);
 
-    final results = await Future.wait([statsFuture, paymentsFuture, suggestionsFuture]);
+    final results =
+        await Future.wait([statsFuture, paymentsFuture, suggestionsFuture]);
 
     if (!mounted) return;
     setState(() {
@@ -55,7 +60,6 @@ class _AdminDrawerState extends State<AdminDrawer> {
       if (stats != null) {
         _pendingPartners = stats.pendingPartners;
         _pendingEstablishments = stats.pendingEstablishments;
-        _pendingReviews = stats.pendingReviews;
         _reportedReviews = stats.reportedReviews;
       }
       _pendingPayments = payments.length;
@@ -134,22 +138,12 @@ class _AdminDrawerState extends State<AdminDrawer> {
                     badgeCount: _pendingEstablishments,
                   ),
                   _buildSectionTitle(context, 'Modération'),
-                  _buildMenuItemWithExtra(
-                    context,
-                    icon: Iconsax.star,
-                    title: 'Gestion Avis',
-                    route: AppRoutes.adminReviews,
-                    extra: {'initialTab': 'all'},
-                    isSelected: widget.currentRoute == AppRoutes.adminReviews,
-                  ),
                   _buildMenuItem(
                     context,
-                    icon: Iconsax.message_text,
-                    title: 'Avis en attente',
-                    route: AppRoutes.adminPendingReviews,
-                    isSelected:
-                        widget.currentRoute == AppRoutes.adminPendingReviews,
-                    badgeCount: _pendingReviews,
+                    icon: Iconsax.star,
+                    title: 'Tous les avis',
+                    route: AppRoutes.adminReviews,
+                    isSelected: widget.currentRoute == AppRoutes.adminReviews,
                   ),
                   _buildMenuItem(
                     context,
@@ -209,7 +203,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.white,
+                  color: AppColors.grey300,
                 ),
               ),
             ),
@@ -259,73 +253,6 @@ class _AdminDrawerState extends State<AdminDrawer> {
     );
   }
 
-  Widget _buildMenuItemWithExtra(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String route,
-    required Map<String, dynamic> extra,
-    required bool isSelected,
-    int badgeCount = 0,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(AppDimens.paddingS),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryGreen.withValues(alpha: 0.1)
-              : AppColors.grey100,
-          borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        ),
-        child: Icon(
-          icon,
-          color: isSelected ? AppColors.primaryGreen : AppColors.grey600,
-          size: AppDimens.iconS,
-        ),
-      ),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isSelected ? AppColors.primaryGreen : AppColors.grey800,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
-      ),
-      trailing: badgeCount > 0
-          ? Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.paddingS,
-                vertical: AppDimens.paddingXS,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.primaryRed,
-                borderRadius: BorderRadius.circular(AppDimens.radiusRound),
-              ),
-              child: Text(
-                badgeCount > 99 ? '99+' : '$badgeCount',
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            )
-          : null,
-      selected: isSelected,
-      selectedTileColor: AppColors.primaryGreen.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimens.radiusS),
-      ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingM,
-        vertical: AppDimens.paddingXS,
-      ),
-      onTap: () {
-        Navigator.pop(context);
-        context.go(route, extra: extra);
-      },
-    );
-  }
-
   Widget _buildMenuItem(
     BuildContext context, {
     required IconData icon,
@@ -369,7 +296,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
               child: Text(
                 badgeCount > 99 ? '99+' : '$badgeCount',
                 style: const TextStyle(
-                  color: AppColors.white,
+                  color: AppColors.grey300,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),

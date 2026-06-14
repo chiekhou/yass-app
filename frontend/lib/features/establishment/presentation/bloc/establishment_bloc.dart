@@ -38,11 +38,21 @@ class EstablishmentToggleFavorite extends EstablishmentEvent {}
 
 class EstablishmentLoadReviews extends EstablishmentEvent {
   final int page;
+  final bool eliteOnly;
+  final int? rating;
+  final String sortBy;
+  final String sortOrder;
 
-  const EstablishmentLoadReviews({this.page = 1});
+  const EstablishmentLoadReviews({
+    this.page = 1,
+    this.eliteOnly = false,
+    this.rating,
+    this.sortBy = 'created_at',
+    this.sortOrder = 'DESC',
+  });
 
   @override
-  List<Object?> get props => [page];
+  List<Object?> get props => [page, eliteOnly, rating, sortBy, sortOrder];
 }
 
 class EstablishmentTrackPhone extends EstablishmentEvent {}
@@ -212,6 +222,10 @@ class EstablishmentBloc extends Bloc<EstablishmentEvent, EstablishmentState> {
         final reviewsData = await _reviewRepository.getEstablishmentReviews(
           currentState.establishment.id,
           page: event.page,
+          eliteOnly: event.eliteOnly,
+          rating: event.rating,
+          sortBy: event.sortBy,
+          sortOrder: event.sortOrder,
         );
 
         emit(currentState.copyWith(

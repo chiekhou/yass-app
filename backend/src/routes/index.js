@@ -29,30 +29,77 @@ router.post("/app/visit", async (req, res) => {
   res.status(204).send();
 });
 
-// ── Deep link redirects (pour les emails — win:// non supporté partout) ──────
-// Les emails contiennent https://.../r/reset?token=... qui redirige vers win://
+// ── Deep link redirects (pour les emails) ────────────────────────────────────
+// Les navigateurs et clients email Android/iOS bloquent les HTTP 302 → win://
+// On sert une page HTML avec window.location pour contourner cette restriction.
+
+function deepLinkPage(deepLink, title, message) {
+  const safe = deepLink.replace(/'/g, '%27');
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title} — Win</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#f4f4f4;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+    .card{background:#fff;border-radius:14px;padding:36px 28px;max-width:420px;width:100%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+    h2{color:#006233;font-size:20px;margin-bottom:12px}
+    p{color:#555;font-size:14px;line-height:1.5;margin-bottom:24px}
+    .btn{display:inline-block;padding:14px 32px;background:#006233;color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700}
+    .note{margin-top:20px;font-size:12px;color:#999}
+  </style>
+  <script>window.onload=function(){window.location.href='${safe}';};</script>
+</head>
+<body>
+  <div class="card">
+    <h2>${title}</h2>
+    <p>${message}</p>
+    <a href="${safe}" class="btn">Ouvrir Win</a>
+    <p class="note">Si l'application ne s'ouvre pas, assurez-vous qu'elle est installée sur votre appareil.</p>
+  </div>
+</body>
+</html>`;
+}
+
 router.get("/r/reset", (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).send("Token manquant");
-  res.redirect(`win://reset-password?token=${token}`);
+  const deepLink = `win://reset-password?token=${encodeURIComponent(token)}`;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(deepLinkPage(
+    deepLink,
+    "🔐 Réinitialisation du mot de passe",
+    "L'application Win devrait s'ouvrir automatiquement pour vous permettre de définir un nouveau mot de passe."
+  ));
 });
 
 router.get("/r/verify", (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).send("Token manquant");
-  res.redirect(`win://verify-email?token=${token}`);
+  const deepLink = `win://verify-email?token=${encodeURIComponent(token)}`;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(deepLinkPage(
+    deepLink,
+    "✅ Vérification de votre email",
+    "L'application Win devrait s'ouvrir automatiquement pour confirmer votre adresse email."
+  ));
 });
 
 router.get("/r/welcome", (_req, res) => {
-  res.redirect("win://main");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(deepLinkPage("win://main", "🎉 Bienvenue sur Win !", "Votre compte est activé. L'application s'ouvre automatiquement."));
 });
 
 router.get("/r/partner-dashboard", (_req, res) => {
-  res.redirect("win://partner");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(deepLinkPage("win://partner", "🏢 Espace partenaire", "L'application Win s'ouvre automatiquement vers votre espace partenaire."));
 });
 
 router.get("/r/admin-partners", (_req, res) => {
-  res.redirect("win://admin/partners/pending");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(deepLinkPage("win://admin/partners/pending", "🔔 Demandes partenaires", "L'application s'ouvre automatiquement vers la liste des demandes."));
 });
 
 router.get("/r/payment/success", (req, res) => {

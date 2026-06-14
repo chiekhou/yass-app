@@ -1,7 +1,7 @@
-const { Notification, User } = require('../models');
-const { PaginatedResponse } = require('../utils/ApiResponse');
-const ApiError = require('../utils/ApiError');
-const fcmService = require('./fcm.service');
+const { Notification, User } = require("../models");
+const { PaginatedResponse } = require("../utils/ApiResponse");
+const ApiError = require("../utils/ApiError");
+const fcmService = require("./fcm.service");
 
 class NotificationService {
   // ─── Core CRUD ──────────────────────────────────────────────────────────────
@@ -32,12 +32,18 @@ class NotificationService {
 
     const { count, rows } = await Notification.findAndCountAll({
       where: { user_id: userId },
-      order: [['created_at', 'DESC']],
+      order: [["created_at", "DESC"]],
       limit,
       offset,
     });
 
-    return PaginatedResponse.paginate(rows, page, limit, count, 'Notifications retrieved');
+    return PaginatedResponse.paginate(
+      rows,
+      page,
+      limit,
+      count,
+      "Notifications retrieved",
+    );
   }
 
   /**
@@ -58,7 +64,7 @@ class NotificationService {
       where: { id: notificationId, user_id: userId },
     });
 
-    if (!notification) throw ApiError.notFound('Notification introuvable');
+    if (!notification) throw ApiError.notFound("Notification introuvable");
 
     await notification.update({ is_read: true, read_at: new Date() });
     return notification;
@@ -70,7 +76,7 @@ class NotificationService {
   async markAllAsRead(userId) {
     const [count] = await Notification.update(
       { is_read: true, read_at: new Date() },
-      { where: { user_id: userId, is_read: false } }
+      { where: { user_id: userId, is_read: false } },
     );
     return { updated: count };
   }
@@ -83,7 +89,7 @@ class NotificationService {
       where: { id: notificationId, user_id: userId },
     });
 
-    if (!notification) throw ApiError.notFound('Notification introuvable');
+    if (!notification) throw ApiError.notFound("Notification introuvable");
     await notification.destroy();
   }
 
@@ -92,89 +98,95 @@ class NotificationService {
   async notifyPartnerApproved(partner, partnerUserId) {
     return this.create(
       partnerUserId,
-      'partner_approved',
-      'Compte approuvé 🎉',
+      "partner_approved",
+      "Compte approuvé 🎉",
       `Bienvenue sur Win-وين ! Votre compte partenaire "${partner.company_name}" a été approuvé. Votre essai de 14 jours commence maintenant.`,
-      { partner_id: partner.id }
+      { partner_id: partner.id },
     );
   }
 
   async notifyPartnerRejected(partner, partnerUserId, reason = null) {
     const body = reason
       ? `Votre demande a été refusée. Raison : ${reason}`
-      : 'Votre demande de compte partenaire a été refusée.';
+      : "Votre demande de compte partenaire a été refusée.";
 
     return this.create(
       partnerUserId,
-      'partner_rejected',
-      'Demande refusée',
+      "partner_rejected",
+      "Demande refusée",
       body,
-      { partner_id: partner.id }
+      { partner_id: partner.id },
     );
   }
 
   async notifyEstablishmentApproved(establishment, partnerUserId) {
     return this.create(
       partnerUserId,
-      'establishment_approved',
-      'Établissement approuvé ✅',
+      "establishment_approved",
+      "Établissement approuvé ✅",
       `Votre établissement "${establishment.name}" est maintenant visible sur Win-وين.`,
-      { establishment_id: establishment.id }
+      { establishment_id: establishment.id },
     );
   }
 
-  async notifyEstablishmentRejected(establishment, partnerUserId, reason = null) {
+  async notifyEstablishmentRejected(
+    establishment,
+    partnerUserId,
+    reason = null,
+  ) {
     const body = reason
       ? `"${establishment.name}" a été refusé. Raison : ${reason}`
       : `Votre établissement "${establishment.name}" a été refusé.`;
 
     return this.create(
       partnerUserId,
-      'establishment_rejected',
-      'Établissement refusé',
+      "establishment_rejected",
+      "Établissement refusé",
       body,
-      { establishment_id: establishment.id }
+      { establishment_id: establishment.id },
     );
   }
 
   async notifyPaymentValidated(invoice, partnerUserId) {
     const planLabels = {
-      monthly: 'Mensuel', yearly: 'Annuel',
-      featured_7: '7 jours', featured_15: '15 jours', featured_30: '30 jours',
+      monthly: "Mensuel",
+      yearly: "Annuel",
+      featured_7: "7 jours",
+      featured_15: "15 jours",
+      featured_30: "30 jours",
     };
     const planLabel = planLabels[invoice.plan] || invoice.plan;
-    const isFeatured = invoice.type === 'featured';
-    const title = isFeatured ? 'Mise à la une activée ⭐' : 'Paiement confirmé ✅';
+    const isFeatured = invoice.type === "featured";
+    const title = isFeatured
+      ? "Mise à la une activée ⭐"
+      : "Paiement confirmé ✅";
     const body = isFeatured
       ? `Votre mise à la une (${planLabel}) a été activée.`
       : `Votre abonnement ${planLabel} est actif. (${invoice.invoice_number})`;
-    return this.create(
-      partnerUserId,
-      'payment_validated',
-      title,
-      body,
-      { invoice_id: invoice.id, invoice_number: invoice.invoice_number }
-    );
+    return this.create(partnerUserId, "payment_validated", title, body, {
+      invoice_id: invoice.id,
+      invoice_number: invoice.invoice_number,
+    });
   }
 
   /**
    * Notifie tous les admins/super_admins qu'une nouvelle suggestion est en attente.
    */
   async notifyAdminNewSuggestion(suggestion, suggesterName) {
-    const { Op } = require('sequelize');
+    const { Op } = require("sequelize");
     const admins = await User.findAll({
-      where: { role: { [Op.in]: ['admin', 'super_admin'] }, status: 'active' },
-      attributes: ['id'],
+      where: { role: { [Op.in]: ["admin", "super_admin"] }, status: "active" },
+      attributes: ["id"],
     });
 
     const promises = admins.map((admin) =>
       this.create(
         admin.id,
-        'suggestion_pending',
-        'Nouvelle suggestion en attente',
+        "suggestion_pending",
+        "Nouvelle suggestion en attente",
         `${suggesterName} a suggéré l'établissement "${suggestion.name}". En attente de validation.`,
-        { suggestion_id: suggestion.id }
-      )
+        { suggestion_id: suggestion.id },
+      ),
     );
 
     await Promise.allSettled(promises);
@@ -184,24 +196,50 @@ class NotificationService {
    * Notifie tous les admins/super_admins qu'un nouveau paiement manuel est en attente.
    */
   async notifyAdminNewPayment(invoice, partnerCompanyName) {
-    const { Op } = require('sequelize');
+    const { Op } = require("sequelize");
     const admins = await User.findAll({
-      where: { role: { [Op.in]: ['admin', 'super_admin'] }, status: 'active' },
-      attributes: ['id'],
+      where: { role: { [Op.in]: ["admin", "super_admin"] }, status: "active" },
+      attributes: ["id"],
     });
 
     const methodLabel =
-      invoice.payment_method === 'cash' ? 'Espèces' :
-      invoice.payment_method === 'manual' ? 'Virement bancaire' : 'Chargily';
+      invoice.payment_method === "cash"
+        ? "Espèces"
+        : invoice.payment_method === "manual"
+          ? "Virement bancaire"
+          : "Chargily";
 
     const promises = admins.map((admin) =>
       this.create(
         admin.id,
-        'payment_pending',
-        'Nouveau paiement en attente',
+        "payment_pending",
+        "Nouveau paiement en attente",
         `${partnerCompanyName} a soumis un paiement (${invoice.invoice_number}) — ${methodLabel}. En attente de validation.`,
-        { invoice_id: invoice.id, invoice_number: invoice.invoice_number }
-      )
+        { invoice_id: invoice.id, invoice_number: invoice.invoice_number },
+      ),
+    );
+
+    await Promise.allSettled(promises);
+  }
+
+  /**
+   * Notifie tous les admins/super_admins qu'un nouvel avis est en attente de modération.
+   */
+  async notifyAdminNewReview(review, establishment, reviewerName) {
+    const { Op } = require("sequelize");
+    const admins = await User.findAll({
+      where: { role: { [Op.in]: ["admin", "super_admin"] }, status: "active" },
+      attributes: ["id"],
+    });
+
+    const promises = admins.map((admin) =>
+      this.create(
+        admin.id,
+        "review_new",
+        "Nouvel avis en attente",
+        `${reviewerName} a laissé un avis sur "${establishment.name}". En attente de modération.`,
+        { review_id: review.id, establishment_id: establishment.id },
+      ),
     );
 
     await Promise.allSettled(promises);
@@ -210,31 +248,30 @@ class NotificationService {
   async notifyPartnerReviewApproved(review, establishmentName, partnerUserId) {
     return this.create(
       partnerUserId,
-      'review_approved',
-      'Nouvel avis publié ⭐',
+      "review_approved",
+      "Nouvel avis publié ⭐",
       `Un avis a été publié sur "${establishmentName}". Vous pouvez y répondre.`,
-      { review_id: review.id, establishment_id: review.establishment_id }
+      { review_id: review.id, establishment_id: review.establishment_id },
     );
   }
 
   async notifyReviewReply(review, establishmentName, reviewAuthorUserId) {
     return this.create(
       reviewAuthorUserId,
-      'review_reply',
-      'Réponse à votre avis',
+      "review_reply",
+      "Réponse à votre avis",
       `Le partenaire a répondu à votre avis sur "${establishmentName}".`,
-      { review_id: review.id, establishment_id: review.establishment_id }
+      { review_id: review.id, establishment_id: review.establishment_id },
     );
   }
-
 
   async notifySuggestionApproved(suggestion, suggestedByUserId) {
     return this.create(
       suggestedByUserId,
-      'suggestion_approved',
-      'Suggestion approuvée ✅',
+      "suggestion_approved",
+      "Suggestion approuvée ✅",
       `Votre suggestion "${suggestion.name}" a été approuvée par l'équipe.  Elle sera bientôt ajoutée à l'annuaire.`,
-      { suggestion_id: suggestion.id }
+      { suggestion_id: suggestion.id },
     );
   }
 
@@ -244,27 +281,38 @@ class NotificationService {
       : `Votre suggestion "${suggestion.name}" a été refusée.`;
     return this.create(
       suggestedByUserId,
-      'suggestion_rejected',
-      'Suggestion refusée',
+      "suggestion_rejected",
+      "Suggestion refusée",
       body,
-      { suggestion_id: suggestion.id }
+      { suggestion_id: suggestion.id },
     );
   }
 
-  async notifyPartnerNewContact(partnerUserId, establishmentName, senderName, senderEmail) {
+  async notifyPartnerNewContact(
+    partnerUserId,
+    establishmentName,
+    senderName,
+    senderEmail,
+    message,
+  ) {
     await this.create(
       partnerUserId,
-      'contact_message',
-      'Nouveau message de contact',
-      `${senderName} (${senderEmail}) vous a envoyé un message pour "${establishmentName}".`,
-      { sender_name: senderName, sender_email: senderEmail }
+      "contact_message",
+      "Nouveau message de contact",
+      `${senderName} vous a envoyé un email pour "${establishmentName}" veuillez le consulter sur votre mail.`,
+      {
+        sender_name: senderName,
+        sender_email: senderEmail,
+        message: message || "",
+        establishment_name: establishmentName,
+      },
     );
   }
 
   // ─── Internal ────────────────────────────────────────────────────────────────
 
   async _sendPush(userId, title, body, data) {
-    const user = await User.findByPk(userId, { attributes: ['fcm_token'] });
+    const user = await User.findByPk(userId, { attributes: ["fcm_token"] });
     if (user?.fcm_token) {
       await fcmService.sendToDevice(user.fcm_token, title, body, data || {});
     }

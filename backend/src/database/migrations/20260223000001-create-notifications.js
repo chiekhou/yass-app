@@ -71,19 +71,16 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.fn('NOW'),
       },
-    });
+    }, { ifNotExists: true });
 
-    await queryInterface.addIndex('notifications', ['user_id']);
-    await queryInterface.addIndex('notifications', ['user_id', 'is_read']);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS notifications_user_id ON notifications (user_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS notifications_user_id_is_read ON notifications (user_id, is_read);`);
   },
 
   down: async (queryInterface) => {
     await queryInterface.dropTable('notifications');
-    // Drop ENUM type (PostgreSQL)
     try {
-      await queryInterface.sequelize.query(
-        'DROP TYPE IF EXISTS "enum_notifications_type";'
-      );
+      await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_notifications_type";');
     } catch (err) {
       // ignore
     }

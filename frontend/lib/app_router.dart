@@ -16,7 +16,9 @@ import 'features/auth/presentation/pages/verify_otp_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/home/presentation/pages/main_page.dart';
 import 'features/search/presentation/pages/search_page.dart';
+import 'features/establishment/data/models/establishment_model.dart';
 import 'features/establishment/presentation/pages/establishment_details_page.dart';
+import 'features/establishment/presentation/pages/establishment_photos_page.dart';
 import 'features/favorites/presentation/pages/favorites_page.dart';
 import 'features/profile/presentation/pages/profile_page.dart';
 import 'features/profile/presentation/pages/edit_profile_page.dart';
@@ -26,6 +28,8 @@ import 'features/reviews/presentation/pages/all_reviews_page.dart';
 import 'features/reviews/presentation/pages/my_reviews_page.dart';
 import 'features/reviews/data/models/review_model.dart';
 import 'features/home/presentation/pages/category_page.dart';
+import 'features/home/presentation/pages/all_categories_page.dart';
+import 'features/home/data/models/category_model.dart';
 
 // Admin imports
 import 'features/admin/presentation/pages/admin_create_partner_page.dart';
@@ -42,7 +46,8 @@ import 'features/admin/presentation/bloc/admin_users_bloc.dart';
 import 'features/admin/presentation/bloc/admin_partners_bloc.dart';
 import 'features/admin/presentation/bloc/admin_establishments_bloc.dart';
 import 'features/admin/presentation/bloc/admin_reviews_bloc.dart';
-import 'features/admin/presentation/pages/admin_reviews_page.dart';
+import 'features/admin/presentation/pages/admin_all_reviews_page.dart';
+import 'features/admin/presentation/pages/admin_reported_reviews_page.dart';
 import 'features/admin/presentation/pages/admin_payments_page.dart';
 import 'features/admin/presentation/bloc/admin_payments_bloc.dart';
 
@@ -90,12 +95,14 @@ class AppRoutes {
   static const String establishment = '/establishment/:id';
   static const String establishmentBySlug = '/e/:slug';
   static const String category = '/category/:id';
+  static const String allCategories = '/categories';
   static const String writeReview = '/review/:establishmentId';
   static const String editProfile = '/profile/edit';
   static const String editPartnerProfile = '/partner/profile/edit';
   static const String settings = '/settings';
   static const String myReviews = '/my-reviews';
   static const String allReviews = '/establishment/:establishmentId/reviews';
+  static const String establishmentPhotos = '/establishment/:id/photos';
 
   // Partner routes
   static const String partnerDashboard = '/partner';
@@ -109,9 +116,10 @@ class AppRoutes {
   static const String partnerEstablishmentDetails = '/partner/establishments/:id';
   static const String partnerEstablishmentEdit = '/partner/establishments/:id/edit';
 
-  // Admin create routes
+  // Admin create/edit routes
   static const String adminCreatePartner = '/admin/partners/create';
   static const String adminCreateEstablishment = '/admin/establishments/create';
+  static const String adminEditEstablishment = '/admin/establishments/:id/edit';
 
   // Admin routes
   static const String adminDashboard = '/admin';
@@ -123,7 +131,6 @@ class AppRoutes {
   static const String adminPendingEstablishments = '/admin/establishments/pending';
   static const String adminEstablishments = '/admin/establishments';
   static const String adminReviews = '/admin/reviews';
-  static const String adminPendingReviews = '/admin/reviews/pending';
   static const String adminReportedReviews = '/admin/reviews/reported';
   static const String adminPendingPayments = '/admin/payments/pending';
   static const String adminSuggestions = '/admin/suggestions';
@@ -287,6 +294,7 @@ class AppRouter {
           return MapPage(
             initialQuery: extra['query'] as String?,
             initialCategoryId: extra['categoryId'] as String?,
+            initialSubcategoryId: extra['subcategoryId'] as String?,
             initialWilayaId: extra['wilayaId'] as String?,
           );
         },
@@ -309,6 +317,17 @@ class AppRouter {
           return EstablishmentDetailsPage(slug: slug);
         },
       ),
+      GoRoute(
+        path: AppRoutes.establishmentPhotos,
+        name: 'establishmentPhotos',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return EstablishmentPhotosPage(
+            establishmentName: extra['name'] as String,
+            photos: List<PhotoItem>.from(extra['photos'] as List),
+          );
+        },
+      ),
 
       // Category
       GoRoute(
@@ -320,6 +339,14 @@ class AppRouter {
           return CategoryPage(categoryId: id, categoryName: name);
         },
       ),
+      GoRoute(
+        path: AppRoutes.allCategories,
+        name: 'allCategories',
+        builder: (context, state) {
+          final cats = state.extra as List<Category>?;
+          return AllCategoriesPage(initialCategories: cats);
+        },
+      ),
 
       // Write Review
       GoRoute(
@@ -329,10 +356,14 @@ class AppRouter {
           final establishmentId = state.pathParameters['establishmentId']!;
           final establishmentName = state.uri.queryParameters['name'];
           final categoryName = state.uri.queryParameters['category'];
+          final initialRating = int.tryParse(
+                  state.uri.queryParameters['initialRating'] ?? '') ??
+              0;
           return WriteReviewPage(
             establishmentId: establishmentId,
             establishmentName: establishmentName,
             categoryName: categoryName,
+            initialRating: initialRating,
           );
         },
       ),
@@ -375,6 +406,19 @@ class AppRouter {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           return AdminCreateEstablishmentPage(
+            partnerId: extra['partnerId'] as String? ?? '',
+            partnerName: extra['partnerName'] as String? ?? '',
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.adminEditEstablishment,
+        name: 'adminEditEstablishment',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return AdminCreateEstablishmentPage(
+            establishmentId: id,
             partnerId: extra['partnerId'] as String? ?? '',
             partnerName: extra['partnerName'] as String? ?? '',
           );
@@ -459,21 +503,9 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.adminReviews,
         name: 'adminReviews',
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>? ?? {};
-          final initialTab = extra['initialTab'] as String? ?? 'pending';
-          return BlocProvider(
-            create: (context) => AdminReviewsBloc(),
-            child: AdminReviewsPage(initialTab: initialTab),
-          );
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.adminPendingReviews,
-        name: 'adminPendingReviews',
         builder: (context, state) => BlocProvider(
           create: (context) => AdminReviewsBloc(),
-          child: const AdminReviewsPage(initialTab: 'pending'),
+          child: const AdminAllReviewsPage(),
         ),
       ),
       GoRoute(
@@ -481,7 +513,7 @@ class AppRouter {
         name: 'adminReportedReviews',
         builder: (context, state) => BlocProvider(
           create: (context) => AdminReviewsBloc(),
-          child: const AdminReviewsPage(initialTab: 'reported'),
+          child: const AdminReportedReviewsPage(),
         ),
       ),
 

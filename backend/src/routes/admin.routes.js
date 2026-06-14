@@ -48,6 +48,13 @@ router.patch(
 );
 
 /**
+ * @route   PATCH /api/v1/admin/users/:id/elite
+ * @desc    Toggle elite status for a user
+ * @access  Admin
+ */
+router.patch("/users/:id/elite", adminController.toggleEliteStatus);
+
+/**
  * @route   DELETE /api/v1/admin/users/:id
  * @desc    Delete user
  * @access  Admin
@@ -204,6 +211,20 @@ router.patch("/establishments/:id/assign-partner", adminController.assignPartner
  * @access  Admin
  */
 router.delete("/establishments/:id", adminController.deleteEstablishment);
+
+/**
+ * @route   GET /api/v1/admin/establishments/:id
+ * @desc    Get single establishment by id
+ * @access  Admin
+ */
+router.get("/establishments/:id", adminController.getEstablishmentById);
+
+/**
+ * @route   PATCH /api/v1/admin/establishments/:id
+ * @desc    Update establishment fields
+ * @access  Admin
+ */
+router.patch("/establishments/:id", adminController.updateEstablishment);
 
 // ==================== PAYMENT ROUTES ====================
 

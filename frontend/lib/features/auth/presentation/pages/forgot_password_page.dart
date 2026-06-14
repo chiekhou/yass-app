@@ -73,7 +73,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           return LoadingOverlay(
             isLoading: state is AuthLoading,
             child: Scaffold(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.scaffoldBackground,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -135,7 +135,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
-                ?.copyWith(color: AppColors.grey600),
+                ?.copyWith(color: AppColors.white),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppDimens.paddingL),
@@ -172,20 +172,26 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
           if (!_usePhone)
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _emailController,
               label: context.l10n.email,
               hint: 'exemple@email.com',
               keyboardType: TextInputType.emailAddress,
               prefixIcon: Iconsax.sms,
               validator: (value) {
-                if (value == null || value.isEmpty) { return 'L\'email est requis'; }
+                if (value == null || value.isEmpty) {
+                  return 'L\'email est requis';
+                }
                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                    .hasMatch(value)) { return 'Email invalide'; }
+                    .hasMatch(value)) {
+                  return 'Email invalide';
+                }
                 return null;
               },
             )
           else
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _phoneController,
               label: 'Numéro de téléphone',
               hint: '+33612345678',
@@ -210,7 +216,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             onPressed: () => context.pop(),
             child: const Text(
               '← Retour à la connexion',
-              style: TextStyle(color: AppColors.grey600),
+              style: TextStyle(color: AppColors.primaryGreen),
             ),
           ),
         ],
@@ -314,10 +320,8 @@ class _ToggleButton extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.normal,
-                color:
-                    selected ? AppColors.primaryGreen : AppColors.grey500,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? AppColors.primaryGreen : AppColors.grey500,
               ),
             ),
           ],

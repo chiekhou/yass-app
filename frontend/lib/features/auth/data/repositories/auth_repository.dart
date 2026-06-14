@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/token_manager.dart';
 import '../../../../core/constants/api_config.dart';
@@ -32,6 +33,7 @@ class AuthRepository {
     // Save user ID
     final user = User.fromJson(data['user']);
     await _tokenManager.saveUserId(user.id);
+    _trackSession(user.id);
 
     return user;
   }
@@ -74,6 +76,7 @@ class AuthRepository {
     // Save user ID
     final user = User.fromJson(data['user']);
     await _tokenManager.saveUserId(user.id);
+    _trackSession(user.id);
 
     return user;
   }
@@ -116,6 +119,7 @@ class AuthRepository {
 
     final user = User.fromJson(data['user']);
     await _tokenManager.saveUserId(user.id);
+    _trackSession(user.id);
 
     return user;
   }
@@ -282,6 +286,7 @@ class AuthRepository {
 
     final user = User.fromJson(data['user']);
     await _tokenManager.saveUserId(user.id);
+    _trackSession(user.id);
 
     return user;
   }
@@ -309,6 +314,7 @@ class AuthRepository {
 
     final user = User.fromJson(data['user']);
     await _tokenManager.saveUserId(user.id);
+    _trackSession(user.id);
 
     return user;
   }
@@ -348,5 +354,24 @@ class AuthRepository {
   // Check if logged in
   Future<bool> isLoggedIn() async {
     return await _tokenManager.isLoggedIn();
+  }
+
+  void _trackSession(String userId) {
+    final String platform;
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        platform = 'android';
+        break;
+      case TargetPlatform.iOS:
+        platform = 'ios';
+        break;
+      default:
+        platform = 'web';
+    }
+    () async {
+      try {
+        await _apiClient.post(ApiConfig.trackVisit, data: {'platform': platform, 'user_id': userId});
+      } catch (_) {}
+    }();
   }
 }

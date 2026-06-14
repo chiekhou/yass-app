@@ -55,8 +55,35 @@ const createReview = [
 
   body("images.*")
     .optional()
-    .isURL()
-    .withMessage("Each image must be a valid URL"),
+    .custom((item) => {
+      // Accepte une URL string (ancien format) ou un objet {url, category} (nouveau format)
+      if (typeof item === "string") {
+        try { new URL(item); return true; } catch { return false; }
+      }
+      if (typeof item === "object" && item !== null && typeof item.url === "string") {
+        try { new URL(item.url); return true; } catch { return false; }
+      }
+      return false;
+    })
+    .withMessage("Each image must be a valid URL or an object {url, category}"),
+
+  body("videos")
+    .optional()
+    .isArray({ max: 3 })
+    .withMessage("Maximum 3 videos allowed"),
+
+  body("videos.*")
+    .optional()
+    .custom((item) => {
+      if (typeof item === "string") {
+        try { new URL(item); return true; } catch { return false; }
+      }
+      if (typeof item === "object" && item !== null && typeof item.url === "string") {
+        try { new URL(item.url); return true; } catch { return false; }
+      }
+      return false;
+    })
+    .withMessage("Each video must be a valid URL or an object {url, category}"),
 
   body("visit_date")
     .optional()
