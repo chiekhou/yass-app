@@ -88,7 +88,7 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
         backgroundColor: AppColors.grey50,
         appBar: AppBar(
           title: const Text('Créer un partenaire'),
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: const Color(0xFF002FA7),
           foregroundColor: AppColors.white,
           elevation: 0,
           leading: IconButton(
@@ -114,6 +114,7 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                       hint: 'partenaire@exemple.com',
                       keyboardType: TextInputType.emailAddress,
                       prefixIcon: Iconsax.sms,
+                      textColor: AppColors.scaffoldBackground,
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Email requis';
                         if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) {
@@ -129,12 +130,15 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                       hint: 'Min. 8 caractères',
                       obscureText: _obscurePassword,
                       prefixIcon: Iconsax.lock,
+                      textColor: AppColors.scaffoldBackground,
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword
-                            ? Iconsax.eye_slash
-                            : Iconsax.eye),
-                        onPressed: () =>
-                            setState(() => _obscurePassword = !_obscurePassword),
+                        icon: Icon(
+                          _obscurePassword ? Iconsax.eye_slash : Iconsax.eye,
+                          color: AppColors.scaffoldBackground
+                              .withValues(alpha: 0.6),
+                        ),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
                       ),
                       validator: (v) {
                         if (v == null || v.length < 8) {
@@ -158,9 +162,9 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                             label: 'Prénom',
                             hint: 'Karim',
                             prefixIcon: Iconsax.user,
-                            validator: (v) => (v == null || v.isEmpty)
-                                ? 'Requis'
-                                : null,
+                            textColor: AppColors.scaffoldBackground,
+                            validator: (v) =>
+                                (v == null || v.isEmpty) ? 'Requis' : null,
                           ),
                         ),
                         const SizedBox(width: AppDimens.paddingM),
@@ -170,9 +174,9 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                             label: 'Nom',
                             hint: 'Benali',
                             prefixIcon: Iconsax.user,
-                            validator: (v) => (v == null || v.isEmpty)
-                                ? 'Requis'
-                                : null,
+                            textColor: AppColors.scaffoldBackground,
+                            validator: (v) =>
+                                (v == null || v.isEmpty) ? 'Requis' : null,
                           ),
                         ),
                       ],
@@ -184,6 +188,7 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                       hint: '0551234567',
                       keyboardType: TextInputType.phone,
                       prefixIcon: Iconsax.call,
+                      textColor: AppColors.scaffoldBackground,
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Téléphone requis';
                         if (!RegExp(r'^\+?\d{7,15}$').hasMatch(v)) {
@@ -200,6 +205,7 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                       label: 'Nom de la société',
                       hint: 'Restaurant El Djazair',
                       prefixIcon: Iconsax.building,
+                      textColor: AppColors.scaffoldBackground,
                       validator: (v) => (v == null || v.isEmpty)
                           ? 'Nom de la société requis'
                           : null,
@@ -210,6 +216,7 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                       label: 'N° registre de commerce (optionnel)',
                       hint: 'RC16/00-12345',
                       prefixIcon: Iconsax.document,
+                      textColor: AppColors.scaffoldBackground,
                     ),
                     const SizedBox(height: AppDimens.paddingM),
                     CustomTextField(
@@ -217,12 +224,13 @@ class _AdminCreatePartnerPageState extends State<AdminCreatePartnerPage> {
                       label: 'NIF / Identifiant fiscal (optionnel)',
                       hint: 'NIF001234567890',
                       prefixIcon: Iconsax.receipt,
+                      textColor: AppColors.scaffoldBackground,
                     ),
                     const SizedBox(height: AppDimens.paddingXL),
                     ElevatedButton(
                       onPressed: isLoading ? null : _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.scaffoldBackground,
                         foregroundColor: AppColors.white,
                         padding: const EdgeInsets.symmetric(
                             vertical: AppDimens.paddingM),

@@ -62,6 +62,16 @@ class NotificationModel {
         return Iconsax.star;
       case 'review_reply':
         return Iconsax.message_text;
+      case 'payment_pending':
+        return Iconsax.wallet_money;
+      case 'suggestion_approved':
+        return Iconsax.tick_circle;
+      case 'suggestion_rejected':
+        return Iconsax.close_circle;
+      case 'suggestion_pending':
+        return Iconsax.lamp_on;
+      case 'contact_message':
+        return Iconsax.sms;
       default:
         return Iconsax.notification;
     }
@@ -82,6 +92,16 @@ class NotificationModel {
       case 'review_approved':
       case 'review_new':
       case 'review_reply':
+        return AppColors.primaryGreen;
+      case 'payment_pending':
+        return AppColors.warning;
+      case 'suggestion_approved':
+        return AppColors.success;
+      case 'suggestion_rejected':
+        return AppColors.error;
+      case 'suggestion_pending':
+        return AppColors.warning;
+      case 'contact_message':
         return AppColors.primaryGreen;
       default:
         return AppColors.grey500;

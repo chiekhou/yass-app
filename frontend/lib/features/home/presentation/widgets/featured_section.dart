@@ -6,6 +6,13 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
 import '../../../establishment/data/models/establishment_model.dart';
 
+String _formatCount(int count) {
+  if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
+  if (count >= 1000)
+    return '${(count / 1000).toStringAsFixed(count >= 10000 ? 0 : 1)}k';
+  return count.toString();
+}
+
 class FeaturedSection extends StatelessWidget {
   final List<Establishment>? establishments;
   const FeaturedSection({super.key, this.establishments});
@@ -118,7 +125,8 @@ class FeaturedSection extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text('🇩🇿', style: TextStyle(fontSize: 12)),
+                                const Text('🇩🇿',
+                                    style: TextStyle(fontSize: 12)),
                                 const SizedBox(width: 3),
                                 Text(
                                   e.displayRating,
@@ -132,7 +140,8 @@ class FeaturedSection extends StatelessWidget {
                                 Text(
                                   '(${e.totalReviews})',
                                   style: TextStyle(
-                                    color: AppColors.white.withValues(alpha: 0.8),
+                                    color:
+                                        AppColors.white.withValues(alpha: 0.8),
                                     fontSize: 11,
                                   ),
                                 ),
@@ -151,8 +160,10 @@ class FeaturedSection extends StatelessWidget {
                           Row(children: [
                             Expanded(
                                 child: Text(e.name,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(color: AppColors.grey600),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis)),
                             if (e.isVerified)
@@ -195,6 +206,40 @@ class FeaturedSection extends StatelessWidget {
                               ),
                             ],
                           ]),
+                          const SizedBox(height: AppDimens.paddingXS),
+                          Row(
+                            children: [
+                              const Icon(Icons.star_rounded,
+                                  size: 13, color: Color(0xFFF59E0B)),
+                              const SizedBox(width: 3),
+                              Flexible(
+                                child: Text(
+                                  e.totalReviews > 0
+                                      ? '${e.displayRating} sur ${_formatCount(e.totalReviews)} avis'
+                                      : 'Aucun avis',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: AppColors.grey700,
+                                          fontWeight: FontWeight.w500),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: AppDimens.paddingS),
+                              const Icon(Iconsax.eye,
+                                  size: 13, color: AppColors.grey400),
+                              const SizedBox(width: 3),
+                              Text(
+                                _formatCount(e.totalViews),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: AppColors.grey500),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

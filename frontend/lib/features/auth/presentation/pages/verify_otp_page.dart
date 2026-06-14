@@ -77,13 +77,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
   void _onVerify() {
     if (!_isComplete) return;
     if (widget.verificationType == 'email') {
-      context
-          .read<AuthBloc>()
-          .add(AuthVerifyEmailOtpRequested(otp: _otp));
+      context.read<AuthBloc>().add(AuthVerifyEmailOtpRequested(otp: _otp));
     } else {
-      context
-          .read<AuthBloc>()
-          .add(AuthVerifyPhoneOtpRequested(otp: _otp));
+      context.read<AuthBloc>().add(AuthVerifyPhoneOtpRequested(otp: _otp));
     }
   }
 
@@ -112,18 +108,15 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     setState(() {});
   }
 
-  String get _icon =>
-      widget.verificationType == 'email' ? '📧' : '📱';
+  String get _icon => widget.verificationType == 'email' ? '📧' : '📱';
 
-  String get _title =>
-      widget.verificationType == 'email'
-          ? 'Vérification email'
-          : 'Vérification téléphone';
+  String get _title => widget.verificationType == 'email'
+      ? 'Vérification email'
+      : 'Vérification téléphone';
 
-  String get _subtitle =>
-      widget.verificationType == 'email'
-          ? 'Entrez le code envoyé à votre adresse'
-          : 'Entrez le code reçu par SMS au';
+  String get _subtitle => widget.verificationType == 'email'
+      ? 'Entrez le code envoyé à votre adresse'
+      : 'Entrez le code reçu par SMS au';
 
   void _showSuccessAndRedirect() {
     setState(() => _showSuccess = true);
@@ -173,7 +166,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
               'Compte validé ! 🎉',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.black,
+                    color: AppColors.white,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -181,7 +174,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             Text(
               'Super ! Votre compte a été vérifié avec succès.\nVous allez être redirigé vers la page de connexion.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.grey600,
+                    color: AppColors.white,
                     height: 1.5,
                   ),
               textAlign: TextAlign.center,
@@ -195,7 +188,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             Text(
               'Redirection en cours...',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.grey500,
+                    color: AppColors.white,
                   ),
             ),
           ],
@@ -244,7 +237,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
           return LoadingOverlay(
             isLoading: state is AuthLoading,
             child: Scaffold(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.scaffoldBackground,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -257,176 +250,187 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
               body: _showSuccess
                   ? _buildSuccessView()
                   : SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimens.paddingL,
-                    vertical: AppDimens.paddingM,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: AppDimens.paddingL),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.paddingL,
+                          vertical: AppDimens.paddingM,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: AppDimens.paddingL),
 
-                      // Icon circle
-                      Center(
-                        child: Container(
-                          width: 88,
-                          height: 88,
-                          decoration: BoxDecoration(
-                            color: AppColors.greenSurface,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primaryGreen.withValues(alpha: 0.3),
-                              width: 2,
+                            // Icon circle
+                            Center(
+                              child: Container(
+                                width: 88,
+                                height: 88,
+                                decoration: BoxDecoration(
+                                  color: AppColors.greenSurface,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.primaryGreen
+                                        .withValues(alpha: 0.3),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    _icon,
+                                    style: const TextStyle(fontSize: 40),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              _icon,
-                              style: const TextStyle(fontSize: 40),
+
+                            const SizedBox(height: AppDimens.paddingL),
+
+                            // Title
+                            Text(
+                              _title,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
-                          ),
-                        ),
-                      ),
+                            const SizedBox(height: AppDimens.paddingS),
 
-                      const SizedBox(height: AppDimens.paddingL),
-
-                      // Title
-                      Text(
-                        _title,
-                        textAlign: TextAlign.center,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                      const SizedBox(height: AppDimens.paddingS),
-
-                      // Subtitle + destination
-                      Text(
-                        _subtitle,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: AppColors.grey600),
-                      ),
-                      const SizedBox(height: AppDimens.paddingXS),
-                      Text(
-                        widget.destination,
-                        textAlign: TextAlign.center,
-                        style:
-                            Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.primaryGreen,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                      ),
-
-                      const SizedBox(height: AppDimens.paddingXXL),
-
-                      // OTP boxes
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(6, (i) => _buildOtpBox(i)),
-                      ),
-
-                      const SizedBox(height: AppDimens.paddingXXL),
-
-                      // Verify button
-                      ElevatedButton(
-                        onPressed: _isComplete ? _onVerify : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryGreen,
-                          disabledBackgroundColor: AppColors.grey300,
-                          foregroundColor: AppColors.white,
-                          minimumSize: const Size.fromHeight(AppDimens.buttonHeight),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                          ),
-                        ),
-                        child: const Text(
-                          'Vérifier le code',
-                          style: TextStyle(
-                            fontSize: AppDimens.fontL,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: AppDimens.paddingL),
-
-                      // Resend section
-                      Center(
-                        child: _canResend
-                            ? TextButton.icon(
-                                onPressed: _onResend,
-                                icon: const Icon(
-                                  Iconsax.refresh,
-                                  size: 18,
-                                  color: AppColors.primaryGreen,
-                                ),
-                                label: const Text(
-                                  'Renvoyer le code',
-                                  style: TextStyle(
+                            // Subtitle + destination
+                            Text(
+                              _subtitle,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: AppColors.white),
+                            ),
+                            const SizedBox(height: AppDimens.paddingXS),
+                            Text(
+                              widget.destination,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
                                     color: AppColors.primaryGreen,
                                     fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              )
-                            : RichText(
-                                text: TextSpan(
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(color: AppColors.grey600),
-                                  children: [
-                                    const TextSpan(text: 'Renvoyer dans '),
-                                    TextSpan(
-                                      text: '${_secondsLeft}s',
-                                      style: const TextStyle(
-                                        color: AppColors.primaryGreen,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
+                            ),
+
+                            const SizedBox(height: AppDimens.paddingXXL),
+
+                            // OTP boxes
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children:
+                                  List.generate(6, (i) => _buildOtpBox(i)),
+                            ),
+
+                            const SizedBox(height: AppDimens.paddingXXL),
+
+                            // Verify button
+                            ElevatedButton(
+                              onPressed: _isComplete ? _onVerify : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF70E010),
+                                disabledBackgroundColor:
+                                    const Color.fromARGB(83, 255, 255, 255),
+                                foregroundColor: const Color(0xFFFFFFFF),
+                                minimumSize: const Size.fromHeight(
+                                    AppDimens.buttonHeight),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppDimens.radiusM),
                                 ),
                               ),
-                      ),
-
-                      const SizedBox(height: AppDimens.paddingXL),
-
-                      // Info note
-                      Container(
-                        padding: const EdgeInsets.all(AppDimens.paddingM),
-                        decoration: BoxDecoration(
-                          color: AppColors.greenSurface,
-                          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Iconsax.info_circle,
-                              size: 18,
-                              color: AppColors.primaryGreen,
+                              child: const Text(
+                                'Vérifier le code',
+                                style: TextStyle(
+                                    fontSize: AppDimens.fontL,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color.fromARGB(255, 255, 255, 255)),
+                              ),
                             ),
-                            const SizedBox(width: AppDimens.paddingS),
-                            Expanded(
-                              child: Text(
-                                'Le code expire dans 10 minutes. Ne le partagez avec personne.',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(color: AppColors.grey700),
+
+                            const SizedBox(height: AppDimens.paddingL),
+
+                            // Resend section
+                            Center(
+                              child: _canResend
+                                  ? TextButton.icon(
+                                      onPressed: _onResend,
+                                      icon: const Icon(
+                                        Iconsax.refresh,
+                                        size: 18,
+                                        color: AppColors.primaryGreen,
+                                      ),
+                                      label: const Text(
+                                        'Renvoyer le code',
+                                        style: TextStyle(
+                                          color: AppColors.primaryGreen,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    )
+                                  : RichText(
+                                      text: TextSpan(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.white),
+                                        children: [
+                                          const TextSpan(
+                                              text: 'Renvoyer dans '),
+                                          TextSpan(
+                                            text: '${_secondsLeft}s',
+                                            style: const TextStyle(
+                                              color: AppColors.primaryGreen,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                            ),
+
+                            const SizedBox(height: AppDimens.paddingXL),
+
+                            // Info note
+                            Container(
+                              padding: const EdgeInsets.all(AppDimens.paddingM),
+                              decoration: BoxDecoration(
+                                color: AppColors.greenSurface,
+                                borderRadius:
+                                    BorderRadius.circular(AppDimens.radiusM),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Iconsax.info_circle,
+                                    size: 18,
+                                    color: AppColors.primaryGreen,
+                                  ),
+                                  const SizedBox(width: AppDimens.paddingS),
+                                  Expanded(
+                                    child: Text(
+                                      'Le code expire dans 10 minutes. Ne le partagez avec personne.',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(color: AppColors.grey700),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
             ),
           );
         },
@@ -439,45 +443,45 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
       width: 48,
       height: 56,
       child: TextFormField(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          maxLength: 1,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: _controllers[index].text.isNotEmpty
-                ? AppColors.greenSurface
-                : AppColors.grey100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-              borderSide: BorderSide.none,
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        maxLength: 1,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.black,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-              borderSide: const BorderSide(
-                color: AppColors.primaryGreen,
-                width: 2,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-              borderSide: BorderSide(
-                color: _controllers[index].text.isNotEmpty
-                    ? AppColors.primaryGreen
-                    : AppColors.grey300,
-                width: 1.5,
-              ),
+        decoration: InputDecoration(
+          counterText: '',
+          filled: true,
+          fillColor: _controllers[index].text.isNotEmpty
+              ? AppColors.greenSurface
+              : AppColors.grey100,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            borderSide: const BorderSide(
+              color: AppColors.primaryGreen,
+              width: 2,
             ),
           ),
-          onChanged: (v) => _onDigitChanged(v, index),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            borderSide: BorderSide(
+              color: _controllers[index].text.isNotEmpty
+                  ? AppColors.primaryGreen
+                  : AppColors.grey300,
+              width: 1.5,
+            ),
+          ),
         ),
-      );
+        onChanged: (v) => _onDigitChanged(v, index),
+      ),
+    );
   }
 }

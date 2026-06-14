@@ -25,6 +25,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.scaffoldBackground,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingS,
@@ -183,7 +184,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
             establishment.name,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.grey900,
+                  color: AppColors.white,
                 ),
           ),
           if (establishment.categoryName != null) ...[
@@ -214,7 +215,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
           Text(
             establishment.description!,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.grey600,
+                  color: AppColors.white,
                 ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -231,7 +232,8 @@ class EstablishmentApprovalCard extends StatelessWidget {
           _buildInfoRow(
             context,
             icon: Iconsax.map,
-            text: '${establishment.communeName ?? ''} - ${establishment.wilayaName}',
+            text:
+                '${establishment.communeName ?? ''} - ${establishment.wilayaName}',
           ),
         ],
         if (establishment.phone != null) ...[
@@ -250,13 +252,13 @@ class EstablishmentApprovalCard extends StatelessWidget {
       {required IconData icon, required String text}) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.grey500),
+        Icon(icon, size: 14, color: AppColors.white),
         const SizedBox(width: AppDimens.paddingS),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.grey600,
+                  color: AppColors.white,
                 ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -327,7 +329,9 @@ class EstablishmentApprovalCard extends StatelessWidget {
             child: Text(
               partner.statusLabel,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: partner.isApproved ? AppColors.success : AppColors.warning,
+                    color: partner.isApproved
+                        ? AppColors.success
+                        : AppColors.warning,
                     fontSize: 9,
                     fontWeight: FontWeight.w500,
                   ),
@@ -355,10 +359,10 @@ class EstablishmentApprovalCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: ElevatedButton.icon(
             onPressed: onRejectTap,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.error,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
               side: const BorderSide(color: AppColors.error),
               padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
             ),

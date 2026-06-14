@@ -159,13 +159,13 @@ class _RegisterPageState extends State<RegisterPage> {
           return LoadingOverlay(
             isLoading: state is AuthLoading,
             child: Scaffold(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.kleinBlue,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 leading: IconButton(
                   icon: const Icon(Iconsax.arrow_left),
-                  color: AppColors.greenDark,
+                  color: AppColors.white,
                   onPressed: () => context.pop(),
                 ),
               ),
@@ -188,14 +188,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
-                              ?.copyWith(color: AppColors.grey600),
+                              ?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.7)),
                         ),
                         const SizedBox(height: AppDimens.paddingM),
 
                         // Toggle email / phone
                         Container(
                           decoration: BoxDecoration(
-                            color: AppColors.grey100,
+                            color: Colors.white.withValues(alpha: 0.12),
                             borderRadius:
                                 BorderRadius.circular(AppDimens.radiusM),
                           ),
@@ -227,6 +228,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 label: context.l10n.firstName,
                                 hint: 'Prénom',
                                 prefixIcon: Iconsax.user,
+                                isDark: true,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Requis';
@@ -242,6 +244,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 label: context.l10n.lastName,
                                 hint: 'Nom',
                                 prefixIcon: Iconsax.user,
+                                isDark: true,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Requis';
@@ -262,6 +265,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             hint: 'exemple@email.com',
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Iconsax.sms,
+                            isDark: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'L\'email est requis';
@@ -280,6 +284,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             hint: '0551234567',
                             keyboardType: TextInputType.phone,
                             prefixIcon: Iconsax.call,
+                            isDark: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Le numéro est requis';
@@ -300,12 +305,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           hint: '••••••••',
                           obscureText: _obscurePassword,
                           prefixIcon: Iconsax.lock,
+                          isDark: true,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
                                   ? Iconsax.eye_slash
                                   : Iconsax.eye,
-                              color: AppColors.grey500,
+                              color: Colors.white.withValues(alpha: 0.65),
                             ),
                             onPressed: () {
                               setState(
@@ -331,12 +337,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           hint: '••••••••',
                           obscureText: _obscureConfirmPassword,
                           prefixIcon: Iconsax.lock,
+                          isDark: true,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscureConfirmPassword
                                   ? Iconsax.eye_slash
                                   : Iconsax.eye,
-                              color: AppColors.grey500,
+                              color: Colors.white.withValues(alpha: 0.65),
                             ),
                             onPressed: () {
                               setState(() => _obscureConfirmPassword =
@@ -369,14 +376,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             enabledBorder: OutlineInputBorder(
                               borderRadius:
                                   BorderRadius.circular(AppDimens.radiusM),
-                              borderSide:
-                                  const BorderSide(color: AppColors.grey300),
+                              borderSide: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.3)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius:
                                   BorderRadius.circular(AppDimens.radiusM),
                               borderSide: const BorderSide(
-                                  color: AppColors.primaryGreen, width: 2),
+                                  color: AppColors.accentGreen, width: 2),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: AppDimens.paddingM,
@@ -410,17 +417,23 @@ class _RegisterPageState extends State<RegisterPage> {
                           decoration: InputDecoration(
                             labelText: 'Âge',
                             hintText: 'Ex: 25',
-                            prefixIcon: const Icon(Iconsax.calendar, size: AppDimens.iconS),
+                            prefixIcon: const Icon(Iconsax.calendar,
+                                size: AppDimens.iconS),
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusM),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                              borderSide: const BorderSide(color: AppColors.grey300),
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusM),
+                              borderSide: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.3)),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                              borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusM),
+                              borderSide: const BorderSide(
+                                  color: AppColors.accentGreen, width: 2),
                             ),
                           ),
                           validator: (value) {
@@ -441,8 +454,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: [
                             Text(
                               'Qui êtes-vous ?',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.grey700,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Colors.white,
                                     fontWeight: FontWeight.w500,
                                   ),
                             ),
@@ -451,11 +467,14 @@ class _RegisterPageState extends State<RegisterPage> {
                               children: [
                                 _buildGenderOption('male', 'Homme', Icons.male),
                                 const SizedBox(width: AppDimens.paddingS),
-                                _buildGenderOption('female', 'Femme', Icons.female),
+                                _buildGenderOption(
+                                    'female', 'Femme', Icons.female),
                                 const SizedBox(width: AppDimens.paddingS),
-                                _buildGenderOption('young', 'Jeune', Icons.emoji_people),
+                                _buildGenderOption(
+                                    'young', 'Jeune', Icons.emoji_people),
                                 const SizedBox(width: AppDimens.paddingS),
-                                _buildGenderOption('child', 'Enfant', Icons.child_care),
+                                _buildGenderOption(
+                                    'child', 'Enfant', Icons.child_care),
                               ],
                             ),
                           ],
@@ -473,7 +492,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 onChanged: (value) {
                                   setState(() => _acceptTerms = value ?? false);
                                 },
-                                activeColor: AppColors.primaryGreen,
+                                activeColor: AppColors.accentGreen,
                               ),
                             ),
                             const SizedBox(width: AppDimens.paddingS),
@@ -491,7 +510,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       TextSpan(
                                         text: 'conditions d\'utilisation',
                                         style: TextStyle(
-                                          color: AppColors.primaryGreen,
+                                          color: AppColors.accentGreen,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -499,7 +518,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       TextSpan(
                                         text: 'politique de confidentialité',
                                         style: TextStyle(
-                                          color: AppColors.primaryGreen,
+                                          color: AppColors.accentGreen,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -516,8 +535,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         ElevatedButton(
                           onPressed: _onRegister,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
-                            foregroundColor: AppColors.white,
+                            backgroundColor: AppColors.accentGreen,
+                            foregroundColor: AppColors.black,
                             minimumSize:
                                 const Size.fromHeight(AppDimens.buttonHeight),
                             shape: RoundedRectangleBorder(
@@ -542,10 +561,18 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: [
                             Text(
                               context.l10n.hasAccount,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.white),
                             ),
                             TextButton(
                               onPressed: () => context.pop(),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primaryGreen,
+                              ),
                               child: Text(context.l10n.login),
                             ),
                           ],
@@ -557,12 +584,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         Container(
                           padding: const EdgeInsets.all(AppDimens.paddingM),
                           decoration: BoxDecoration(
-                            color: AppColors.greenSurface,
+                            color: Colors.white.withValues(alpha: 0.08),
                             borderRadius:
                                 BorderRadius.circular(AppDimens.radiusM),
                             border: Border.all(
-                              color:
-                                  AppColors.primaryGreen.withValues(alpha: 0.3),
+                              color: Colors.white.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Column(
@@ -572,7 +598,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w500),
+                                    ?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.white),
                               ),
                               const SizedBox(height: AppDimens.paddingXS),
                               TextButton.icon(
@@ -581,7 +609,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 icon: const Icon(Iconsax.building, size: 18),
                                 label: const Text('Devenir partenaire'),
                                 style: TextButton.styleFrom(
-                                  foregroundColor: AppColors.primaryGreen,
+                                  foregroundColor: AppColors.accentGreen,
                                 ),
                               ),
                             ],
@@ -609,11 +637,11 @@ class _RegisterPageState extends State<RegisterPage> {
           padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
           decoration: BoxDecoration(
             color: selected
-                ? AppColors.primaryGreen.withValues(alpha: 0.1)
-                : AppColors.grey100,
+                ? Colors.white.withValues(alpha: 0.2)
+                : Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
             border: Border.all(
-              color: selected ? AppColors.primaryGreen : Colors.transparent,
+              color: selected ? AppColors.accentGreen : Colors.transparent,
               width: 1.5,
             ),
           ),
@@ -623,7 +651,9 @@ class _RegisterPageState extends State<RegisterPage> {
               Icon(
                 icon,
                 size: 20,
-                color: selected ? AppColors.primaryGreen : AppColors.grey500,
+                color: selected
+                    ? AppColors.accentGreen
+                    : Colors.white.withValues(alpha: 0.6),
               ),
               const SizedBox(height: 2),
               Text(
@@ -631,7 +661,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? AppColors.primaryGreen : AppColors.grey600,
+                  color: selected
+                      ? AppColors.white
+                      : Colors.white.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -655,7 +687,9 @@ class _RegisterPageState extends State<RegisterPage> {
           margin: const EdgeInsets.all(4),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryGreen : Colors.transparent,
+            color: selected
+                ? Colors.white.withValues(alpha: 0.2)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
           ),
           child: Row(
@@ -664,7 +698,9 @@ class _RegisterPageState extends State<RegisterPage> {
               Icon(
                 icon,
                 size: 16,
-                color: selected ? AppColors.white : AppColors.grey600,
+                color: selected
+                    ? AppColors.white
+                    : Colors.white.withValues(alpha: 0.55),
               ),
               const SizedBox(width: 6),
               Text(
@@ -672,7 +708,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 style: TextStyle(
                   fontSize: AppDimens.fontS,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? AppColors.white : AppColors.grey600,
+                  color: selected
+                      ? AppColors.white
+                      : Colors.white.withValues(alpha: 0.55),
                 ),
               ),
             ],

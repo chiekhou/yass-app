@@ -455,7 +455,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
         ));
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
-        rethrow;
+        emit(AdminPartnersError(message: e.toString()));
       }
     } else if (currentState is AdminPartnerDetailsLoaded) {
       emit(currentState.copyWith(isUpdating: true));
@@ -467,7 +467,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
         ));
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
-        rethrow;
+        emit(AdminPartnersError(message: e.toString()));
       }
     }
   }
@@ -503,7 +503,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
         ));
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
-        rethrow;
+        emit(AdminPartnersError(message: e.toString()));
       }
     } else if (currentState is AdminPartnerDetailsLoaded) {
       emit(currentState.copyWith(isUpdating: true));
@@ -518,7 +518,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
         ));
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
-        rethrow;
+        emit(AdminPartnersError(message: e.toString()));
       }
     }
   }
@@ -548,7 +548,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
         ));
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
-        rethrow;
+        emit(AdminPartnersError(message: e.toString()));
       }
     } else if (currentState is AdminPartnerDetailsLoaded) {
       emit(currentState.copyWith(isUpdating: true));
@@ -563,7 +563,7 @@ class AdminPartnersBloc extends Bloc<AdminPartnersEvent, AdminPartnersState> {
         ));
       } catch (e) {
         emit(currentState.copyWith(isUpdating: false));
-        rethrow;
+        emit(AdminPartnersError(message: e.toString()));
       }
     }
   }

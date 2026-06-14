@@ -17,6 +17,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
 import '../../data/models/establishment_model.dart';
+import '../../data/repositories/establishment_repository.dart';
 import '../bloc/establishment_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
@@ -38,9 +39,16 @@ class EstablishmentDetailsPage extends StatefulWidget {
       _EstablishmentDetailsPageState();
 }
 
-class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
+class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
+    with SingleTickerProviderStateMixin {
   late EstablishmentBloc _bloc;
+  late TabController _tabController;
   int _currentImageIndex = 0;
+  bool _eliteOnly = false;
+  int? _ratingFilter;
+  String _sortBy = 'created_at';
+  String _sortOrder = 'DESC';
+  bool _descriptionExpanded = false;
 
   // Map state
   final MapController _mapController = MapController();
@@ -50,9 +58,14 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
   int? _routeDrivingMin;
   bool _routeLoaded = false;
 
+  // Similaires — future stockée pour éviter les re-souscriptions sur chaque rebuild
+  Future<List<Establishment>>? _similarsFuture;
+  String? _similarsEstablishmentId;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 4, vsync: this);
     _bloc = EstablishmentBloc();
     _loadEstablishment();
   }
@@ -130,12 +143,16 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
   void _fitMapBounds(LatLng user, LatLng dest) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _mapController.fitCamera(
-        CameraFit.bounds(
-          bounds: LatLngBounds.fromPoints([user, dest]),
-          padding: const EdgeInsets.all(48),
-        ),
-      );
+      try {
+        _mapController.fitCamera(
+          CameraFit.bounds(
+            bounds: LatLngBounds.fromPoints([user, dest]),
+            padding: const EdgeInsets.all(48),
+          ),
+        );
+      } catch (_) {
+        // Map not rendered (Infos tab inactive) — ignore
+      }
     });
   }
 
@@ -149,6 +166,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _bloc.close();
     super.dispose();
   }
@@ -162,7 +180,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
           if (state is EstablishmentLoading) {
             return const Scaffold(
               body: Center(
-                child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                child: CircularProgressIndicator(color: AppColors.white),
               ),
             );
           }
@@ -214,7 +232,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
 
           return const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              child: CircularProgressIndicator(color: AppColors.white),
             ),
           );
         },
@@ -239,84 +257,88 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
         return false;
       },
       listener: (context, _) {
-        // Sync la liste de favoris globale pour que la page Favoris reste à jour
         context.read<FavoriteBloc>().add(const FavoriteLoadList(refresh: true));
       },
       child: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            _buildSliverAppBar(establishment, state.isFavorited),
+        backgroundColor:
+            const Color.from(alpha: 1, red: 0, green: 0.184, blue: 0.655),
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            _buildSliverAppBar(establishment, state.isFavorited, state.reviews),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimens.paddingM),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(establishment),
-                    const SizedBox(height: AppDimens.paddingL),
-                    _buildActionButtons(establishment),
-                    const SizedBox(height: AppDimens.paddingM),
-                    _buildContactButton(establishment),
-                    const SizedBox(height: AppDimens.paddingL),
-                    if (establishment.description != null &&
-                        establishment.description!.isNotEmpty) ...[
-                      _buildDescription(establishment),
-                      const SizedBox(height: AppDimens.paddingL),
-                    ],
-                    if (establishment.services != null &&
-                        establishment.services!.isNotEmpty) ...[
-                      _buildServices(establishment),
-                      const SizedBox(height: AppDimens.paddingL),
-                    ],
-                    if (establishment.amenities != null &&
-                        establishment.amenities!.isNotEmpty) ...[
-                      _buildAmenities(establishment),
-                      const SizedBox(height: AppDimens.paddingL),
-                    ],
-                    if (establishment.openingHours != null) ...[
-                      _buildOpeningHours(establishment),
-                      const SizedBox(height: AppDimens.paddingL),
-                    ],
-                    _buildContact(establishment),
-                    const SizedBox(height: AppDimens.paddingL),
-                    if (establishment.hasCoordinates)
-                      _buildMapSection(establishment),
-                    if (establishment.hasCoordinates)
-                      const SizedBox(height: AppDimens.paddingL),
-                    _isPremiumOrAbove(establishment)
-                        ? _buildReviewsSection(state)
-                        : _buildLockedReviewsSection(),
-                    const SizedBox(height: 100),
+              child: _buildHeaderContent(establishment, state.isFavorited),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _StickyTabBarDelegate(
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppColors.accentGreen,
+                  unselectedLabelColor: AppColors.scaffoldBackground,
+                  indicatorColor: AppColors.accentGreen,
+                  indicatorWeight: 2.5,
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
+                  ),
+                  tabs: const [
+                    Tab(text: 'Aperçu'),
+                    Tab(text: 'Infos'),
+                    Tab(text: 'Avis'),
+                    Tab(text: 'Similaires'),
                   ],
                 ),
               ),
             ),
           ],
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildApercuTab(establishment, state),
+              _buildInfosTab(establishment),
+              _buildAvisTab(establishment, state),
+              _buildSimilairesTab(establishment),
+            ],
+          ),
         ),
-        bottomNavigationBar: _buildBottomBar(establishment),
       ),
     );
   }
 
-  Widget _buildSliverAppBar(Establishment establishment, bool isFavorited) {
-    final isPremiumOrAbove = establishment.partnerSubscriptionPlan == 'premium' ||
-        establishment.partnerSubscriptionPlan == 'gold';
-    final images = establishment.images ?? [];
+  Widget _buildSliverAppBar(
+      Establishment establishment, bool isFavorited, List<Review> reviews) {
+    final isPremiumOrAbove =
+        establishment.partnerSubscriptionPlan == 'premium' ||
+            establishment.partnerSubscriptionPlan == 'gold';
+    final imageUrls = (establishment.images ?? []).map((p) => p.url).toList();
+    final images = imageUrls; // List<String> d'URLs pour le carousel
     final hasImages = images.isNotEmpty && isPremiumOrAbove;
     final coverImage = establishment.coverImage;
 
     return SliverAppBar(
       expandedHeight: 280,
       pinned: true,
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.kleinBlue,
+      title: Text(
+        establishment.name,
+        style: const TextStyle(
+          color: AppColors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
       leading: IconButton(
         icon: Container(
           padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(
-            color: AppColors.white,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Iconsax.arrow_left, color: AppColors.grey900),
+          child: const Icon(Iconsax.arrow_left, color: AppColors.white),
         ),
         onPressed: () => context.pop(),
       ),
@@ -324,24 +346,24 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: AppColors.white,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Iconsax.share, color: AppColors.grey900),
+            child: const Icon(Iconsax.share, color: AppColors.white),
           ),
           onPressed: () => _shareEstablishment(establishment),
         ),
         IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: AppColors.white,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isFavorited ? Iconsax.heart5 : Iconsax.heart,
-              color: isFavorited ? AppColors.primaryRed : AppColors.grey900,
+              color: isFavorited ? AppColors.accentOrange : AppColors.white,
             ),
           ),
           onPressed: () {
@@ -363,7 +385,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
               PageView.builder(
                 itemCount: images.length,
                 onPageChanged: (index) {
-                  setState(() => _currentImageIndex = index);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) setState(() => _currentImageIndex = index);
+                  });
                 },
                 itemBuilder: (context, index) {
                   return Image.network(
@@ -386,27 +410,148 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
               )
             else
               _buildImagePlaceholder(),
-            // Image indicator
+            // Gradient overlay at the bottom
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 130,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black87],
+                  ),
+                ),
+              ),
+            ),
+            // Name + rating + photo button
+            Builder(builder: (context) {
+              final allPhotoItems = [
+                if (coverImage != null)
+                  PhotoItem(url: coverImage, category: 'autres'),
+                ...(establishment.images ?? []),
+                // Photos des avis utilisateurs (avec leurs catégories)
+                for (final review in reviews)
+                  if (review.images != null) ...review.images!,
+                // Vidéos des avis utilisateurs
+                for (final review in reviews)
+                  if (review.videos != null) ...review.videos!,
+              ];
+              return Positioned(
+                bottom: 12,
+                left: 14,
+                right: 14,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Establishment name
+                    Text(
+                      establishment.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black54,
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    // Rating + review count
+                    if (establishment.totalReviews > 0)
+                      Row(
+                        children: [
+                          ...List.generate(
+                            5,
+                            (i) => Icon(
+                              i < establishment.averageRating.round()
+                                  ? Icons.star_rounded
+                                  : Icons.star_outline_rounded,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${establishment.displayRating} (${establishment.totalReviews} avis)',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 8),
+                    // "Voir toutes les photos" button
+                    if (allPhotoItems.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          context.push(
+                            '/establishment/${establishment.id}/photos',
+                            extra: {
+                              'name': establishment.name,
+                              'photos': allPhotoItems,
+                            },
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white38, width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Iconsax.gallery,
+                                  color: Colors.white, size: 14),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Voir toutes les photos (${allPhotoItems.length})',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
+            // Page indicator dots (multi-image carousel)
             if (hasImages && images.length > 1)
               Positioned(
-                bottom: 16,
-                left: 0,
-                right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    images.length,
-                    (index) => Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 3),
-                      width: _currentImageIndex == index ? 24 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _currentImageIndex == index
-                            ? AppColors.white
-                            : const Color(0x80FFFFFF),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
+                top: 16,
+                right: 16,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black45,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_currentImageIndex + 1}/${images.length}',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -541,6 +686,99 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
     );
   }
 
+  Widget _buildInfoCard(Establishment establishment) {
+    final fullAddress = _buildFullAddress(establishment);
+    final hasPhone = establishment.phone.isNotEmpty;
+    final hasEmail = establishment.hasEmail;
+
+    if (!hasPhone && !hasEmail) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            icon: Iconsax.location,
+            value: fullAddress,
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: fullAddress));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Adresse copiée')),
+              );
+            },
+            trailingIcon: Icons.copy_rounded,
+            isFirst: true,
+            isLast: !hasPhone && !hasEmail,
+          ),
+          if (hasPhone) ...[
+            const Divider(height: 1, color: Colors.white12),
+            _buildInfoRow(
+              icon: Iconsax.call,
+              value: establishment.formattedPhone ?? establishment.phone,
+              onTap: () => _launchPhone(establishment.phone),
+              trailingIcon: Iconsax.arrow_right_3,
+              isFirst: false,
+              isLast: !hasEmail,
+            ),
+          ],
+          if (hasEmail) ...[
+            const Divider(height: 1, color: Colors.white12),
+            _buildInfoRow(
+              icon: Iconsax.sms,
+              value: establishment.email!,
+              onTap: () => _launchEmail(establishment.email!),
+              trailingIcon: Iconsax.arrow_right_3,
+              isFirst: false,
+              isLast: true,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String value,
+    required VoidCallback onTap,
+    required IconData trailingIcon,
+    required bool isFirst,
+    required bool isLast,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.vertical(
+        top: isFirst ? const Radius.circular(AppDimens.radiusM) : Radius.zero,
+        bottom: isLast ? const Radius.circular(AppDimens.radiusM) : Radius.zero,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingM,
+          vertical: 14,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.white),
+            const SizedBox(width: AppDimens.paddingM),
+            Expanded(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.white,
+                    ),
+              ),
+            ),
+            Icon(trailingIcon, size: 16, color: Colors.white38),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _buildFullAddress(Establishment establishment) {
     final parts = <String>[];
     parts.add(establishment.address);
@@ -588,6 +826,17 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
             onTap: () => _showDirectionsOptions(establishment),
           ),
         ),
+        if (establishment.hasCoordinates) ...[
+          const SizedBox(width: AppDimens.paddingM),
+          Expanded(
+            child: _ActionButton(
+              icon: Iconsax.location_tick,
+              label: 'Position',
+              color: AppColors.primaryGreen,
+              onTap: () => _shareLocation(establishment),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -639,7 +888,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
               ),
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: Color(0xFF002FA7),
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
@@ -737,20 +986,24 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                                       Navigator.pop(sheetContext);
                                     }
                                     if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         const SnackBar(
                                           content: Text(
                                               'Votre demande a bien été envoyée !'),
-                                          backgroundColor: AppColors.primaryGreen,
+                                          backgroundColor:
+                                              AppColors.accentGreen,
                                         ),
                                       );
                                     }
                                   } catch (_) {
                                     setSheetState(() => isSubmitting = false);
                                     if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         const SnackBar(
-                                          content: Text('Une erreur est survenue, réessayez.'),
+                                          content: Text(
+                                              'Une erreur est survenue, réessayez.'),
                                           backgroundColor: AppColors.primaryRed,
                                         ),
                                       );
@@ -758,7 +1011,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
+                            backgroundColor: AppColors.accentGreen,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius:
@@ -1078,7 +1331,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                       icon: const Icon(Icons.navigation, size: 18),
                       label: const Text('Itinéraire'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryGreen,
+                        backgroundColor: AppColors.accentGreen,
                         foregroundColor: Colors.white,
                       ),
                     ),
@@ -1275,6 +1528,226 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
     );
   }
 
+  String get _sortLabel {
+    if (_sortBy == 'rating' && _sortOrder == 'DESC') return 'Mieux notés';
+    if (_sortBy == 'rating' && _sortOrder == 'ASC') return 'Moins bien notés';
+    if (_sortBy == 'created_at' && _sortOrder == 'ASC') return 'Plus anciens';
+    return 'Plus récents';
+  }
+
+  String get _ratingLabel =>
+      _ratingFilter != null ? '$_ratingFilter étoiles' : 'Note';
+
+  void _reloadReviews() {
+    _bloc.add(EstablishmentLoadReviews(
+      eliteOnly: _eliteOnly,
+      rating: _ratingFilter,
+      sortBy: _sortBy,
+      sortOrder: _sortOrder,
+    ));
+  }
+
+  Widget _filterPill({
+    required String label,
+    required bool hasChevron,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color:
+                isActive ? Colors.white : Colors.white.withValues(alpha: 0.4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isActive ? AppColors.primaryGreen : Colors.white,
+              ),
+            ),
+            if (hasChevron) ...[
+              const SizedBox(width: 3),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 16,
+                color: isActive ? AppColors.primaryGreen : Colors.white,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSortSheet() {
+    final options = [
+      ('Plus récents', 'created_at', 'DESC'),
+      ('Plus anciens', 'created_at', 'ASC'),
+      ('Mieux notés', 'rating', 'DESC'),
+      ('Moins bien notés', 'rating', 'ASC'),
+    ];
+    showModalBottomSheet(
+      backgroundColor: AppColors.scaffoldBackground,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.grey300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...options.map((opt) {
+            final isSelected = _sortBy == opt.$2 && _sortOrder == opt.$3;
+            return ListTile(
+              title: Text(
+                opt.$1,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: AppColors.primaryGreen, fontSize: 16),
+              ),
+              trailing: isSelected
+                  ? const Icon(Icons.check, color: AppColors.primaryGreen)
+                  : null,
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _sortBy = opt.$2;
+                  _sortOrder = opt.$3;
+                });
+                _reloadReviews();
+              },
+            );
+          }),
+          ListTile(
+            title: const Text(
+              'Avis d\'Élites',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.primaryGreen, fontSize: 16),
+            ),
+            trailing: _eliteOnly
+                ? const Icon(Icons.check, color: AppColors.primaryGreen)
+                : null,
+            onTap: () {
+              Navigator.pop(context);
+              setState(() => _eliteOnly = !_eliteOnly);
+              _reloadReviews();
+            },
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.grey700,
+                  side: const BorderSide(color: AppColors.grey300),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Annuler'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRatingSheet() {
+    showModalBottomSheet(
+      backgroundColor: AppColors.scaffoldBackground,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.grey300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...[5, 4, 3, 2, 1].map((r) => ListTile(
+                title: Text(
+                  '$r étoiles',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: AppColors.primaryGreen, fontSize: 16),
+                ),
+                trailing: _ratingFilter == r
+                    ? const Icon(Icons.check, color: AppColors.primaryGreen)
+                    : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _ratingFilter = r);
+                  _reloadReviews();
+                },
+              )),
+          ListTile(
+            title: const Text(
+              'Tous les avis',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.primaryGreen, fontSize: 16),
+            ),
+            trailing: _ratingFilter == null
+                ? const Icon(Icons.check, color: AppColors.primaryGreen)
+                : null,
+            onTap: () {
+              Navigator.pop(context);
+              setState(() => _ratingFilter = null);
+              _reloadReviews();
+            },
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.grey700,
+                  side: const BorderSide(color: AppColors.grey300),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Annuler'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildReviewsSection(EstablishmentLoaded state) {
     final reviews = state.reviews;
 
@@ -1304,12 +1777,87 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
               ),
           ],
         ),
-        //const SizedBox(height: AppDimens.paddingL),
+        const SizedBox(height: AppDimens.paddingM),
+        // ── Yelp-style filter pills ──
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _filterPill(
+                label: _sortLabel,
+                hasChevron: true,
+                isActive: _sortBy != 'created_at' || _sortOrder != 'DESC',
+                onTap: _showSortSheet,
+              ),
+              const SizedBox(width: 8),
+              _filterPill(
+                label: 'Avis d\'Élites',
+                hasChevron: false,
+                isActive: _eliteOnly,
+                onTap: () {
+                  setState(() => _eliteOnly = !_eliteOnly);
+                  _reloadReviews();
+                },
+              ),
+              const SizedBox(width: 8),
+              _filterPill(
+                label: _ratingLabel,
+                hasChevron: true,
+                isActive: _ratingFilter != null,
+                onTap: _showRatingSheet,
+              ),
+            ],
+          ),
+        ),
+        if (_eliteOnly || _ratingFilter != null) ...[
+          const SizedBox(height: AppDimens.paddingS),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _eliteOnly && _ratingFilter != null
+                    ? 'Avis d\'Élites · $_ratingFilter étoiles'
+                    : _eliteOnly
+                        ? 'Avis d\'Élites'
+                        : '$_ratingFilter étoiles',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _eliteOnly = false;
+                    _ratingFilter = null;
+                  });
+                  _reloadReviews();
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Effacer',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: AppDimens.paddingM),
         if (state.isLoadingReviews)
           const Center(
             child: Padding(
               padding: EdgeInsets.all(AppDimens.paddingL),
-              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              child: CircularProgressIndicator(color: AppColors.white),
             ),
           )
         else if (reviews.isEmpty)
@@ -1396,23 +1944,59 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      userName,
-                      style: Theme.of(context).textTheme.titleSmall,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            userName,
+                            style: Theme.of(context).textTheme.titleSmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (review.user?.isElite == true) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFD700),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Iconsax.medal_star,
+                                    size: 10, color: Colors.white),
+                                SizedBox(width: 2),
+                                Text(
+                                  'Élite',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Row(
                       children: [
                         ...List.generate(
                           review.rating,
-                          (i) => const Text('🇩🇿', style: TextStyle(fontSize: 12)),
+                          (i) => const Text('🇩🇿',
+                              style: TextStyle(fontSize: 12)),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           timeAgo,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.grey500,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.grey500,
+                                  ),
                         ),
                       ],
                     ),
@@ -1450,7 +2034,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
             const SizedBox(height: AppDimens.paddingS),
             Row(
               children: [
-                const Icon(Iconsax.calendar_1, size: 13, color: AppColors.grey400),
+                const Icon(Iconsax.calendar_1,
+                    size: 13, color: AppColors.grey400),
                 const SizedBox(width: 4),
                 Text(
                   'Visité le ${_formatDate(review.visitDate!)}',
@@ -1476,9 +2061,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                       Expanded(
                         child: Text(
                           pro,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.grey700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.grey700,
+                                  ),
                         ),
                       ),
                     ],
@@ -1500,9 +2086,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                       Expanded(
                         child: Text(
                           con,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.grey700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.grey700,
+                                  ),
                         ),
                       ),
                     ],
@@ -1594,7 +2181,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                 itemBuilder: (_, i) => ClipRRect(
                   borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   child: Image.network(
-                    review.images![i],
+                    review.images![i].url,
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
@@ -1602,7 +2189,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                       width: 80,
                       height: 80,
                       color: AppColors.grey200,
-                      child: const Icon(Iconsax.image, color: AppColors.grey400),
+                      child:
+                          const Icon(Iconsax.image, color: AppColors.grey400),
                     ),
                   ),
                 ),
@@ -1631,17 +2219,19 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                       children: [
                         Text(
                           context.l10n.ownerResponse,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.primaryGreen,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primaryGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           review.partnerReply!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.grey700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.grey700,
+                                  ),
                         ),
                       ],
                     ),
@@ -1663,7 +2253,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Iconsax.flag, size: 14, color: AppColors.grey400),
+                    const Icon(Iconsax.flag,
+                        size: 14, color: AppColors.grey400),
                     const SizedBox(width: 4),
                     Text(
                       'Signaler',
@@ -1770,48 +2361,1770 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'jan', 'fév', 'mar', 'avr', 'mai', 'juin',
-      'juil', 'août', 'sep', 'oct', 'nov', 'déc'
+      'jan',
+      'fév',
+      'mar',
+      'avr',
+      'mai',
+      'juin',
+      'juil',
+      'août',
+      'sep',
+      'oct',
+      'nov',
+      'déc'
     ];
     return '${date.day} ${months[date.month - 1]}. ${date.year}';
   }
 
-  Widget _buildBottomBar(Establishment establishment) {
-    return Padding(
-      padding: const EdgeInsets.all(AppDimens.paddingM),
-      child: OutlinedButton.icon(
-        onPressed: () async {
-          if (!_isPremiumOrAbove(establishment)) {
-            _showLockedDialog(context, 'Les avis clients');
-            return;
-          }
-          final authState = context.read<AuthBloc>().state;
-          if (authState is AuthAuthenticated) {
-            final name = Uri.encodeComponent(establishment.name);
-            final cat = Uri.encodeComponent(establishment.category?.name ?? '');
-            final result = await context.push<bool>(
-              '${AppRoutes.writeReview.replaceFirst(':establishmentId', establishment.id)}?name=$name&category=$cat',
-            );
-            if (result == true) {
-              _bloc.add(const EstablishmentLoadReviews());
-            }
-          } else {
-            _showLoginRequiredDialog(
-              message: context.l10n.loginToReview,
-            );
-          }
-        },
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.white,
-          foregroundColor: AppColors.primaryGreen,
-          side: const BorderSide(color: AppColors.primaryGreen),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
+  // ==================== HEADER CONTENT ====================
+
+  Widget _buildHeaderContent(Establishment establishment, bool isFavorited) {
+    final isOpen = OpeningHoursHelper.isOpenNow(establishment.openingHours);
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (establishment.category != null)
+            Text(
+              establishment.category!.name,
+              style: const TextStyle(fontSize: 14, color: AppColors.grey600),
+            ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text(
+                isOpen ? 'Ouvert' : 'Fermé',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isOpen ? AppColors.success : AppColors.error,
+                ),
+              ),
+              if (establishment.openingHours != null) ...[
+                const SizedBox(width: 4),
+                const Text(
+                  '· Voir les horaires',
+                  style: TextStyle(fontSize: 14, color: AppColors.primaryGreen),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildHeaderActionButton(
+                  icon: Iconsax.star,
+                  label: 'Ajouter un avis',
+                  filled: true,
+                  onTap: () {
+                    if (!_isPremiumOrAbove(establishment)) {
+                      _showLockedDialog(context, 'Les avis clients');
+                      return;
+                    }
+                    final authState = context.read<AuthBloc>().state;
+                    if (authState is AuthAuthenticated) {
+                      final name = Uri.encodeComponent(establishment.name);
+                      final cat = Uri.encodeComponent(
+                          establishment.category?.name ?? '');
+                      context
+                          .push(
+                        '${AppRoutes.writeReview.replaceFirst(':establishmentId', establishment.id)}?name=$name&category=$cat',
+                      )
+                          .then((result) {
+                        if (result == true && mounted) {
+                          _bloc.add(const EstablishmentLoadReviews());
+                        }
+                      });
+                    } else {
+                      _showLoginRequiredDialog(
+                          message: context.l10n.loginToReview);
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                if (establishment.hasWebsite) ...[
+                  _buildHeaderActionButton(
+                    icon: Iconsax.global,
+                    label: 'Site internet',
+                    filled: false,
+                    onTap: () => _launchUrl(establishment.website!),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                if (establishment.phone.isNotEmpty) ...[
+                  _buildHeaderActionButton(
+                    icon: Iconsax.call,
+                    label: 'Appeler',
+                    filled: false,
+                    onTap: _isPremiumOrAbove(establishment)
+                        ? () => _launchPhone(establishment.phone)
+                        : () =>
+                            _showLockedDialog(context, 'Appel téléphonique'),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                _buildHeaderActionButton(
+                  icon: Iconsax.routing,
+                  label: 'Itinéraire',
+                  filled: false,
+                  onTap: () => _showDirectionsOptions(establishment),
+                ),
+                const SizedBox(width: 8),
+                _buildHeaderActionButton(
+                  icon: Iconsax.share,
+                  label: 'Partager',
+                  filled: false,
+                  onTap: () => _shareEstablishment(establishment),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    final authState = context.read<AuthBloc>().state;
+                    if (authState is! AuthAuthenticated) {
+                      _showLoginRequiredDialog(
+                          message: context.l10n.loginToFavoriteMsg);
+                      return;
+                    }
+                    _bloc.add(EstablishmentToggleFavorite());
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isFavorited
+                          ? AppColors.primaryRed.withValues(alpha: 0.08)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isFavorited
+                            ? AppColors.primaryRed
+                            : const Color(0xFFDDDDDD),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isFavorited ? Iconsax.heart5 : Iconsax.heart,
+                          size: 16,
+                          color: isFavorited
+                              ? AppColors.primaryRed
+                              : Colors.black87,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isFavorited ? 'Favori ✓' : 'Favoris',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isFavorited
+                                ? AppColors.primaryRed
+                                : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildRecommendSection(establishment, isFavorited),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderActionButton({
+    required IconData icon,
+    required String label,
+    required bool filled,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: filled ? AppColors.primaryGreen : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: filled ? AppColors.primaryGreen : const Color(0xFFDDDDDD),
+            width: 1.5,
           ),
         ),
-        icon: const Icon(Iconsax.edit, size: 18),
-        label: Text(context.l10n.writeReview),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: filled ? Colors.white : Colors.black87),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: filled ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecommendSection(Establishment establishment, bool isFavorited) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Recommander cet établissement ?',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _buildRecommendButton(
+              label: 'Oui',
+              icon: Icons.thumb_up_outlined,
+              onTap: () => _onRecommend(establishment, rating: null),
+            ),
+            const SizedBox(width: 8),
+            _buildRecommendButton(
+              label: 'Non',
+              icon: Icons.thumb_down_outlined,
+              onTap: () => _onRecommend(establishment, rating: 1),
+            ),
+            const SizedBox(width: 8),
+            _buildRecommendButton(
+              label: 'Peut-être',
+              icon: isFavorited ? Icons.bookmark : Icons.bookmark_border,
+              activeColor: isFavorited ? AppColors.primaryGreen : null,
+              onTap: () => _onMaybe(establishment, isFavorited),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _onRecommend(Establishment establishment, {int? rating}) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      _showLoginRequiredDialog(message: context.l10n.loginToReview);
+      return;
+    }
+    final name = Uri.encodeComponent(establishment.name);
+    final ratingParam = rating != null ? '&initialRating=$rating' : '';
+    context.push('/review/${establishment.id}?name=$name$ratingParam');
+  }
+
+  void _onMaybe(Establishment establishment, bool isFavorited) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      _showLoginRequiredDialog(message: context.l10n.loginToFavoriteMsg);
+      return;
+    }
+    _bloc.add(EstablishmentToggleFavorite());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavorited
+              ? 'Retiré de vos favoris'
+              : 'Ajouté à vos favoris ! Revenez quand vous voulez 😊',
+        ),
+        backgroundColor:
+            isFavorited ? AppColors.grey700 : AppColors.primaryGreen,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _buildRecommendButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? activeColor,
+  }) {
+    final color = activeColor ?? Colors.black87;
+    final isActive = activeColor != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? color.withValues(alpha: 0.08) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? color : const Color(0xFFDDDDDD),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==================== TABS (stubs) ====================
+
+  Widget _buildApercuTab(
+      Establishment establishment, EstablishmentLoaded state) {
+    final fullAddress = _buildFullAddress(establishment);
+    final isPremium = _isPremiumOrAbove(establishment);
+
+    return SingleChildScrollView(
+      key: const PageStorageKey('tab-apercu'),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Informations rapides ──
+          _buildApercuSection(
+            title: 'Informations',
+            child: Column(
+              children: [
+                if (establishment.phone.isNotEmpty)
+                  _buildApercuRow(
+                    icon: Iconsax.call,
+                    label: establishment.formattedPhone ?? establishment.phone,
+                    onTap: isPremium
+                        ? () => _launchPhone(establishment.phone)
+                        : () =>
+                            _showLockedDialog(context, 'Appel téléphonique'),
+                    locked: !isPremium,
+                    isFirst: true,
+                    isLast:
+                        !establishment.hasWebsite && !establishment.hasEmail,
+                  ),
+                if (establishment.hasWebsite) ...[
+                  const Divider(height: 1, indent: 48),
+                  _buildApercuRow(
+                    icon: Iconsax.global,
+                    label: establishment.website!,
+                    onTap: isPremium
+                        ? () => _launchUrl(establishment.website!)
+                        : () => _showLockedDialog(context, 'Site web'),
+                    locked: !isPremium,
+                    isFirst: establishment.phone.isEmpty,
+                    isLast: !establishment.hasEmail,
+                  ),
+                ],
+                if (establishment.hasEmail) ...[
+                  const Divider(height: 1, indent: 48),
+                  _buildApercuRow(
+                    icon: Iconsax.sms,
+                    label: establishment.email!,
+                    onTap: () => _launchEmail(establishment.email!),
+                    locked: false,
+                    isFirst: establishment.phone.isEmpty &&
+                        !establishment.hasWebsite,
+                    isLast: true,
+                  ),
+                ],
+                if (establishment.facebook != null) ...[
+                  const Divider(height: 1, indent: 48),
+                  _buildApercuRow(
+                    icon: Icons.facebook,
+                    label: 'Facebook',
+                    onTap: isPremium
+                        ? () => _launchUrl(establishment.facebook!)
+                        : () => _showLockedDialog(context, 'Facebook'),
+                    locked: !isPremium,
+                    isFirst: false,
+                    isLast: establishment.instagram == null &&
+                        establishment.tiktok == null,
+                  ),
+                ],
+                if (establishment.instagram != null) ...[
+                  const Divider(height: 1, indent: 48),
+                  _buildApercuRow(
+                    icon: Iconsax.camera,
+                    label: 'Instagram',
+                    onTap: isPremium
+                        ? () => _launchUrl(establishment.instagram!)
+                        : () => _showLockedDialog(context, 'Instagram'),
+                    locked: !isPremium,
+                    isFirst: false,
+                    isLast: establishment.tiktok == null,
+                  ),
+                ],
+                if (establishment.tiktok != null) ...[
+                  const Divider(height: 1, indent: 48),
+                  _buildApercuRow(
+                    icon: Iconsax.video,
+                    label: 'TikTok',
+                    onTap: isPremium
+                        ? () => _launchUrl(establishment.tiktok!)
+                        : () => _showLockedDialog(context, 'TikTok'),
+                    locked: !isPremium,
+                    isFirst: false,
+                    isLast: true,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── Carte miniature + adresse ──
+          if (establishment.hasCoordinates)
+            _buildApercuSection(
+              title: 'Localisation',
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: SizedBox(
+                      height: 160,
+                      child: FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: LatLng(establishment.latitude!,
+                              establishment.longitude!),
+                          initialZoom: 14,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.none,
+                          ),
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                            subdomains: const ['a', 'b', 'c', 'd'],
+                            userAgentPackageName: 'com.dz.win.app',
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: LatLng(establishment.latitude!,
+                                    establishment.longitude!),
+                                width: 40,
+                                height: 40,
+                                child: const Icon(Icons.location_pin,
+                                    color: Colors.red, size: 40),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius:
+                          BorderRadius.vertical(bottom: Radius.circular(12)),
+                    ),
+                    child: Column(
+                      children: [
+                        if (_routeDrivingMin != null &&
+                            _routeDistanceKm != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.directions_car,
+                                    size: 16, color: Colors.black54),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$_routeDrivingMin min en voiture',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '${_routeDistanceKm!.toStringAsFixed(1)} km',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.grey500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        _buildApercuRow(
+                          icon: Iconsax.location,
+                          label: fullAddress,
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: fullAddress));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Adresse copiée')),
+                            );
+                          },
+                          locked: false,
+                          isFirst: true,
+                          isLast: false,
+                        ),
+                        const Divider(height: 1, indent: 48),
+                        _buildApercuRow(
+                          icon: Iconsax.routing,
+                          label: 'Voir l\'itinéraire',
+                          onTap: () => _showDirectionsOptions(establishment),
+                          locked: false,
+                          isFirst: false,
+                          isLast: true,
+                          labelColor: AppColors.primaryGreen,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 16),
+
+          // ── Prise de contact ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showContactForm(establishment),
+                icon: const Icon(Iconsax.message_edit,
+                    color: AppColors.primaryGreen),
+                label: const Text(
+                  'Prise de contact',
+                  style: TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(
+                      color: AppColors.primaryGreen, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── CTA partenaire (si non premium, non admin) ──
+          if (!isPremium &&
+              !(context.read<AuthBloc>().state is AuthAuthenticated &&
+                  (context.read<AuthBloc>().state as AuthAuthenticated)
+                      .user
+                      .isAdmin))
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GestureDetector(
+                onTap: () {
+                  final authState = context.read<AuthBloc>().state;
+                  if (authState is! AuthAuthenticated) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        title: const Row(
+                          children: [
+                            Icon(Iconsax.profile_circle, size: 20),
+                            SizedBox(width: 8),
+                            Text('Connexion requise',
+                                style: TextStyle(fontSize: 16)),
+                          ],
+                        ),
+                        content: const Text(
+                          'Connectez-vous pour revendiquer cet établissement et accéder aux offres partenaires.',
+                          style: TextStyle(height: 1.5),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Annuler'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              context.push(AppRoutes.login);
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryGreen),
+                            child: const Text('Se connecter',
+                                style: TextStyle(color: AppColors.white)),
+                          ),
+                        ],
+                      ),
+                    );
+                    return;
+                  }
+                  if (authState.user.isPartner) {
+                    context.push(AppRoutes.partnerSubscription);
+                  } else {
+                    context.push(AppRoutes.registerPartner);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.greenSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.primaryGreen.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.verified_outlined,
+                          color: AppColors.primaryGreen, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Vous possédez cet établissement ?',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Revendiquez-le dès maintenant',
+                              style: TextStyle(
+                                  fontSize: 13, color: AppColors.grey600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Iconsax.arrow_right_3,
+                          size: 18, color: AppColors.primaryGreen),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApercuSection({
+    required String title,
+    required Widget child,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFEEEEEE)),
+              ),
+              child: child,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApercuRow({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool locked,
+    required bool isFirst,
+    required bool isLast,
+    Color? labelColor,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.vertical(
+        top: isFirst ? const Radius.circular(12) : Radius.zero,
+        bottom: isLast ? const Radius.circular(12) : Radius.zero,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon,
+                size: 18, color: locked ? Colors.black26 : AppColors.grey700),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color:
+                      locked ? Colors.black26 : (labelColor ?? Colors.black87),
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (locked)
+              const Icon(Icons.lock_rounded, size: 14, color: Colors.black26)
+            else
+              Icon(
+                isLast && labelColor == null
+                    ? Icons.copy_rounded
+                    : Iconsax.arrow_right_3,
+                size: 16,
+                color: AppColors.grey400,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfosTab(Establishment establishment) {
+    final fullAddress = _buildFullAddress(establishment);
+    final authState = context.read<AuthBloc>().state;
+    final userName =
+        authState is AuthAuthenticated ? authState.user.fullName : 'Vous';
+
+    return SingleChildScrollView(
+      key: const PageStorageKey('tab-infos'),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Grande carte + localisation ──
+          if (establishment.hasCoordinates) ...[
+            ClipRRect(
+              child: SizedBox(
+                height: 270,
+                child: FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: LatLng(
+                        establishment.latitude!, establishment.longitude!),
+                    initialZoom: 14,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                      subdomains: const ['a', 'b', 'c', 'd'],
+                      userAgentPackageName: 'com.dz.win.app',
+                    ),
+                    if (_routePoints.isNotEmpty)
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _routePoints,
+                            strokeWidth: 4,
+                            color: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: LatLng(establishment.latitude!,
+                              establishment.longitude!),
+                          width: 40,
+                          height: 40,
+                          child: const Icon(Icons.location_pin,
+                              color: Colors.red, size: 40),
+                        ),
+                        if (_userLocation != null)
+                          Marker(
+                            point: _userLocation!,
+                            width: 20,
+                            height: 20,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 3),
+                                boxShadow: const [
+                                  BoxShadow(
+                                      color: Colors.black26, blurRadius: 4),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  if (_routeDrivingMin != null && _routeDistanceKm != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.directions_car,
+                              size: 18, color: Colors.black87),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$_routeDrivingMin min en voiture',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${_routeDistanceKm!.toStringAsFixed(1)} km',
+                            style: const TextStyle(
+                                fontSize: 14, color: AppColors.grey500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  _buildInfosRow(
+                    icon: Iconsax.location,
+                    label: fullAddress,
+                    trailing: Icons.copy_rounded,
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: fullAddress));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Adresse copiée')),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1, indent: 16),
+                  _buildInfosRow(
+                    icon: Iconsax.routing,
+                    label: 'Voir l\'itinéraire',
+                    labelColor: AppColors.primaryGreen,
+                    trailing: Iconsax.arrow_right_3,
+                    onTap: () => _showDirectionsOptions(establishment),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Divider(height: 1, color: Color(0xFF002FA7)),
+            const SizedBox(height: 8),
+          ],
+
+          // ── Fonctionnalités (services + amenities) ──
+          if ((establishment.services != null &&
+                  establishment.services!.isNotEmpty) ||
+              (establishment.amenities != null &&
+                  establishment.amenities!.isNotEmpty)) ...[
+            _buildInfosBlockTitle('Fonctionnalités'),
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                children: [
+                  if (establishment.services != null)
+                    ...establishment.services!.map(
+                      (s) => _buildFeatureRow(Iconsax.tick_circle, s),
+                    ),
+                  if (establishment.amenities != null)
+                    ...establishment.amenities!.map(
+                      (a) => _buildFeatureRow(Iconsax.star, a),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Divider(height: 1, color: Color(0xFF002FA7)),
+            const SizedBox(height: 8),
+          ],
+
+          // ── Horaires d'ouverture ──
+          if (establishment.openingHours != null) ...[
+            _buildInfosBlockTitle('Horaires d\'ouverture'),
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: (() {
+                  final hours = establishment.openingHours!;
+                  final dayNames = {
+                    'monday': context.l10n.monday,
+                    'tuesday': context.l10n.tuesday,
+                    'wednesday': context.l10n.wednesday,
+                    'thursday': context.l10n.thursday,
+                    'friday': context.l10n.friday,
+                    'saturday': context.l10n.saturday,
+                    'sunday': context.l10n.sunday,
+                  };
+                  return dayNames.entries.map((entry) {
+                    final dayHours = hours[entry.key];
+                    String hoursText = context.l10n.closed;
+                    if (dayHours != null && dayHours['is_closed'] != true) {
+                      final open = dayHours['open'];
+                      final close = dayHours['close'];
+                      if (open != null && close != null) {
+                        hoursText = '$open - $close';
+                      }
+                    }
+                    return _buildDayRow(entry.value, hoursText,
+                        isLast: entry.key == 'sunday');
+                  }).toList();
+                })(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Divider(height: 1, color: Color(0xFF002FA7)),
+            const SizedBox(height: 8),
+          ],
+
+          // ── À propos ──
+          if (establishment.description != null &&
+              establishment.description!.isNotEmpty) ...[
+            _buildInfosBlockTitle('À propos de cet établissement'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    establishment.description!,
+                    style: const TextStyle(
+                        fontSize: 14, color: Colors.white, height: 1.6),
+                    maxLines: _descriptionExpanded ? null : 3,
+                    overflow:
+                        _descriptionExpanded ? null : TextOverflow.ellipsis,
+                  ),
+                  if (establishment.description!.length > 120) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => setState(
+                          () => _descriptionExpanded = !_descriptionExpanded),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          _descriptionExpanded ? 'Réduire' : 'Continuer à lire',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Divider(height: 1, color: Color(0xFF002FA7)),
+            const SizedBox(height: 8),
+          ],
+
+          // ── Laisser un avis (inline) ──
+          _buildInfosBlockTitle('Laisser un avis'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF002FA7)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: AppColors.grey200,
+                        child: Text(
+                          userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.grey600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: List.generate(5, (i) {
+                      return GestureDetector(
+                        onTap: () {
+                          if (!_isPremiumOrAbove(establishment)) {
+                            _showLockedDialog(context, 'Les avis clients');
+                            return;
+                          }
+                          if (authState is! AuthAuthenticated) {
+                            _showLoginRequiredDialog(
+                                message: context.l10n.loginToReview);
+                            return;
+                          }
+                          final name = Uri.encodeComponent(establishment.name);
+                          final cat = Uri.encodeComponent(
+                              establishment.category?.name ?? '');
+                          context
+                              .push(
+                            '${AppRoutes.writeReview.replaceFirst(':establishmentId', establishment.id)}?name=$name&category=$cat',
+                          )
+                              .then((result) {
+                            if (result == true && mounted) {
+                              _bloc.add(const EstablishmentLoadReviews());
+                            }
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Icon(
+                            Iconsax.star,
+                            size: 28,
+                            color: AppColors.grey300,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () {
+                      if (!_isPremiumOrAbove(establishment)) {
+                        _showLockedDialog(context, 'Les avis clients');
+                        return;
+                      }
+                      if (authState is! AuthAuthenticated) {
+                        _showLoginRequiredDialog(
+                            message: context.l10n.loginToReview);
+                        return;
+                      }
+                      final name = Uri.encodeComponent(establishment.name);
+                      final cat = Uri.encodeComponent(
+                          establishment.category?.name ?? '');
+                      context
+                          .push(
+                        '${AppRoutes.writeReview.replaceFirst(':establishmentId', establishment.id)}?name=$name&category=$cat',
+                      )
+                          .then((result) {
+                        if (result == true && mounted) {
+                          _bloc.add(const EstablishmentLoadReviews());
+                        }
+                      });
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Tapez pour écrire un avis...',
+                        style:
+                            TextStyle(fontSize: 14, color: AppColors.grey400),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (!_isPremiumOrAbove(establishment)) {
+                              _showLockedDialog(context, 'Les avis clients');
+                              return;
+                            }
+                            if (authState is! AuthAuthenticated) {
+                              _showLoginRequiredDialog(
+                                  message: context.l10n.loginToReview);
+                              return;
+                            }
+                            final name =
+                                Uri.encodeComponent(establishment.name);
+                            final cat = Uri.encodeComponent(
+                                establishment.category?.name ?? '');
+                            context
+                                .push(
+                              '${AppRoutes.writeReview.replaceFirst(':establishmentId', establishment.id)}?name=$name&category=$cat',
+                            )
+                                .then((result) {
+                              if (result == true && mounted) {
+                                _bloc.add(const EstablishmentLoadReviews());
+                              }
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F0F0),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Iconsax.camera,
+                                    size: 18, color: Colors.black54),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Ajouter une photo',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Check-In — bientôt disponible')),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F0F0),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Iconsax.location_tick,
+                                    size: 18, color: Colors.black54),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Check-In',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfosBlockTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfosRow({
+    required IconData icon,
+    required String label,
+    required IconData trailing,
+    required VoidCallback onTap,
+    Color? labelColor,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.grey600),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: labelColor ?? Colors.black87,
+                ),
+              ),
+            ),
+            Icon(trailing, size: 16, color: AppColors.grey400),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureRow(IconData icon, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: AppColors.primaryGreen),
+          const SizedBox(width: 14),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvisTab(Establishment establishment, EstablishmentLoaded state) {
+    final reviews = state.reviews;
+    final total = establishment.totalReviews;
+    final avg = establishment.averageRating;
+
+    // Distribution depuis l'API
+    final Map<int, int> dist =
+        state.reviewsData?.ratingDistribution ?? {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
+    final maxCount = dist.values.fold(0, (a, b) => a > b ? a : b);
+
+    return SingleChildScrollView(
+      key: const PageStorageKey('tab-avis'),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Note globale + distribution ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Avis recommandés',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Note + drapeaux
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: List.generate(
+                            avg.round().clamp(0, 5),
+                            (i) => const Text('🇩🇿',
+                                style: TextStyle(fontSize: 20)),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          avg.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          '$total avis',
+                          style: const TextStyle(
+                              fontSize: 13, color: AppColors.white),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+                    // Barres de distribution
+                    Expanded(
+                      child: Column(
+                        children: [5, 4, 3, 2, 1].map((star) {
+                          final count = dist[star] ?? 0;
+                          final fraction =
+                              maxCount > 0 ? count / maxCount : 0.0;
+                          final barColor = star >= 4
+                              ? const Color(0xFFE53935)
+                              : star == 3
+                                  ? const Color(0xFFFFA726)
+                                  : const Color(0xFFBDBDBD);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Text(
+                                  '$star',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: AppColors.grey500),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          height: 8,
+                                          color: const Color(0xFFEEEEEE),
+                                        ),
+                                        FractionallySizedBox(
+                                          widthFactor: fraction,
+                                          child: Container(
+                                            height: 8,
+                                            color: barColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFF002FA7)),
+          const SizedBox(height: 12),
+
+          // ── Pills filtres ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _filterPill(
+                    label: _sortLabel,
+                    hasChevron: true,
+                    isActive: _sortBy != 'created_at' || _sortOrder != 'DESC',
+                    onTap: _showSortSheet,
+                  ),
+                  const SizedBox(width: 8),
+                  _filterPill(
+                    label: 'Avis d\'Élites',
+                    hasChevron: false,
+                    isActive: _eliteOnly,
+                    onTap: () {
+                      setState(() => _eliteOnly = !_eliteOnly);
+                      _reloadReviews();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _filterPill(
+                    label: _ratingLabel,
+                    hasChevron: true,
+                    isActive: _ratingFilter != null,
+                    onTap: _showRatingSheet,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Filtre actif — bouton Effacer ──
+          if (_eliteOnly || _ratingFilter != null) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _eliteOnly && _ratingFilter != null
+                        ? 'Avis d\'Élites · $_ratingFilter drapeaux'
+                        : _eliteOnly
+                            ? 'Avis d\'Élites'
+                            : '$_ratingFilter drapeaux',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _eliteOnly = false;
+                        _ratingFilter = null;
+                      });
+                      _reloadReviews();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEEEEE),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Effacer',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 16),
+
+          // ── Liste des avis ──
+          if (!_isPremiumOrAbove(establishment))
+            _buildLockedReviewsSection()
+          else if (state.isLoadingReviews)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: CircularProgressIndicator(color: AppColors.primaryGreen),
+              ),
+            )
+          else if (reviews.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    const Icon(Iconsax.message_text,
+                        size: 48, color: AppColors.grey300),
+                    const SizedBox(height: 12),
+                    Text(
+                      context.l10n.noReviews,
+                      style:
+                          const TextStyle(color: Colors.black54, fontSize: 15),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      context.l10n.beFirstReview,
+                      style: const TextStyle(
+                          color: AppColors.grey400, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: reviews.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) =>
+                        _buildReviewCard(reviews[index]),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimilairesTab(Establishment establishment) {
+    if (establishment.category == null) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Text(
+            'Aucun établissement similaire trouvé.',
+            style: TextStyle(color: AppColors.grey500, fontSize: 14),
+          ),
+        ),
+      );
+    }
+
+    // Initialise la future une seule fois par établissement pour éviter
+    // de re-souscrire à chaque rebuild du BlocBuilder (cause des erreurs "unmounted")
+    if (_similarsFuture == null || _similarsEstablishmentId != establishment.id) {
+      _similarsEstablishmentId = establishment.id;
+      _similarsFuture = EstablishmentRepository()
+          .getByCategory(establishment.category!.id, limit: 10)
+          .then((r) =>
+              r.items.where((e) => e.id != establishment.id).take(8).toList());
+    }
+
+    return FutureBuilder<List<Establishment>>(
+      future: _similarsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(48),
+              child: CircularProgressIndicator(color: AppColors.white),
+            ),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Iconsax.building_3,
+                      size: 48, color: AppColors.grey300),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Aucun établissement similaire trouvé.',
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    establishment.category!.name,
+                    style:
+                        const TextStyle(color: AppColors.grey400, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final similaires = snapshot.data!;
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          itemCount: similaires.length,
+          separatorBuilder: (_, __) =>
+              const Divider(height: 1, indent: 80, color: Color(0xFFEEEEEE)),
+          itemBuilder: (context, index) {
+            final e = similaires[index];
+            return _buildSimilaireCard(e);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSimilaireCard(Establishment e) {
+    final isOpen = OpeningHoursHelper.isOpenNow(e.openingHours);
+    final isPremium = e.partnerSubscriptionPlan == 'premium' ||
+        e.partnerSubscriptionPlan == 'gold';
+
+    return InkWell(
+      onTap: () {
+        context.push('/establishment/${e.id}');
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 64,
+                height: 64,
+                child: isPremium && e.coverImage != null
+                    ? Image.network(
+                        e.coverImage!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _buildSimPlaceholder(e),
+                      )
+                    : _buildSimPlaceholder(e),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Infos
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nom + vérifié
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          e.name,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (e.isVerified)
+                        const Icon(Iconsax.verify5,
+                            size: 14, color: AppColors.primaryGreen),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+
+                  // Drapeaux + note
+                  Row(
+                    children: [
+                      ...List.generate(
+                        e.averageRating.round().clamp(0, 5),
+                        (_) =>
+                            const Text('🇩🇿', style: TextStyle(fontSize: 11)),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        e.displayRating,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${e.totalReviews})',
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.greenAccent),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+
+                  // Catégorie + prix
+                  Text(
+                    [
+                      if (e.category != null) e.category!.name,
+                      if (e.priceRange != null) e.priceRange!,
+                    ].join(' · '),
+                    style:
+                        const TextStyle(fontSize: 12, color: AppColors.white),
+                  ),
+                  const SizedBox(height: 3),
+
+                  // Statut ouverture
+                  Row(
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isOpen ? AppColors.success : AppColors.error,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        isOpen ? 'Ouvert' : 'Fermé',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isOpen ? AppColors.success : AppColors.error,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(Iconsax.arrow_right_3,
+                size: 16, color: AppColors.grey300),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimPlaceholder(Establishment e) {
+    return Container(
+      color: AppColors.greenSurface,
+      alignment: Alignment.center,
+      child: Text(
+        e.name.isNotEmpty ? e.name[0].toUpperCase() : '?',
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryGreen,
+        ),
       ),
     );
   }
@@ -1844,7 +4157,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
               context.push(AppRoutes.login);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
+              backgroundColor: AppColors.accentGreen,
             ),
             child: Text(context.l10n.signIn),
           ),
@@ -1903,10 +4216,30 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
     if (establishment.hasWebsite) {
       buffer.writeln('🌐 ${establishment.website}');
     }
+    if (establishment.hasCoordinates) {
+      final lat = establishment.latitude!;
+      final lng = establishment.longitude!;
+      final encodedName = Uri.encodeComponent(establishment.name);
+      buffer.writeln();
+      buffer.writeln('🗺️ Voir sur la carte :');
+      buffer.writeln(
+          'https://www.google.com/maps/search/?api=1&query=$lat,$lng&query_place_id=$encodedName');
+    }
     buffer.writeln();
     buffer.write('Découvert sur Win-وين 🔍');
 
     SharePlus.instance.share(ShareParams(text: buffer.toString()));
+  }
+
+  void _shareLocation(Establishment establishment) {
+    if (!establishment.hasCoordinates) return;
+    final lat = establishment.latitude!;
+    final lng = establishment.longitude!;
+    final encodedName = Uri.encodeComponent(establishment.name);
+    final mapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng&query_place_id=$encodedName';
+    final text = '📍 Localisation précise de ${establishment.name}\n$mapsUrl';
+    SharePlus.instance.share(ShareParams(text: text));
   }
 
   // ==================== LOCKED FEATURE DIALOG ====================
@@ -1919,14 +4252,12 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             const Icon(Icons.lock_rounded, color: AppColors.grey500, size: 20),
             const SizedBox(width: 8),
-            const Text('Non disponible',
-                style: TextStyle(fontSize: 16)),
+            const Text('Non disponible', style: TextStyle(fontSize: 16)),
           ],
         ),
         content: Text(
@@ -2040,67 +4371,67 @@ class _DirectionsBottomSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.grey300,
-                borderRadius: BorderRadius.circular(2),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.grey300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: AppDimens.paddingL),
-          Text(
-            'Ouvrir avec',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: AppDimens.paddingS),
-          Text(
-            'Choisissez une application de navigation',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.grey600,
-                ),
-          ),
-          const SizedBox(height: AppDimens.paddingL),
-          _buildNavigationOption(
-            context,
-            icon: Icons.map,
-            title: 'Google Maps',
-            subtitle: 'Navigation GPS',
-            color: const Color(0xFF4285F4),
-            onTap: () => _openGoogleMaps(context),
-          ),
-          const SizedBox(height: AppDimens.paddingM),
-          _buildNavigationOption(
-            context,
-            icon: Icons.navigation,
-            title: 'Waze',
-            subtitle: 'Navigation sociale',
-            color: const Color(0xFF33CCFF),
-            onTap: () => _openWaze(context),
-          ),
-          const SizedBox(height: AppDimens.paddingM),
-          _buildNavigationOption(
-            context,
-            icon: Icons.directions,
-            title: 'Apple Plans',
-            subtitle: 'Navigation Apple',
-            color: const Color(0xFF000000),
-            onTap: () => _openAppleMaps(context),
-          ),
-          const SizedBox(height: AppDimens.paddingM),
-          _buildNavigationOption(
-            context,
-            icon: Iconsax.map,
-            title: 'Autres applications',
-            subtitle: 'Ouvrir avec le système',
-            color: AppColors.primaryGreen,
-            onTap: () => _openDefaultMaps(context),
-          ),
-          const SizedBox(height: AppDimens.paddingL),
-        ],
-      ),
+            const SizedBox(height: AppDimens.paddingL),
+            Text(
+              'Ouvrir avec',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppDimens.paddingS),
+            Text(
+              'Choisissez une application de navigation',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.grey600,
+                  ),
+            ),
+            const SizedBox(height: AppDimens.paddingL),
+            _buildNavigationOption(
+              context,
+              icon: Icons.map,
+              title: 'Google Maps',
+              subtitle: 'Navigation GPS',
+              color: const Color(0xFF4285F4),
+              onTap: () => _openGoogleMaps(context),
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            _buildNavigationOption(
+              context,
+              icon: Icons.navigation,
+              title: 'Waze',
+              subtitle: 'Navigation sociale',
+              color: const Color(0xFF33CCFF),
+              onTap: () => _openWaze(context),
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            _buildNavigationOption(
+              context,
+              icon: Icons.directions,
+              title: 'Apple Plans',
+              subtitle: 'Navigation Apple',
+              color: const Color(0xFF000000),
+              onTap: () => _openAppleMaps(context),
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            _buildNavigationOption(
+              context,
+              icon: Iconsax.map,
+              title: 'Autres applications',
+              subtitle: 'Ouvrir avec le système',
+              color: AppColors.primaryGreen,
+              onTap: () => _openDefaultMaps(context),
+            ),
+            const SizedBox(height: AppDimens.paddingL),
+          ],
+        ),
       ),
     );
   }
@@ -2219,4 +4550,31 @@ class _DirectionsBottomSheet extends StatelessWidget {
       }
     }
   }
+}
+
+// ==================== STICKY TAB BAR DELEGATE ====================
+
+class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+
+  const _StickyTabBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Colors.white,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_StickyTabBarDelegate oldDelegate) =>
+      tabBar != oldDelegate.tabBar;
 }

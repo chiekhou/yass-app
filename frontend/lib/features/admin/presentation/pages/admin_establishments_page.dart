@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -31,6 +32,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
   List<AdminEstablishment> _establishments = [];
   String? _processingId;
   String? _statusFilter;
+  String? _subscriptionFilter;
   String? _searchQuery;
   bool _isInitialLoading = true;
   String? _errorMessage;
@@ -62,6 +64,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
         _establishments = state.establishments;
         _processingId = state.processingId;
         _statusFilter = state.statusFilter;
+        _subscriptionFilter = state.subscriptionFilter;
         _searchQuery = state.searchQuery;
         _isInitialLoading = false;
         _errorMessage = null;
@@ -93,7 +96,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
         backgroundColor: AppColors.grey50,
         appBar: AppBar(
           title: const Text('Gestion des établissements'),
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.scaffoldBackground,
           foregroundColor: AppColors.white,
           elevation: 0,
           actions: [
@@ -108,6 +111,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
           children: [
             _buildSearchBar(context),
             _buildFilterChips(context),
+            _buildSubscriptionChips(context),
             Expanded(child: _buildList(context)),
             PaginationBar(
               currentPage: _currentPage,
@@ -132,6 +136,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
       padding: const EdgeInsets.all(AppDimens.paddingM),
       color: AppColors.white,
       child: TextField(
+        style: TextStyle(color: AppColors.scaffoldBackground),
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Rechercher par nom ou adresse...',
@@ -228,6 +233,48 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     );
   }
 
+  Widget _buildSubscriptionChips(BuildContext context) {
+    final plans = [
+      (label: 'Tous les plans', value: null, color: AppColors.primaryGreen),
+      (label: 'Free', value: 'free', color: AppColors.grey500),
+      (
+        label: 'Premium',
+        value: 'premium',
+        color: const Color.fromRGBO(0, 192, 192, 192)
+      ),
+      (label: 'Gold', value: 'gold', color: const Color(0xFFFFC107)),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.only(
+        left: AppDimens.paddingM,
+        right: AppDimens.paddingM,
+        bottom: AppDimens.paddingS,
+      ),
+      color: AppColors.white,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: plans.map((plan) {
+            final isSelected = _subscriptionFilter == plan.value;
+            return Padding(
+              padding: const EdgeInsets.only(right: AppDimens.paddingS),
+              child: _buildFilterChip(
+                context,
+                label: plan.label,
+                isSelected: isSelected,
+                color: plan.color,
+                onTap: () => context.read<AdminEstablishmentsBloc>().add(
+                      AdminEstablishmentsFilterBySubscription(plan: plan.value),
+                    ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFilterChip(
     BuildContext context, {
     required String label,
@@ -303,6 +350,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             child: _EstablishmentCard(
               establishment: e,
               isProcessing: _processingId == e.id,
+              onTap: () => _showDetailSheet(context, e),
               onApprove:
                   e.isPending ? () => _showApproveDialog(context, e) : null,
               onReject:
@@ -798,7 +846,8 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AppDimens.radiusL)),
       ),
       builder: (_) => _AssignPartnerSheet(
         establishment: e,
@@ -808,6 +857,310 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             partnerId: partnerId,
           ));
         },
+      ),
+    );
+  }
+
+  void _showDetailSheet(BuildContext context, AdminEstablishment e) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.95,
+        minChildSize: 0.4,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Handle
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.grey300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Title + edit button
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppDimens.paddingM),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        e.name,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.black),
+                      ),
+                    ),
+                    if (e.isVerified)
+                      const Icon(Iconsax.verify5,
+                          color: AppColors.primaryGreen, size: 20),
+                    const SizedBox(width: AppDimens.paddingS),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.push(
+                          AppRoutes.adminEditEstablishment
+                              .replaceFirst(':id', e.id),
+                          extra: {
+                            'partnerId': e.partnerId ?? '',
+                            'partnerName': e.partner?.companyName ?? '',
+                          },
+                        ).then((_) {
+                          if (context.mounted) {
+                            context
+                                .read<AdminEstablishmentsBloc>()
+                                .add(AdminEstablishmentsRefresh());
+                          }
+                        });
+                      },
+                      icon: const Icon(Iconsax.edit_2,
+                          color: AppColors.primaryGreen, size: 20),
+                      tooltip: 'Modifier',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Expanded(
+                child: ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.fromLTRB(
+                      AppDimens.paddingM, 8, AppDimens.paddingM, 32),
+                  children: [
+                    // ── Statut & catégorie ──
+                    _detailSection(context, 'Informations générales', [
+                      if (e.categoryName != null)
+                        _detailRow(context, Iconsax.category, 'Catégorie',
+                            e.categoryName!),
+                      if (e.subcategoryName != null)
+                        _detailRow(context, Iconsax.category_2,
+                            'Sous-catégorie', e.subcategoryName!),
+                      _detailRow(context, Iconsax.info_circle, 'Statut',
+                          e.statusLabel),
+                      if (e.isFeatured)
+                        _detailRow(
+                            context, Icons.star_rounded, 'À la une', 'Oui',
+                            valueColor: const Color(0xFFF59E0B)),
+                    ]),
+                    const SizedBox(height: AppDimens.paddingM),
+
+                    // ── Localisation ──
+                    _detailSection(context, 'Localisation', [
+                      if (e.address != null)
+                        _detailRow(
+                            context, Iconsax.location, 'Adresse', e.address!),
+                      if (e.communeName != null)
+                        _detailRow(context, Iconsax.building_3, 'Commune',
+                            e.communeName!),
+                      if (e.wilayaName != null)
+                        _detailRow(
+                            context, Iconsax.map, 'Wilaya', e.wilayaName!),
+                      if (e.latitude != null && e.longitude != null)
+                        _detailRow(context, Iconsax.gps, 'Coordonnées',
+                            '${e.latitude!.toStringAsFixed(5)}, ${e.longitude!.toStringAsFixed(5)}'),
+                    ]),
+                    const SizedBox(height: AppDimens.paddingM),
+
+                    // ── Contact ──
+                    if (e.phone != null ||
+                        e.whatsapp != null ||
+                        e.email != null ||
+                        e.website != null)
+                      _detailSection(context, 'Contact', [
+                        if (e.phone != null)
+                          _detailRow(
+                              context, Iconsax.call, 'Téléphone', e.phone!,
+                              onTap: () async {
+                            final uri = Uri.parse('tel:${e.phone}');
+                            if (await canLaunchUrl(uri)) launchUrl(uri);
+                          }),
+                        if (e.whatsapp != null)
+                          _detailRow(context, Iconsax.call_calling, 'WhatsApp',
+                              e.whatsapp!),
+                        if (e.email != null)
+                          _detailRow(context, Iconsax.sms, 'Email', e.email!,
+                              onTap: () async {
+                            final uri = Uri.parse('mailto:${e.email}');
+                            if (await canLaunchUrl(uri)) launchUrl(uri);
+                          }),
+                        if (e.website != null)
+                          _detailRow(
+                              context, Iconsax.global, 'Site web', e.website!),
+                      ]),
+                    if (e.phone != null ||
+                        e.whatsapp != null ||
+                        e.email != null ||
+                        e.website != null)
+                      const SizedBox(height: AppDimens.paddingM),
+
+                    // ── Interlocuteur ──
+                    _detailSection(context, 'Interlocuteur', [
+                      _detailRow(context, Iconsax.user, 'Prénom',
+                          e.contactFirstName ?? 'Non renseigné'),
+                      _detailRow(context, Iconsax.user, 'Nom',
+                          e.contactLastName ?? 'Non renseigné'),
+                      _detailRow(context, Iconsax.briefcase, 'Poste',
+                          e.contactPosition ?? 'Non renseigné'),
+                      _detailRow(context, Iconsax.call, 'Téléphone',
+                          e.contactPhone ?? 'Non renseigné',
+                          onTap: e.contactPhone != null
+                              ? () async {
+                                  final uri =
+                                      Uri.parse('tel:${e.contactPhone}');
+                                  if (await canLaunchUrl(uri)) launchUrl(uri);
+                                }
+                              : null),
+                      _detailRow(context, Iconsax.sms, 'Email',
+                          e.contactEmail ?? 'Non renseigné',
+                          onTap: e.contactEmail != null
+                              ? () async {
+                                  final uri =
+                                      Uri.parse('mailto:${e.contactEmail}');
+                                  if (await canLaunchUrl(uri)) launchUrl(uri);
+                                }
+                              : null),
+                    ]),
+                    const SizedBox(height: AppDimens.paddingM),
+
+                    // ── Partenaire ──
+                    if (e.partner != null)
+                      _detailSection(context, 'Partenaire', [
+                        _detailRow(context, Iconsax.briefcase, 'Société',
+                            e.partner!.companyName),
+                        if (e.partner!.user?.email != null)
+                          _detailRow(context, Iconsax.sms, 'Email',
+                              e.partner!.user!.email),
+                        if (e.partner!.user?.phone != null)
+                          _detailRow(context, Iconsax.call, 'Téléphone',
+                              e.partner!.user!.phone!),
+                        _detailRow(context, Iconsax.crown_1, 'Abonnement',
+                            e.partner!.subscriptionPlan.toUpperCase()),
+                      ]),
+                    if (e.partner != null)
+                      const SizedBox(height: AppDimens.paddingM),
+
+                    // ── Description ──
+                    if (e.description != null && e.description!.isNotEmpty)
+                      _detailSection(context, 'Description', [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: AppDimens.paddingS),
+                          child: Text(
+                            e.description!,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: AppColors.grey700, height: 1.5),
+                          ),
+                        ),
+                      ]),
+                    if (e.description != null && e.description!.isNotEmpty)
+                      const SizedBox(height: AppDimens.paddingM),
+
+                    // ── Statistiques ──
+                    _detailSection(context, 'Statistiques', [
+                      _detailRow(context, Iconsax.star1, 'Note',
+                          '${e.averageRating.toStringAsFixed(1)} · ${e.reviewsCount} avis'),
+                      _detailRow(context, Iconsax.calendar_1, 'Créé le',
+                          '${e.createdAt.day.toString().padLeft(2, '0')}/${e.createdAt.month.toString().padLeft(2, '0')}/${e.createdAt.year}'),
+                      _detailRow(context, Iconsax.edit, 'Mis à jour',
+                          '${e.updatedAt.day.toString().padLeft(2, '0')}/${e.updatedAt.month.toString().padLeft(2, '0')}/${e.updatedAt.year}'),
+                    ]),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailSection(BuildContext context, String title, List<Widget> rows) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.grey50,
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppDimens.paddingM, AppDimens.paddingS, AppDimens.paddingM, 4),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryGreen,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.grey200),
+          ...rows,
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value, {
+    Color? valueColor,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingM, vertical: 11),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: AppColors.grey500),
+            const SizedBox(width: AppDimens.paddingS),
+            SizedBox(
+              width: 90,
+              child: Text(
+                label,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: AppColors.grey500),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: valueColor ?? AppColors.grey900,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ),
+            if (onTap != null)
+              const Icon(Iconsax.arrow_right_3,
+                  size: 14, color: AppColors.grey400),
+          ],
+        ),
       ),
     );
   }
@@ -952,6 +1305,7 @@ class _FilterBottomSheet extends StatelessWidget {
 class _EstablishmentCard extends StatelessWidget {
   final AdminEstablishment establishment;
   final bool isProcessing;
+  final VoidCallback? onTap;
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
   final VoidCallback onDelete;
@@ -962,6 +1316,7 @@ class _EstablishmentCard extends StatelessWidget {
   const _EstablishmentCard({
     required this.establishment,
     this.isProcessing = false,
+    this.onTap,
     this.onApprove,
     this.onReject,
     required this.onDelete,
@@ -1003,295 +1358,305 @@ class _EstablishmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final e = establishment;
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: isProcessing
-          ? const Padding(
-              padding: EdgeInsets.all(AppDimens.paddingL),
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primaryGreen),
-              ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(AppDimens.paddingM),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (e.categoryName != null)
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppDimens.radiusM),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: isProcessing
+            ? const Padding(
+                padding: EdgeInsets.all(AppDimens.paddingL),
+                child: Center(
+                  child:
+                      CircularProgressIndicator(color: AppColors.primaryGreen),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(AppDimens.paddingM),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (e.categoryName != null)
+                                Text(
+                                  e.categoryName!,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.primaryGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               Text(
-                                e.categoryName!,
-                                style: const TextStyle(
+                                e.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.grey900,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimens.paddingS, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _statusColor.withValues(alpha: 0.1),
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.radiusS),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(_statusIcon, size: 12, color: _statusColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                e.statusLabel,
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: AppColors.primaryGreen,
+                                  color: _statusColor,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            Text(
-                              e.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.grey900,
-                                  ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: AppDimens.paddingS),
+                    if (e.partner != null)
+                      Row(
+                        children: [
+                          const Icon(Iconsax.briefcase,
+                              size: 13, color: AppColors.grey500),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              e.partner!.companyName,
+                              style: const TextStyle(
+                                  fontSize: 13, color: AppColors.grey600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
+                    if (e.address != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Iconsax.location,
+                              size: 13, color: AppColors.grey500),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '${e.address!}${e.wilayaName != null ? ' · ${e.wilayaName}' : ''}',
+                              style: const TextStyle(
+                                  fontSize: 13, color: AppColors.grey600),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (e.reviewsCount > 0) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Iconsax.star1,
+                              size: 13, color: AppColors.starFilled),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${e.averageRating.toStringAsFixed(1)} · ${e.reviewsCount} avis',
+                            style: const TextStyle(
+                                fontSize: 12, color: AppColors.grey600),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (e.rejectionReason != null &&
+                        e.rejectionReason!.isNotEmpty) ...[
+                      const SizedBox(height: AppDimens.paddingS),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimens.paddingS, vertical: 3),
+                        padding: const EdgeInsets.all(AppDimens.paddingS),
                         decoration: BoxDecoration(
-                          color: _statusColor.withValues(alpha: 0.1),
+                          color: AppColors.errorLight,
                           borderRadius:
                               BorderRadius.circular(AppDimens.radiusS),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Iconsax.info_circle,
+                                size: 13, color: AppColors.error),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                e.rejectionReason!,
+                                style: const TextStyle(
+                                    fontSize: 12, color: AppColors.error),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: AppDimens.paddingM),
+                    const Divider(height: 1),
+                    const SizedBox(height: AppDimens.paddingS),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(_statusIcon, size: 12, color: _statusColor),
-                            const SizedBox(width: 4),
-                            Text(
-                              e.statusLabel,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _statusColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppDimens.paddingS),
-                  if (e.partner != null)
-                    Row(
-                      children: [
-                        const Icon(Iconsax.briefcase,
-                            size: 13, color: AppColors.grey500),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            e.partner!.companyName,
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.grey600),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (e.address != null) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Iconsax.location,
-                            size: 13, color: AppColors.grey500),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            '${e.address!}${e.wilayaName != null ? ' · ${e.wilayaName}' : ''}',
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.grey600),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (e.reviewsCount > 0) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Iconsax.star1,
-                            size: 13, color: AppColors.starFilled),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${e.averageRating.toStringAsFixed(1)} · ${e.reviewsCount} avis',
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.grey600),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (e.rejectionReason != null &&
-                      e.rejectionReason!.isNotEmpty) ...[
-                    const SizedBox(height: AppDimens.paddingS),
-                    Container(
-                      padding: const EdgeInsets.all(AppDimens.paddingS),
-                      decoration: BoxDecoration(
-                        color: AppColors.errorLight,
-                        borderRadius: BorderRadius.circular(AppDimens.radiusS),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Iconsax.info_circle,
-                              size: 13, color: AppColors.error),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              e.rejectionReason!,
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.error),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: AppDimens.paddingM),
-                  const Divider(height: 1),
-                  const SizedBox(height: AppDimens.paddingS),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            onPressed: onDelete,
-                            icon: const Icon(Iconsax.trash, size: 18),
-                            color: AppColors.error,
-                            style: IconButton.styleFrom(
-                              backgroundColor: AppColors.errorLight,
-                              minimumSize: const Size(36, 36),
-                              padding: EdgeInsets.zero,
-                            ),
-                          ),
-                          if (onAssignPartner != null) ...[
-                            const SizedBox(width: AppDimens.paddingS),
                             IconButton(
-                              onPressed: onAssignPartner,
-                              icon: const Icon(Iconsax.link, size: 18),
-                              color: AppColors.primaryGreen,
+                              onPressed: onDelete,
+                              icon: const Icon(Iconsax.trash, size: 18),
+                              color: AppColors.error,
                               style: IconButton.styleFrom(
-                                backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
+                                backgroundColor: AppColors.errorLight,
                                 minimumSize: const Size(36, 36),
                                 padding: EdgeInsets.zero,
                               ),
-                              tooltip: establishment.partner != null
-                                  ? 'Changer de partenaire'
-                                  : 'Associer un partenaire',
                             ),
-                          ],
-                          if (onToggleFeatured != null) ...[
-                            const SizedBox(width: AppDimens.paddingS),
-                            IconButton(
-                              onPressed: onToggleFeatured,
-                              icon: Icon(
-                                establishment.isFeatured
-                                    ? Icons.star_rounded
-                                    : Icons.star_border_rounded,
-                                size: 18,
-                              ),
-                              color: establishment.isFeatured
-                                  ? const Color(0xFFF59E0B)
-                                  : AppColors.grey500,
-                              style: IconButton.styleFrom(
-                                backgroundColor: establishment.isFeatured
-                                    ? const Color(0xFFFEF3C7)
-                                    : AppColors.grey100,
-                                minimumSize: const Size(36, 36),
-                                padding: EdgeInsets.zero,
-                              ),
-                              tooltip: establishment.isFeatured
-                                  ? 'Retirer de la une'
-                                  : 'Mettre à la une',
-                            ),
-                          ],
-                          if (onFeaturedPayment != null) ...[
-                            const SizedBox(width: AppDimens.paddingS),
-                            IconButton(
-                              onPressed: onFeaturedPayment,
-                              icon: const Icon(Iconsax.card, size: 16),
-                              color: AppColors.primaryGreen,
-                              style: IconButton.styleFrom(
-                                backgroundColor: AppColors.primaryGreen
-                                    .withValues(alpha: 0.1),
-                                minimumSize: const Size(36, 36),
-                                padding: EdgeInsets.zero,
-                              ),
-                              tooltip: 'Mise à la une payante',
-                            ),
-                          ],
-                        ],
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (onReject != null) ...[
-                            OutlinedButton(
-                              onPressed: onReject,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.error,
-                                side: const BorderSide(color: AppColors.error),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppDimens.paddingM,
-                                  vertical: AppDimens.paddingXS,
+                            if (onAssignPartner != null) ...[
+                              const SizedBox(width: AppDimens.paddingS),
+                              IconButton(
+                                onPressed: onAssignPartner,
+                                icon: const Icon(Iconsax.link, size: 18),
+                                color: AppColors.primaryGreen,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: AppColors.primaryGreen
+                                      .withValues(alpha: 0.1),
+                                  minimumSize: const Size(36, 36),
+                                  padding: EdgeInsets.zero,
                                 ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                tooltip: establishment.partner != null
+                                    ? 'Changer de partenaire'
+                                    : 'Associer un partenaire',
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Iconsax.close_circle, size: 15),
-                                  SizedBox(width: 4),
-                                  Text('Rejeter'),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: AppDimens.paddingS),
-                          ],
-                          if (onApprove != null)
-                            ElevatedButton(
-                              onPressed: onApprove,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryGreen,
-                                foregroundColor: AppColors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppDimens.paddingM,
-                                  vertical: AppDimens.paddingXS,
+                            ],
+                            if (onToggleFeatured != null) ...[
+                              const SizedBox(width: AppDimens.paddingS),
+                              IconButton(
+                                onPressed: onToggleFeatured,
+                                icon: Icon(
+                                  establishment.isFeatured
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  size: 18,
                                 ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                color: establishment.isFeatured
+                                    ? const Color(0xFFF59E0B)
+                                    : AppColors.grey500,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: establishment.isFeatured
+                                      ? const Color(0xFFFEF3C7)
+                                      : AppColors.grey100,
+                                  minimumSize: const Size(36, 36),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                tooltip: establishment.isFeatured
+                                    ? 'Retirer de la une'
+                                    : 'Mettre à la une',
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Iconsax.tick_circle, size: 15),
-                                  SizedBox(width: 4),
-                                  Text('Approuver'),
-                                ],
+                            ],
+                            if (onFeaturedPayment != null) ...[
+                              const SizedBox(width: AppDimens.paddingS),
+                              IconButton(
+                                onPressed: onFeaturedPayment,
+                                icon: const Icon(Iconsax.card, size: 16),
+                                color: AppColors.primaryGreen,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: AppColors.primaryGreen
+                                      .withValues(alpha: 0.1),
+                                  minimumSize: const Size(36, 36),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                tooltip: 'Mise à la une payante',
                               ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                            ],
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (onReject != null) ...[
+                              OutlinedButton(
+                                onPressed: onReject,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.error,
+                                  side:
+                                      const BorderSide(color: AppColors.error),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppDimens.paddingM,
+                                    vertical: AppDimens.paddingXS,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Iconsax.close_circle, size: 15),
+                                    SizedBox(width: 4),
+                                    Text('Rejeter'),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: AppDimens.paddingS),
+                            ],
+                            if (onApprove != null)
+                              ElevatedButton(
+                                onPressed: onApprove,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryGreen,
+                                  foregroundColor: AppColors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppDimens.paddingM,
+                                    vertical: AppDimens.paddingXS,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Iconsax.tick_circle, size: 15),
+                                    SizedBox(width: 4),
+                                    Text('Approuver'),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }
@@ -1341,7 +1706,11 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
         status: 'approved',
         search: query.isEmpty ? null : query,
       );
-      if (mounted) setState(() { _partners = result.partners; _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _partners = result.partners;
+          _isLoading = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -1358,7 +1727,8 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
         children: [
           const SizedBox(height: AppDimens.paddingS),
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: AppColors.grey300,
               borderRadius: BorderRadius.circular(2),
@@ -1372,14 +1742,14 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
                 Text(
                   'Associer un partenaire',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 Text(
                   widget.establishment.name,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.grey500,
-                  ),
+                        color: AppColors.grey500,
+                      ),
                 ),
                 const SizedBox(height: AppDimens.paddingM),
                 TextField(
@@ -1415,7 +1785,9 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
           const Divider(height: 1),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+                ? const Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.primaryGreen))
                 : _partners.isEmpty
                     ? const Center(child: Text('Aucun partenaire trouvé'))
                     : ListView.builder(
@@ -1426,9 +1798,12 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
                           final isSelected = p.id == _selectedId;
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.1),
+                              backgroundColor:
+                                  AppColors.primaryGreen.withValues(alpha: 0.1),
                               child: Text(
-                                p.companyName.isNotEmpty ? p.companyName[0].toUpperCase() : '?',
+                                p.companyName.isNotEmpty
+                                    ? p.companyName[0].toUpperCase()
+                                    : '?',
                                 style: const TextStyle(
                                   color: AppColors.primaryGreen,
                                   fontWeight: FontWeight.bold,
@@ -1436,9 +1811,12 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
                               ),
                             ),
                             title: Text(p.companyName),
-                            subtitle: p.user?.email != null ? Text(p.user!.email) : null,
+                            subtitle: p.user?.email != null
+                                ? Text(p.user!.email)
+                                : null,
                             trailing: isSelected
-                                ? const Icon(Iconsax.tick_circle, color: AppColors.primaryGreen)
+                                ? const Icon(Iconsax.tick_circle,
+                                    color: AppColors.primaryGreen)
                                 : null,
                             onTap: () {
                               Navigator.pop(context);

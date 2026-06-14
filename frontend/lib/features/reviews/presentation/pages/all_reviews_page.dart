@@ -41,6 +41,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
   int _currentPage = 1;
   String _sortBy = 'created_at';
   String _sortOrder = 'desc';
+  bool _eliteOnly = false;
 
   @override
   void initState() {
@@ -78,6 +79,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         page: 1,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        eliteOnly: _eliteOnly,
       );
       setState(() {
         _reviews = data.reviews;
@@ -99,6 +101,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         page: _currentPage + 1,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
+        eliteOnly: _eliteOnly,
       );
       setState(() {
         _reviews.addAll(data.reviews);
@@ -115,6 +118,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.scaffoldBackground,
         leading: IconButton(
           icon: const Icon(Iconsax.arrow_left),
           onPressed: () => context.pop(),
@@ -270,27 +274,75 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
   }
 
   Widget _buildSortBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.paddingM,
-        vertical: AppDimens.paddingS,
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Trier par :',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.grey500,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimens.paddingM,
+            vertical: AppDimens.paddingS,
           ),
-          const SizedBox(width: AppDimens.paddingS),
-          _buildSortChip('Plus récents', 'created_at', 'desc'),
-          const SizedBox(width: AppDimens.paddingXS),
-          _buildSortChip('Meilleure note', 'rating', 'desc'),
-          const SizedBox(width: AppDimens.paddingXS),
-          _buildSortChip('Plus anciens', 'created_at', 'asc'),
-        ],
-      ),
+          child: Row(
+            children: [
+              Text(
+                'Trier par :',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.grey500,
+                    ),
+              ),
+              const SizedBox(width: AppDimens.paddingS),
+              _buildSortChip('Plus récents', 'created_at', 'desc'),
+              const SizedBox(width: AppDimens.paddingXS),
+              _buildSortChip('Meilleure note', 'rating', 'desc'),
+              const SizedBox(width: AppDimens.paddingXS),
+              _buildSortChip('Plus anciens', 'created_at', 'asc'),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: AppDimens.paddingM,
+            right: AppDimens.paddingM,
+            bottom: AppDimens.paddingS,
+          ),
+          child: GestureDetector(
+            onTap: () {
+              setState(() => _eliteOnly = !_eliteOnly);
+              _loadReviews();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: _eliteOnly ? const Color(0xFFFFD700) : AppColors.grey100,
+                borderRadius: BorderRadius.circular(AppDimens.radiusS),
+                border: Border.all(
+                  color:
+                      _eliteOnly ? const Color(0xFFFFB300) : AppColors.grey200,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Iconsax.medal_star,
+                    size: 14,
+                    color: _eliteOnly ? Colors.white : AppColors.grey600,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Avis Élite',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: _eliteOnly ? Colors.white : AppColors.grey600,
+                          fontWeight:
+                              _eliteOnly ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -359,15 +411,47 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      userName,
-                      style: Theme.of(context).textTheme.titleSmall,
+                    Row(
+                      children: [
+                        Text(
+                          userName,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        if (review.user?.isElite == true) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFD700),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Iconsax.medal_star,
+                                    size: 10, color: Colors.white),
+                                SizedBox(width: 2),
+                                Text(
+                                  'Élite',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     Row(
                       children: [
                         ...List.generate(
                           5,
-                          (i) => const Text('🇩🇿', style: TextStyle(fontSize: 12)),
+                          (i) => const Text('🇩🇿',
+                              style: TextStyle(fontSize: 12)),
                         ),
                         const SizedBox(width: AppDimens.paddingS),
                         Text(

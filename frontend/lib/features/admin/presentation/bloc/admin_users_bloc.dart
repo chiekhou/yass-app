@@ -73,6 +73,15 @@ class AdminUserDelete extends AdminUsersEvent {
   List<Object?> get props => [userId];
 }
 
+class AdminUserToggleElite extends AdminUsersEvent {
+  final String userId;
+
+  const AdminUserToggleElite({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
+
 class AdminUsersGoToPage extends AdminUsersEvent {
   final int page;
 
@@ -218,6 +227,7 @@ class AdminUsersBloc extends Bloc<AdminUsersEvent, AdminUsersState> {
     on<AdminUserDelete>(_onDelete);
     on<AdminUserLoadDetails>(_onLoadDetails);
     on<AdminUsersGoToPage>(_onGoToPage);
+    on<AdminUserToggleElite>(_onToggleElite);
   }
 
   Future<void> _onLoad(
@@ -532,6 +542,23 @@ class AdminUsersBloc extends Bloc<AdminUsersEvent, AdminUsersState> {
       }
     }
   }
+
+  Future<void> _onToggleElite(
+    AdminUserToggleElite event,
+    Emitter<AdminUsersState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is AdminUserDetailsLoaded) {
+      emit(currentState.copyWith(isUpdating: true));
+      try {
+        final updatedUser = await _adminRepository.toggleEliteStatus(event.userId);
+        emit(AdminUserDetailsLoaded(user: updatedUser));
+      } catch (e) {
+        emit(currentState.copyWith(isUpdating: false));
+        rethrow;
+      }
+    }
+  }
 }
 
 extension AdminUserExtension on AdminUser {
@@ -552,6 +579,11 @@ extension AdminUserExtension on AdminUser {
       'updated_at': updatedAt.toIso8601String(),
       'reviews_count': reviewsCount,
       'favorites_count': favoritesCount,
+      'age': age,
+      'gender': gender,
+      'last_login': lastLogin?.toIso8601String(),
+      'login_count': loginCount,
+      'is_elite': isElite,
     };
   }
 }

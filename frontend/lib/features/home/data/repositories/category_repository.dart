@@ -6,8 +6,11 @@ class CategoryRepository {
   final ApiClient _apiClient = ApiClient.instance;
 
   /// Get all categories
-  Future<List<Category>> getAll() async {
-    final response = await _apiClient.get(ApiConfig.categories);
+  Future<List<Category>> getAll({bool includeSubcategories = false}) async {
+    final response = await _apiClient.get(
+      ApiConfig.categories,
+      queryParameters: includeSubcategories ? {'subcategories': 'true'} : null,
+    );
     final data = response.data['data'] as List;
     return data.map((e) => Category.fromJson(e)).toList();
   }

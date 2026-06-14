@@ -44,7 +44,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: const Text('Mes établissements'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         actions: [
@@ -58,7 +58,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
       floatingActionButton: FloatingActionButton.extended(
         elevation: 10.0,
         onPressed: () => context.push(AppRoutes.partnerEstablishmentCreate),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         label: const Text('+'),
       ),
       body: Column(
@@ -237,8 +237,10 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
                           AppRoutes.partnerEstablishmentEdit
                               .replaceFirst(':id', establishment.id),
                         ),
-                        onDeleteTap: () => _showDeleteDialog(context, establishment),
-                        onStatusTap: () => _showStatusDialog(context, establishment),
+                        onDeleteTap: () =>
+                            _showDeleteDialog(context, establishment),
+                        onStatusTap: () =>
+                            _showStatusDialog(context, establishment),
                       );
                     },
                   ),

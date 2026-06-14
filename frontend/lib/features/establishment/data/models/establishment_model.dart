@@ -1,5 +1,49 @@
 import 'package:equatable/equatable.dart';
 import 'package:win_app/features/home/data/models/category_model.dart';
+import 'photo_category.dart';
+
+// ==================== PHOTO ITEM ====================
+
+class PhotoItem extends Equatable {
+  final String url;
+  final String category; // clé parmi kPhotoCategories, défaut 'autres'
+  final String type;     // 'photo' ou 'video'
+
+  const PhotoItem({
+    required this.url,
+    this.category = 'autres',
+    this.type = 'photo',
+  });
+
+  bool get isVideo => type == 'video';
+
+  /// Rétrocompatible : accepte une String (ancien format) ou un Map (nouveau)
+  factory PhotoItem.fromJson(dynamic json) {
+    if (json is String) return PhotoItem(url: json);
+    if (json is Map) {
+      return PhotoItem(
+        url: (json['url'] as String?) ?? '',
+        category: (json['category'] as String?) ?? 'autres',
+        type: (json['type'] as String?) ?? 'photo',
+      );
+    }
+    return PhotoItem(url: json.toString());
+  }
+
+  Map<String, dynamic> toJson() => {'url': url, 'category': category, 'type': type};
+
+  PhotoItem copyWith({String? url, String? category, String? type}) =>
+      PhotoItem(
+        url: url ?? this.url,
+        category: category ?? this.category,
+        type: type ?? this.type,
+      );
+
+  String get categoryLabel => photoCategoryLabel(category);
+
+  @override
+  List<Object?> get props => [url, category, type];
+}
 
 /// Helper function to parse double from dynamic value (String or num)
 double? _parseDouble(dynamic value) {
@@ -30,7 +74,7 @@ class Establishment extends Equatable {
   final String? descriptionAr;
   final String? logo;
   final String? coverImage;
-  final List<String>? images;
+  final List<PhotoItem>? images;
   final String address;
   final String? addressAr;
   final double? latitude;
@@ -65,6 +109,11 @@ class Establishment extends Equatable {
   final String partnerSubscriptionPlan; // free | premium | gold
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? contactFirstName;
+  final String? contactLastName;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String? contactPosition;
 
   const Establishment({
     required this.id,
@@ -110,6 +159,11 @@ class Establishment extends Equatable {
     this.partnerSubscriptionPlan = 'free',
     required this.createdAt,
     required this.updatedAt,
+    this.contactFirstName,
+    this.contactLastName,
+    this.contactPhone,
+    this.contactEmail,
+    this.contactPosition,
   });
 
   bool get hasCoordinates => latitude != null && longitude != null;
@@ -153,7 +207,9 @@ class Establishment extends Equatable {
       descriptionAr: json['description_ar'],
       logo: json['logo'],
       coverImage: json['cover_image'],
-      images: json['images'] != null ? List<String>.from(json['images']) : null,
+      images: json['images'] != null
+          ? (json['images'] as List).map((e) => PhotoItem.fromJson(e)).toList()
+          : null,
       address: json['address'] ?? '',
       addressAr: json['address_ar'],
       latitude: _parseDouble(json['latitude']),
@@ -195,6 +251,11 @@ class Establishment extends Equatable {
       distance: _parseDouble(json['distance']),
       isFavorited: json['is_favorited'],
       partnerSubscriptionPlan: _effectivePlan(json['partner']),
+      contactFirstName: json['contact_first_name'],
+      contactLastName: json['contact_last_name'],
+      contactPhone: json['contact_phone'],
+      contactEmail: json['contact_email'],
+      contactPosition: json['contact_position'],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
@@ -214,7 +275,7 @@ class Establishment extends Equatable {
       'description_ar': descriptionAr,
       'logo': logo,
       'cover_image': coverImage,
-      'images': images,
+      'images': images?.map((e) => e.toJson()).toList(),
       'address': address,
       'address_ar': addressAr,
       'latitude': latitude,
@@ -238,6 +299,11 @@ class Establishment extends Equatable {
       'is_verified': isVerified,
       'is_featured': isFeatured,
       'status': status,
+      'contact_first_name': contactFirstName,
+      'contact_last_name': contactLastName,
+      'contact_phone': contactPhone,
+      'contact_email': contactEmail,
+      'contact_position': contactPosition,
     };
   }
 
@@ -250,7 +316,7 @@ class Establishment extends Equatable {
     String? descriptionAr,
     String? logo,
     String? coverImage,
-    List<String>? images,
+    List<PhotoItem>? images,
     String? address,
     String? addressAr,
     double? latitude,
@@ -328,6 +394,11 @@ class Establishment extends Equatable {
       isFavorited: isFavorited ?? this.isFavorited,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      contactFirstName: contactFirstName ?? this.contactFirstName,
+      contactLastName: contactLastName ?? this.contactLastName,
+      contactPhone: contactPhone ?? this.contactPhone,
+      contactEmail: contactEmail ?? this.contactEmail,
+      contactPosition: contactPosition ?? this.contactPosition,
     );
   }
 

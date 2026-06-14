@@ -8,16 +8,21 @@ import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../home/data/models/category_model.dart';
 import '../../../home/data/repositories/category_repository.dart';
 import '../../data/repositories/admin_repository.dart';
+import '../../data/models/admin_establishment_model.dart';
 
 class AdminCreateEstablishmentPage extends StatefulWidget {
   final String partnerId;
   final String partnerName;
+  final String? establishmentId;
 
   const AdminCreateEstablishmentPage({
     super.key,
     required this.partnerId,
     required this.partnerName,
+    this.establishmentId,
   });
+
+  bool get isEditing => establishmentId != null;
 
   @override
   State<AdminCreateEstablishmentPage> createState() =>
@@ -38,6 +43,12 @@ class _AdminCreateEstablishmentPageState
   final _addressCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _whatsappCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _contactFirstNameCtrl = TextEditingController();
+  final _contactLastNameCtrl = TextEditingController();
+  final _contactPhoneCtrl = TextEditingController();
+  final _contactEmailCtrl = TextEditingController();
+  final _contactPositionCtrl = TextEditingController();
 
   // Data
   List<Category> _categories = [];
@@ -102,6 +113,12 @@ class _AdminCreateEstablishmentPageState
     _addressCtrl.dispose();
     _phoneCtrl.dispose();
     _whatsappCtrl.dispose();
+    _emailCtrl.dispose();
+    _contactFirstNameCtrl.dispose();
+    _contactLastNameCtrl.dispose();
+    _contactPhoneCtrl.dispose();
+    _contactEmailCtrl.dispose();
+    _contactPositionCtrl.dispose();
     _newServiceCtrl.dispose();
     _newAmenityCtrl.dispose();
     for (final d in _days) {
@@ -113,20 +130,54 @@ class _AdminCreateEstablishmentPageState
 
   Future<void> _loadInitialData() async {
     try {
-      final results = await Future.wait([
+      final futures = <Future>[
         _categoryRepository.getAll(),
         _wilayaRepository.getAll(),
-      ]);
-      setState(() {
-        _categories = results[0] as List<Category>;
-        _wilayas = results[1] as List<Wilaya>;
-        _isLoadingData = false;
-      });
+        if (widget.isEditing)
+          _adminRepository.getEstablishmentById(widget.establishmentId!),
+      ];
+      final results = await Future.wait(futures);
+      _categories = results[0] as List<Category>;
+      _wilayas = results[1] as List<Wilaya>;
+
+      if (widget.isEditing && results.length > 2) {
+        _populateForm(results[2] as AdminEstablishment);
+      }
+
+      setState(() => _isLoadingData = false);
     } catch (e) {
       setState(() {
         _loadError = e.toString();
         _isLoadingData = false;
       });
+    }
+  }
+
+  Future<void> _populateForm(AdminEstablishment e) async {
+    _nameCtrl.text = e.name;
+    _descriptionCtrl.text = e.description ?? '';
+    _addressCtrl.text = e.address ?? '';
+    _phoneCtrl.text = e.phone ?? '';
+    _whatsappCtrl.text = e.whatsapp ?? '';
+    _emailCtrl.text = e.email ?? '';
+    _contactFirstNameCtrl.text = e.contactFirstName ?? '';
+    _contactLastNameCtrl.text = e.contactLastName ?? '';
+    _contactPhoneCtrl.text = e.contactPhone ?? '';
+    _contactEmailCtrl.text = e.contactEmail ?? '';
+    _contactPositionCtrl.text = e.contactPosition ?? '';
+    _selectedCategoryId = e.categoryId;
+    _selectedSubcategoryId = e.subcategoryId;
+    _selectedWilayaId = e.wilayaId;
+    _selectedCommuneId = e.communeId;
+    _selectedPriceRange = null;
+
+    if (_selectedCategoryId != null) {
+      final subs = await _categoryRepository.getSubcategories(_selectedCategoryId!);
+      setState(() => _subcategories = subs);
+    }
+    if (_selectedWilayaId != null) {
+      final communes = await _wilayaRepository.getCommunes(_selectedWilayaId!);
+      setState(() => _communes = communes);
     }
   }
 
@@ -162,10 +213,6 @@ class _AdminCreateEstablishmentPageState
       _showError('Veuillez sélectionner une sous-catégorie');
       return;
     }
-    if (_selectedCommuneId == null) {
-      _showError('Veuillez sélectionner une commune');
-      return;
-    }
 
     setState(() => _isSubmitting = true);
     try {
@@ -179,28 +226,43 @@ class _AdminCreateEstablishmentPageState
         }
       }
 
-      await _adminRepository.createEstablishment({
-        'partner_id': widget.partnerId,
+      final data = <String, dynamic>{
         'subcategory_id': _selectedSubcategoryId,
-        'commune_id': _selectedCommuneId,
+        if (_selectedWilayaId != null) 'wilaya_id': _selectedWilayaId,
+        if (_selectedCommuneId != null) 'commune_id': _selectedCommuneId,
         'name': _nameCtrl.text.trim(),
-        if (_nameArCtrl.text.trim().isNotEmpty)
-          'name_ar': _nameArCtrl.text.trim(),
+        if (_nameArCtrl.text.trim().isNotEmpty) 'name_ar': _nameArCtrl.text.trim(),
         'description': _descriptionCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
         if (_phoneCtrl.text.trim().isNotEmpty) 'phone': _phoneCtrl.text.trim(),
-        if (_whatsappCtrl.text.trim().isNotEmpty)
-          'whatsapp': _whatsappCtrl.text.trim(),
+        if (_whatsappCtrl.text.trim().isNotEmpty) 'whatsapp': _whatsappCtrl.text.trim(),
+        if (_emailCtrl.text.trim().isNotEmpty) 'email': _emailCtrl.text.trim(),
         if (_selectedPriceRange != null) 'price_range': _selectedPriceRange,
+        'contact_first_name': _contactFirstNameCtrl.text.trim().isNotEmpty ? _contactFirstNameCtrl.text.trim() : null,
+        'contact_last_name': _contactLastNameCtrl.text.trim().isNotEmpty ? _contactLastNameCtrl.text.trim() : null,
+        'contact_phone': _contactPhoneCtrl.text.trim().isNotEmpty ? _contactPhoneCtrl.text.trim() : null,
+        'contact_email': _contactEmailCtrl.text.trim().isNotEmpty ? _contactEmailCtrl.text.trim() : null,
+        'contact_position': _contactPositionCtrl.text.trim().isNotEmpty ? _contactPositionCtrl.text.trim() : null,
         if (_services.isNotEmpty) 'services': _services,
         if (_amenities.isNotEmpty) 'amenities': _amenities,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
-      });
+      };
+
+      if (widget.isEditing) {
+        await _adminRepository.updateEstablishment(widget.establishmentId!, data);
+      } else {
+        data['partner_id'] = widget.partnerId;
+        await _adminRepository.createEstablishment(data);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Établissement "${_nameCtrl.text}" créé avec succès'),
+            content: Text(
+              widget.isEditing
+                  ? 'Établissement "${_nameCtrl.text}" modifié avec succès'
+                  : 'Établissement "${_nameCtrl.text}" créé avec succès',
+            ),
             backgroundColor: AppColors.success,
           ),
         );
@@ -224,7 +286,7 @@ class _AdminCreateEstablishmentPageState
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Créer un établissement'),
+        title: Text(widget.isEditing ? 'Modifier l\'établissement' : 'Créer un établissement'),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -277,33 +339,35 @@ class _AdminCreateEstablishmentPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Partner info banner
-            Container(
-              padding: const EdgeInsets.all(AppDimens.paddingM),
-              decoration: BoxDecoration(
-                color: AppColors.primaryGreen.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                border: Border.all(
-                    color: AppColors.primaryGreen.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Iconsax.briefcase,
-                      color: AppColors.primaryGreen, size: 20),
-                  const SizedBox(width: AppDimens.paddingS),
-                  Expanded(
-                    child: Text(
-                      'Partenaire : ${widget.partnerName}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryGreen,
+            // Partner info banner (create mode only)
+            if (!widget.isEditing) ...[
+              Container(
+                padding: const EdgeInsets.all(AppDimens.paddingM),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                  border: Border.all(
+                      color: AppColors.primaryGreen.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Iconsax.briefcase,
+                        color: AppColors.primaryGreen, size: 20),
+                    const SizedBox(width: AppDimens.paddingS),
+                    Expanded(
+                      child: Text(
+                        'Partenaire : ${widget.partnerName}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryGreen,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppDimens.paddingL),
+              const SizedBox(height: AppDimens.paddingL),
+            ],
 
             _sectionTitle('Localisation'),
             const SizedBox(height: AppDimens.paddingM),
@@ -330,7 +394,6 @@ class _AdminCreateEstablishmentPageState
                       (c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                   .toList(),
               onChanged: (v) => setState(() => _selectedCommuneId = v),
-              validator: (v) => v == null ? 'Commune requise' : null,
             ),
             const SizedBox(height: AppDimens.paddingL),
 
@@ -419,6 +482,61 @@ class _AdminCreateEstablishmentPageState
               keyboardType: TextInputType.phone,
               prefixIcon: Iconsax.call_calling,
             ),
+            const SizedBox(height: AppDimens.paddingM),
+            CustomTextField(
+              controller: _emailCtrl,
+              label: 'Email (optionnel)',
+              hint: 'contact@etablissement.com',
+              keyboardType: TextInputType.emailAddress,
+              prefixIcon: Iconsax.sms,
+            ),
+            const SizedBox(height: AppDimens.paddingL),
+
+            _sectionTitle('Interlocuteur (optionnel)'),
+            const SizedBox(height: AppDimens.paddingXS),
+            Text(
+              'Personne de contact au sein de l\'établissement',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.grey500,
+                  ),
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            CustomTextField(
+              controller: _contactFirstNameCtrl,
+              label: 'Prénom',
+              hint: 'Mohamed',
+              prefixIcon: Iconsax.user,
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            CustomTextField(
+              controller: _contactLastNameCtrl,
+              label: 'Nom',
+              hint: 'Benali',
+              prefixIcon: Iconsax.user,
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            CustomTextField(
+              controller: _contactPhoneCtrl,
+              label: 'Téléphone',
+              hint: '0551234567',
+              keyboardType: TextInputType.phone,
+              prefixIcon: Iconsax.call,
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            CustomTextField(
+              controller: _contactEmailCtrl,
+              label: 'Email',
+              hint: 'contact@exemple.com',
+              keyboardType: TextInputType.emailAddress,
+              prefixIcon: Iconsax.sms,
+            ),
+            const SizedBox(height: AppDimens.paddingM),
+            CustomTextField(
+              controller: _contactPositionCtrl,
+              label: 'Poste / Fonction',
+              hint: 'Ex: Directeur, Responsable...',
+              prefixIcon: Iconsax.briefcase,
+            ),
             const SizedBox(height: AppDimens.paddingL),
 
             _sectionTitle('Tarification'),
@@ -479,10 +597,9 @@ class _AdminCreateEstablishmentPageState
                       child: CircularProgressIndicator(
                           color: AppColors.white, strokeWidth: 2),
                     )
-                  : const Text(
-                      'Créer l\'établissement',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  : Text(
+                      widget.isEditing ? 'Enregistrer les modifications' : 'Créer l\'établissement',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
             ),
             const SizedBox(height: AppDimens.paddingXL),

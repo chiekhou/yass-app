@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:win_app/features/reviews/data/repositories/reviews_repository.dart';
 
 import '../../data/models/review_model.dart';
+import '../../../establishment/data/models/establishment_model.dart';
 
 // ==================== EVENTS ====================
 
@@ -20,7 +21,8 @@ class ReviewSubmit extends ReviewEvent {
   final String comment;
   final List<String>? pros;
   final List<String>? cons;
-  final List<String>? images;
+  final List<PhotoItem>? images;
+  final List<PhotoItem>? videos;
   final DateTime? visitDate;
   final Map<String, int>? subRatings;
 
@@ -32,6 +34,7 @@ class ReviewSubmit extends ReviewEvent {
     this.pros,
     this.cons,
     this.images,
+    this.videos,
     this.visitDate,
     this.subRatings,
   });
@@ -45,6 +48,7 @@ class ReviewSubmit extends ReviewEvent {
         pros,
         cons,
         images,
+        videos,
         visitDate,
         subRatings,
       ];
@@ -218,6 +222,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         pros: event.pros,
         cons: event.cons,
         images: event.images,
+        videos: event.videos,
         visitDate: event.visitDate,
         subRatings: event.subRatings,
       );

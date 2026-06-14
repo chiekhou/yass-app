@@ -6,29 +6,29 @@ import '../constants/app_constants.dart';
 class AppTheme {
   AppTheme._();
 
-  // Light Theme
+  // Light Theme — fond sombre bleu nuit
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    brightness: Brightness.light,
-    primaryColor: AppColors.primaryGreen,
+    brightness: Brightness.dark,
+    primaryColor: AppColors.primaryBlue,
     scaffoldBackgroundColor: AppColors.scaffoldBackground,
-    colorScheme: const ColorScheme.light(
-      primary: AppColors.primaryGreen,
-      secondary: AppColors.primaryRed,
+    colorScheme: const ColorScheme.dark(
+      primary: AppColors.primaryBlue,
+      secondary: AppColors.accentGreen,
       surface: AppColors.surface,
       error: AppColors.error,
-      onPrimary: AppColors.white, // texte sur boutons verts
-      onSecondary: AppColors.white,
-      onSurface: AppColors.grey900, // texte sur scaffold vert → blanc
+      onPrimary: AppColors.white,
+      onSecondary: AppColors.black,
+      onSurface: AppColors.textPrimary,
       onError: AppColors.white,
     ),
     fontFamily: 'Cairo',
 
-    // AppBar Theme - Green theme
+    // AppBar Theme
     appBarTheme: const AppBarTheme(
       elevation: 0,
       centerTitle: true,
-      backgroundColor: AppColors.primaryGreen,
+      backgroundColor: AppColors.scaffoldBackground,
       foregroundColor: AppColors.white,
       surfaceTintColor: Colors.transparent,
       systemOverlayStyle: SystemUiOverlayStyle(
@@ -50,9 +50,9 @@ class AppTheme {
 
     // Bottom Navigation Bar Theme
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.white,
-      selectedItemColor: AppColors.primaryGreen,
-      unselectedItemColor: AppColors.grey500,
+      backgroundColor: AppColors.surface,
+      selectedItemColor: AppColors.primaryBlue,
+      unselectedItemColor: AppColors.textSecondary,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
       selectedLabelStyle: TextStyle(
@@ -70,7 +70,7 @@ class AppTheme {
     // Card Theme
     cardTheme: CardThemeData(
       elevation: AppDimens.elevationS,
-      color: AppColors.white,
+      color: AppColors.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -82,7 +82,7 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: const Color(0xFF1A4DCC),
         foregroundColor: AppColors.white,
         minimumSize: const Size(double.infinity, AppDimens.buttonHeight),
         shape: RoundedRectangleBorder(
@@ -99,9 +99,9 @@ class AppTheme {
     // Outlined Button Theme
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primaryGreen,
+        foregroundColor: AppColors.primaryBlue,
         minimumSize: const Size(double.infinity, AppDimens.buttonHeight),
-        side: const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+        side: const BorderSide(color: AppColors.primaryBlue, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
@@ -116,7 +116,7 @@ class AppTheme {
     // Text Button Theme
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.primaryGreen,
+        foregroundColor: AppColors.primaryBlue,
         textStyle: const TextStyle(
           fontFamily: 'Cairo',
           fontSize: AppDimens.fontM,
@@ -128,7 +128,7 @@ class AppTheme {
     // Input Decoration Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.grey100,
+      fillColor: AppColors.surfaceVariant,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingM,
@@ -143,7 +143,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        borderSide: const BorderSide(color: AppColors.primaryGreen, width: 2),
+        borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -156,43 +156,43 @@ class AppTheme {
       hintStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
-        color: AppColors.grey500,
+        color: AppColors.textHint,
       ),
       labelStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
-        color: AppColors.grey700,
+        color: AppColors.textSecondary,
       ),
       errorStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
         color: AppColors.error,
       ),
-      prefixIconColor: AppColors.grey600,
-      suffixIconColor: AppColors.grey600,
+      prefixIconColor: AppColors.textSecondary,
+      suffixIconColor: AppColors.textSecondary,
     ),
 
     // Floating Action Button Theme
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.primaryGreen,
-      foregroundColor: AppColors.white,
+      backgroundColor: AppColors.accentGreen,
+      foregroundColor: AppColors.black,
       elevation: 4,
       shape: CircleBorder(),
     ),
 
     // Chip Theme
     chipTheme: ChipThemeData(
-      backgroundColor: AppColors.grey100,
-      selectedColor: AppColors.greenSurface,
+      backgroundColor: AppColors.surfaceVariant,
+      selectedColor: AppColors.primaryBlue,
       labelStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
-        color: AppColors.grey700,
+        color: AppColors.textSecondary,
       ),
       secondaryLabelStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
-        color: AppColors.primaryGreen,
+        color: AppColors.white,
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
@@ -205,7 +205,7 @@ class AppTheme {
 
     // Dialog Theme
     dialogTheme: DialogThemeData(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       elevation: AppDimens.elevationL,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusL),
@@ -214,18 +214,18 @@ class AppTheme {
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontXL,
         fontWeight: FontWeight.w600,
-        color: AppColors.grey900,
+        color: AppColors.textPrimary,
       ),
       contentTextStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
-        color: AppColors.grey700,
+        color: AppColors.textSecondary,
       ),
     ),
 
     // Bottom Sheet Theme
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       elevation: AppDimens.elevationL,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -250,9 +250,9 @@ class AppTheme {
 
     // Tab Bar Theme
     tabBarTheme: const TabBarThemeData(
-      labelColor: AppColors.primaryGreen,
+      labelColor: AppColors.primaryBlue,
       unselectedLabelColor: AppColors.grey500,
-      indicatorColor: AppColors.primaryGreen,
+      indicatorColor: AppColors.primaryBlue,
       labelStyle: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
@@ -273,93 +273,90 @@ class AppTheme {
     ),
 
     // Text Theme
-    // Les couleurs par défaut ciblent le fond vert (scaffold).
-    // Sur les cards/surfaces blanches, utiliser .copyWith(color: AppColors.textPrimary/textSecondary)
-    // ou laisser le widget Card/Container définir sa propre couleur de texte.
     textTheme: const TextTheme(
       displayLarge: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontDisplay,
         fontWeight: FontWeight.w700,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       displayMedium: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontHeadline,
         fontWeight: FontWeight.w700,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       displaySmall: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontTitle,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       headlineMedium: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontXXL,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       headlineSmall: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontXL,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       titleLarge: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontL,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       titleMedium: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       titleSmall: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
         fontWeight: FontWeight.w600,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       bodyLarge: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontL,
         fontWeight: FontWeight.w400,
-        color: AppColors.black,
+        color: AppColors.textPrimary,
       ),
       bodyMedium: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
         fontWeight: FontWeight.w400,
-        color: AppColors.black,
+        color: AppColors.textSecondary,
       ),
       bodySmall: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
         fontWeight: FontWeight.w400,
-        color: AppColors.black,
+        color: AppColors.textSecondary,
       ),
       labelLarge: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontM,
         fontWeight: FontWeight.w600,
-        color: AppColors.textOnGreen,
+        color: AppColors.white,
       ),
       labelMedium: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
         fontWeight: FontWeight.w500,
-        color: AppColors.black,
+        color: AppColors.textSecondary,
       ),
       labelSmall: TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontXS,
         fontWeight: FontWeight.w500,
-        color: AppColors.black,
+        color: AppColors.textSecondary,
       ),
     ),
   );
@@ -368,15 +365,15 @@ class AppTheme {
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    primaryColor: AppColors.greenLight,
+    primaryColor: AppColors.primaryBlueLight,
     scaffoldBackgroundColor: AppColors.grey900,
     colorScheme: const ColorScheme.dark(
-      primary: AppColors.greenLight,
-      secondary: AppColors.redLight,
+      primary: AppColors.primaryBlueLight,
+      secondary: AppColors.accentGreen,
       surface: AppColors.grey800,
-      error: AppColors.redLight,
+      error: AppColors.error,
       onPrimary: AppColors.white,
-      onSecondary: AppColors.white,
+      onSecondary: AppColors.black,
       onSurface: AppColors.white,
       onError: AppColors.white,
     ),
@@ -409,7 +406,7 @@ class AppTheme {
     // Bottom Navigation Bar Theme
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.grey800,
-      selectedItemColor: AppColors.greenLight,
+      selectedItemColor: AppColors.primaryBlueLight,
       unselectedItemColor: AppColors.grey500,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
@@ -440,7 +437,7 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
-        backgroundColor: AppColors.greenLight,
+        backgroundColor: AppColors.primaryBlueLight,
         foregroundColor: AppColors.white,
         minimumSize: const Size(double.infinity, AppDimens.buttonHeight),
         shape: RoundedRectangleBorder(
@@ -457,9 +454,9 @@ class AppTheme {
     // Outlined Button Theme
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.greenLight,
+        foregroundColor: AppColors.primaryBlueLight,
         minimumSize: const Size(double.infinity, AppDimens.buttonHeight),
-        side: const BorderSide(color: AppColors.greenLight, width: 1.5),
+        side: const BorderSide(color: AppColors.primaryBlueLight, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
@@ -474,7 +471,7 @@ class AppTheme {
     // Text Button Theme
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: AppColors.greenLight,
+        foregroundColor: AppColors.primaryBlueLight,
         textStyle: const TextStyle(
           fontFamily: 'Cairo',
           fontSize: AppDimens.fontM,
@@ -501,15 +498,16 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        borderSide: const BorderSide(color: AppColors.greenLight, width: 2),
+        borderSide:
+            const BorderSide(color: AppColors.primaryBlueLight, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        borderSide: const BorderSide(color: AppColors.redLight, width: 1),
+        borderSide: const BorderSide(color: AppColors.error, width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
-        borderSide: const BorderSide(color: AppColors.redLight, width: 2),
+        borderSide: const BorderSide(color: AppColors.error, width: 2),
       ),
       hintStyle: const TextStyle(
         fontFamily: 'Cairo',
@@ -524,7 +522,7 @@ class AppTheme {
       errorStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
-        color: AppColors.redLight,
+        color: AppColors.error,
       ),
       prefixIconColor: AppColors.grey400,
       suffixIconColor: AppColors.grey400,
@@ -532,8 +530,8 @@ class AppTheme {
 
     // Floating Action Button Theme
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: AppColors.greenLight,
-      foregroundColor: AppColors.white,
+      backgroundColor: AppColors.accentGreen,
+      foregroundColor: AppColors.black,
       elevation: 4,
       shape: CircleBorder(),
     ),
@@ -541,7 +539,7 @@ class AppTheme {
     // Chip Theme
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.grey700,
-      selectedColor: AppColors.grey600,
+      selectedColor: AppColors.primaryBlueDark,
       labelStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
@@ -550,7 +548,7 @@ class AppTheme {
       secondaryLabelStyle: const TextStyle(
         fontFamily: 'Cairo',
         fontSize: AppDimens.fontS,
-        color: AppColors.greenLight,
+        color: AppColors.primaryBlueLight,
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
@@ -608,12 +606,12 @@ class AppTheme {
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
         (states) => states.contains(WidgetState.selected)
-            ? AppColors.greenLight
+            ? AppColors.accentGreen
             : AppColors.grey500,
       ),
       trackColor: WidgetStateProperty.resolveWith(
         (states) => states.contains(WidgetState.selected)
-            ? AppColors.greenLight.withValues(alpha: 0.4)
+            ? AppColors.accentGreen.withValues(alpha: 0.4)
             : AppColors.grey700,
       ),
     ),

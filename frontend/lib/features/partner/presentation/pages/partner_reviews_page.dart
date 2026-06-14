@@ -61,9 +61,8 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
         queryParameters: {'page': 1, 'limit': 20},
       );
       final data = response.data['data'];
-      final reviews = (data['reviews'] as List)
-          .map((e) => Review.fromJson(e))
-          .toList();
+      final reviews =
+          (data['reviews'] as List).map((e) => Review.fromJson(e)).toList();
       if (mounted) {
         setState(() {
           _reviews = reviews;
@@ -89,9 +88,8 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
         queryParameters: {'page': _page + 1, 'limit': 20},
       );
       final data = response.data['data'];
-      final more = (data['reviews'] as List)
-          .map((e) => Review.fromJson(e))
-          .toList();
+      final more =
+          (data['reviews'] as List).map((e) => Review.fromJson(e)).toList();
       if (mounted) {
         setState(() {
           _reviews.addAll(more);
@@ -106,8 +104,7 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
   }
 
   Future<void> _showReplyDialog(Review review) async {
-    final controller =
-        TextEditingController(text: review.partnerReply ?? '');
+    final controller = TextEditingController(text: review.partnerReply ?? '');
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -175,7 +172,7 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         title: const Text('Mes avis'),
@@ -295,12 +292,10 @@ class _ReviewCard extends StatelessWidget {
             // Établissement
             if (review.establishment != null)
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.primaryGreen.withValues(alpha: 0.08),
-                  borderRadius:
-                      BorderRadius.circular(AppDimens.radiusS),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -333,8 +328,7 @@ class _ReviewCard extends StatelessWidget {
                         ? review.user!.firstName[0].toUpperCase()
                         : '?',
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.grey700),
+                        fontWeight: FontWeight.bold, color: AppColors.grey700),
                   ),
                 ),
                 const SizedBox(width: AppDimens.paddingS),
@@ -347,8 +341,7 @@ class _ReviewCard extends StatelessWidget {
                             ? '${review.user!.firstName} ${review.user!.lastName}'
                             : 'Anonyme',
                         style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14),
+                            fontWeight: FontWeight.w600, fontSize: 14),
                       ),
                       Row(
                         children: [
@@ -367,8 +360,7 @@ class _ReviewCard extends StatelessWidget {
                             DateFormat('dd MMM yyyy', 'fr')
                                 .format(review.createdAt),
                             style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.grey500),
+                                fontSize: 11, color: AppColors.grey500),
                           ),
                         ],
                       ),
@@ -395,11 +387,9 @@ class _ReviewCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppDimens.paddingS),
                 decoration: BoxDecoration(
                   color: AppColors.greenSurface,
-                  borderRadius:
-                      BorderRadius.circular(AppDimens.radiusS),
+                  borderRadius: BorderRadius.circular(AppDimens.radiusS),
                   border: Border.all(
-                    color: AppColors.primaryGreen
-                        .withValues(alpha: 0.2),
+                    color: AppColors.primaryGreen.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(
@@ -441,16 +431,12 @@ class _ReviewCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: onReply,
                 icon: Icon(
-                  review.hasPartnerReply
-                      ? Iconsax.edit
-                      : Iconsax.message_add,
+                  review.hasPartnerReply ? Iconsax.edit : Iconsax.message_add,
                   size: 16,
                   color: AppColors.primaryGreen,
                 ),
                 label: Text(
-                  review.hasPartnerReply
-                      ? 'Modifier la réponse'
-                      : 'Répondre',
+                  review.hasPartnerReply ? 'Modifier la réponse' : 'Répondre',
                   style: const TextStyle(
                     color: AppColors.primaryGreen,
                     fontWeight: FontWeight.w600,

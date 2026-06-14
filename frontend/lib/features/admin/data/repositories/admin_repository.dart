@@ -57,6 +57,11 @@ class AdminRepository {
     await _apiClient.delete('${ApiConfig.adminUsers}/$id');
   }
 
+  Future<AdminUser> toggleEliteStatus(String id) async {
+    final response = await _apiClient.patch('${ApiConfig.adminUsers}/$id/elite');
+    return AdminUser.fromJson(response.data['data']);
+  }
+
   // ==================== PARTNER MANAGEMENT ====================
 
   Future<AdminPartnerPagination> getPartners({
@@ -138,6 +143,7 @@ class AdminRepository {
     int limit = 20,
     String? status,
     String? search,
+    String? subscriptionPlan,
   }) async {
     final queryParams = <String, dynamic>{
       'page': page,
@@ -145,6 +151,7 @@ class AdminRepository {
     };
     if (status != null) queryParams['status'] = status;
     if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    if (subscriptionPlan != null) queryParams['subscription_plan'] = subscriptionPlan;
 
     final response = await _apiClient.get(
       ApiConfig.adminEstablishments,
@@ -178,6 +185,19 @@ class AdminRepository {
     final response = await _apiClient.post(
       '${ApiConfig.adminEstablishments}/$id/reject',
       data: {'reason': reason},
+    );
+    return AdminEstablishment.fromJson(response.data['data']);
+  }
+
+  Future<AdminEstablishment> getEstablishmentById(String id) async {
+    final response = await _apiClient.get(ApiConfig.adminEstablishmentById(id));
+    return AdminEstablishment.fromJson(response.data['data']);
+  }
+
+  Future<AdminEstablishment> updateEstablishment(String id, Map<String, dynamic> data) async {
+    final response = await _apiClient.patch(
+      ApiConfig.adminEstablishmentById(id),
+      data: data,
     );
     return AdminEstablishment.fromJson(response.data['data']);
   }

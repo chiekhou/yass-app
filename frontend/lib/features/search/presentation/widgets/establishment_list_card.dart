@@ -84,7 +84,7 @@ class EstablishmentListCard extends StatelessWidget {
                             padding: EdgeInsets.only(left: AppDimens.paddingXS),
                             child: Icon(
                               Iconsax.verify5,
-                              color: AppColors.primaryGreen,
+                              color: Color(0xFF70E010),
                               size: 16,
                             ),
                           ),
@@ -149,7 +149,8 @@ class EstablishmentListCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('🇩🇿', style: TextStyle(fontSize: 12)),
+                              const Text('🇩🇿',
+                                  style: TextStyle(fontSize: 12)),
                               const SizedBox(width: 2),
                               Text(
                                 establishment.displayRating,

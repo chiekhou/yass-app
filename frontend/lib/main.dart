@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:win_app/features/favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:win_app/l10n/app_localizations.dart';
@@ -39,6 +40,11 @@ void main() async {
     statusBarIconBrightness: Brightness.dark,
     statusBarBrightness: Brightness.light,
   ));
+
+  // Mapbox token — injecté via --dart-define-from-file=.env.*.json
+  MapboxOptions.setAccessToken(
+    const String.fromEnvironment('MAPBOX_PUBLIC_TOKEN', defaultValue: ''),
+  );
 
   // Initialize Firebase and FCM (requires google-services.json / GoogleService-Info.plist)
   try {
@@ -132,7 +138,7 @@ class WinApp extends StatelessWidget {
           } else if (state is AuthUnauthenticated) {
             // Reset on logout
             context.read<HomeBloc>().add(HomeLoadData());
-            context.read<NotificationsBloc>().add(const LoadNotifications());
+            context.read<NotificationsBloc>().add(const ClearNotifications());
             AppRouter.router.go(AppRoutes.main);
           }
         },

@@ -21,6 +21,7 @@ class UserListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.scaffoldBackground,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingXS,
@@ -57,7 +58,6 @@ class UserListItem extends StatelessWidget {
           ? Text(
               user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
               style: TextStyle(
-                color: _getRoleColor(),
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -77,7 +77,7 @@ class UserListItem extends StatelessWidget {
                 user.fullName,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.grey900,
+                      color: AppColors.white,
                     ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -89,7 +89,7 @@ class UserListItem extends StatelessWidget {
         Text(
           user.email,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.grey600,
+                color: AppColors.white,
               ),
           overflow: TextOverflow.ellipsis,
         ),
@@ -173,6 +173,7 @@ class UserListItem extends StatelessWidget {
 
   Widget _buildActions(BuildContext context) {
     return PopupMenuButton<String>(
+      color: AppColors.scaffoldBackground,
       icon: const Icon(Iconsax.more, color: AppColors.grey600),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),

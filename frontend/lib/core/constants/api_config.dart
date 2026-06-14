@@ -109,6 +109,7 @@ class ApiConfig {
   static const String upload = '/upload';
   static const String uploadAvatar = '$upload/avatar';
   static const String uploadReviewImages = '$upload/review-images';
+  static const String uploadReviewVideos = '$upload/review-videos';
 
   // Partner
   static const String partner = '/partner';

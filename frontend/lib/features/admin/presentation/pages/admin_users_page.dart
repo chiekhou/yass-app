@@ -43,7 +43,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: const Text('Gestion des utilisateurs'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         actions: [
@@ -69,6 +69,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       padding: const EdgeInsets.all(AppDimens.paddingM),
       color: AppColors.white,
       child: TextField(
+        style: TextStyle(color: AppColors.scaffoldBackground),
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'Rechercher un utilisateur...',
@@ -275,14 +276,16 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                   color: AppColors.primaryGreen,
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AppDimens.paddingM),
                     itemCount: state.users.length,
                     itemBuilder: (context, index) {
                       final user = state.users[index];
                       return UserListItem(
                         user: user,
                         onTap: () => context.push(
-                          AppRoutes.adminUserDetails.replaceFirst(':id', user.id),
+                          AppRoutes.adminUserDetails
+                              .replaceFirst(':id', user.id),
                         ),
                         onStatusTap: () => _showStatusDialog(context, user),
                         onDeleteTap: () => _showDeleteDialog(context, user),
@@ -297,7 +300,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 total: state.total,
                 isLoading: state.isUpdating,
                 onPageChanged: (page) {
-                  context.read<AdminUsersBloc>().add(AdminUsersGoToPage(page: page));
+                  context
+                      .read<AdminUsersBloc>()
+                      .add(AdminUsersGoToPage(page: page));
                   _scrollController.jumpTo(0);
                 },
               ),
@@ -421,15 +426,13 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               },
             ),
             ListTile(
-              leading:
-                  const Icon(Iconsax.clock, color: AppColors.warning),
+              leading: const Icon(Iconsax.clock, color: AppColors.warning),
               title: Text(context.l10n.statusPending),
               selected: user.status == 'pending',
               onTap: () {
                 Navigator.pop(dialogContext);
                 context.read<AdminUsersBloc>().add(
-                      AdminUserUpdateStatus(
-                          userId: user.id, status: 'pending'),
+                      AdminUserUpdateStatus(userId: user.id, status: 'pending'),
                     );
               },
             ),

@@ -32,7 +32,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: Text(context.l10n.dashboard),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -216,7 +216,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildDemographicStats(BuildContext context, AdminDashboardLoaded state) {
+  Widget _buildDemographicStats(
+      BuildContext context, AdminDashboardLoaded state) {
     final d = state.stats.demographicStats;
     final total = d.total > 0 ? d.total : 1;
 
@@ -226,7 +227,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       _DemoItem('Jeunes', d.young, const Color(0xFFF59E0B), Icons.emoji_people),
       _DemoItem('Enfants', d.child, const Color(0xFF10B981), Icons.child_care),
       if (d.unknown > 0)
-        _DemoItem('Non renseigné', d.unknown, AppColors.grey400, Icons.help_outline),
+        _DemoItem(
+            'Non renseigné', d.unknown, AppColors.grey400, Icons.help_outline),
     ];
 
     return Container(
@@ -247,7 +249,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppDimens.radiusS),
                 ),
-                child: const Icon(Iconsax.profile_2user, color: AppColors.primaryGreen, size: 20),
+                child: const Icon(Iconsax.profile_2user,
+                    color: AppColors.primaryGreen, size: 20),
               ),
               const SizedBox(width: AppDimens.paddingS),
               Text(
@@ -297,7 +300,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                     Expanded(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+                        borderRadius:
+                            BorderRadius.circular(AppDimens.radiusRound),
                         child: LinearProgressIndicator(
                           value: item.count / total,
                           minHeight: 8,
@@ -327,7 +331,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildAgeRanges(BuildContext context, DemographicStats d) {
-    final totalWithAge = d.ageUnder18 + d.age18to25 + d.age26to35 + d.age36to50 + d.ageOver50;
+    final totalWithAge =
+        d.ageUnder18 + d.age18to25 + d.age26to35 + d.age36to50 + d.ageOver50;
     if (totalWithAge == 0) return const SizedBox.shrink();
 
     final ranges = [
@@ -356,7 +361,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               const Spacer(),
               Text(
                 '${d.ageUnknown} non renseigné',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.grey400),
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(color: AppColors.grey400),
               ),
             ],
           ],
@@ -370,12 +378,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     width: 72,
                     child: Text(
                       r.label,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.grey600),
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall
+                          ?.copyWith(color: AppColors.grey600),
                     ),
                   ),
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppDimens.radiusRound),
+                      borderRadius:
+                          BorderRadius.circular(AppDimens.radiusRound),
                       child: LinearProgressIndicator(
                         value: r.count / totalWithAge,
                         minHeight: 8,
@@ -422,7 +434,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   color: AppColors.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppDimens.radiusS),
                 ),
-                child: const Icon(Iconsax.chart_2, color: AppColors.info, size: 20),
+                child: const Icon(Iconsax.chart_2,
+                    color: AppColors.info, size: 20),
               ),
               const SizedBox(width: AppDimens.paddingS),
               Text(
@@ -498,9 +511,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildPendingSection(BuildContext context, AdminDashboardLoaded state) {
+  Widget _buildPendingSection(
+      BuildContext context, AdminDashboardLoaded state) {
     final stats = state.stats;
-    final hasPending = stats.pendingPartners > 0 || stats.pendingEstablishments > 0;
+    final hasPending =
+        stats.pendingPartners > 0 || stats.pendingEstablishments > 0;
 
     if (!hasPending) {
       return const SizedBox.shrink();

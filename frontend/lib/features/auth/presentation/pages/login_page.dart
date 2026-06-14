@@ -9,6 +9,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../shared/widgets/loading_overlay.dart';
+import '../../../../shared/widgets/language_picker_button.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -54,7 +55,8 @@ class _LoginPageState extends State<LoginPage> {
   String _translateError(String message) {
     const map = {
       'Invalid email or password': 'Email ou mot de passe incorrect',
-      'Invalid phone number or password': 'Numéro de téléphone ou mot de passe incorrect',
+      'Invalid phone number or password':
+          'Numéro de téléphone ou mot de passe incorrect',
       'Account suspended': 'Votre compte a été suspendu',
       'Account inactive': 'Votre compte est inactif',
       'User not found': 'Aucun compte trouvé avec ces identifiants',
@@ -121,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
           return LoadingOverlay(
             isLoading: state is AuthLoading,
             child: Scaffold(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.kleinBlue,
               body: SafeArea(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -130,7 +132,11 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: AppDimens.paddingXXL),
+                        const Align(
+                          alignment: Alignment.topRight,
+                          child:
+                              LanguagePickerButton(iconColor: AppColors.white),
+                        ),
 
                         // Logo
                         Center(
@@ -140,8 +146,12 @@ class _LoginPageState extends State<LoginPage> {
                                 width: 80,
                                 height: 80,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primaryGreen,
+                                  color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3),
+                                      width: 1.5),
                                 ),
                                 child: const Center(
                                   child: Text(
@@ -161,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                                     .textTheme
                                     .headlineMedium
                                     ?.copyWith(
-                                      color: AppColors.primaryRed,
+                                      color: AppColors.accentGreen,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
@@ -171,7 +181,9 @@ class _LoginPageState extends State<LoginPage> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
-                                    ?.copyWith(color: AppColors.primaryGreen),
+                                    ?.copyWith(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.75)),
                               ),
                             ],
                           ),
@@ -182,14 +194,17 @@ class _LoginPageState extends State<LoginPage> {
                         // Title
                         Text(
                           context.l10n.login,
-                          style: Theme.of(context).textTheme.headlineSmall,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(color: AppColors.white),
                         ),
                         const SizedBox(height: AppDimens.paddingM),
 
                         // Toggle email / phone
                         Container(
                           decoration: BoxDecoration(
-                            color: AppColors.grey100,
+                            color: Colors.white.withValues(alpha: 0.12),
                             borderRadius:
                                 BorderRadius.circular(AppDimens.radiusM),
                           ),
@@ -220,6 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                             hint: 'exemple@email.com',
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: Iconsax.sms,
+                            isDark: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'L\'email est requis';
@@ -238,6 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                             hint: '0551234567',
                             keyboardType: TextInputType.phone,
                             prefixIcon: Iconsax.call,
+                            isDark: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Le numéro est requis';
@@ -258,12 +275,13 @@ class _LoginPageState extends State<LoginPage> {
                           hint: '••••••••',
                           obscureText: _obscurePassword,
                           prefixIcon: Iconsax.lock,
+                          isDark: true,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
                                   ? Iconsax.eye_slash
                                   : Iconsax.eye,
-                              color: AppColors.grey500,
+                              color: Colors.white.withValues(alpha: 0.65),
                             ),
                             onPressed: () {
                               setState(
@@ -287,7 +305,11 @@ class _LoginPageState extends State<LoginPage> {
                           child: TextButton(
                             onPressed: () =>
                                 context.push(AppRoutes.forgotPassword),
-                            child: Text(context.l10n.forgotPassword),
+                            child: Text(context.l10n.forgotPassword,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(color: AppColors.accentGreen)),
                           ),
                         ),
 
@@ -297,8 +319,8 @@ class _LoginPageState extends State<LoginPage> {
                         ElevatedButton(
                           onPressed: _onLogin,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
-                            foregroundColor: AppColors.white,
+                            backgroundColor: AppColors.accentGreen,
+                            foregroundColor: AppColors.black,
                             minimumSize:
                                 const Size.fromHeight(AppDimens.buttonHeight),
                             shape: RoundedRectangleBorder(
@@ -329,10 +351,10 @@ class _LoginPageState extends State<LoginPage> {
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
-                                    ?.copyWith(color: AppColors.primaryGreen),
+                                    ?.copyWith(color: Colors.white),
                               ),
                             ),
-                            const Expanded(child: Divider()),
+                            const Expanded(child: Divider(color: Colors.white)),
                           ],
                         ),
 
@@ -348,7 +370,11 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             TextButton(
                               onPressed: () => context.push(AppRoutes.register),
-                              child: Text(context.l10n.register),
+                              child: Text(context.l10n.register,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(color: AppColors.accentGreen)),
                             ),
                           ],
                         ),
@@ -361,7 +387,7 @@ class _LoginPageState extends State<LoginPage> {
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
-                                ?.copyWith(color: AppColors.primaryRed),
+                                ?.copyWith(color: Colors.red),
                           ),
                         ),
                       ],
@@ -390,7 +416,9 @@ class _LoginPageState extends State<LoginPage> {
           margin: const EdgeInsets.all(4),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryGreen : Colors.transparent,
+            color: selected
+                ? Colors.white.withValues(alpha: 0.2)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(AppDimens.radiusS),
           ),
           child: Row(
@@ -399,7 +427,9 @@ class _LoginPageState extends State<LoginPage> {
               Icon(
                 icon,
                 size: 16,
-                color: selected ? AppColors.white : AppColors.grey600,
+                color: selected
+                    ? AppColors.white
+                    : Colors.white.withValues(alpha: 0.55),
               ),
               const SizedBox(width: 6),
               Text(
@@ -407,7 +437,9 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(
                   fontSize: AppDimens.fontS,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? AppColors.white : AppColors.grey600,
+                  color: selected
+                      ? AppColors.white
+                      : Colors.white.withValues(alpha: 0.55),
                 ),
               ),
             ],

@@ -52,6 +52,7 @@ class NearbySection extends StatelessWidget {
             onTap: () =>
                 context.push(AppRoutes.establishment.replaceFirst(':id', e.id)),
             child: Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(AppDimens.radiusM),
@@ -62,27 +63,40 @@ class NearbySection extends StatelessWidget {
                         offset: const Offset(0, 2))
                   ]),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ClipRRect(
                       borderRadius: const BorderRadius.horizontal(
                           left: Radius.circular(AppDimens.radiusM)),
-                      child: e.logo != null
-                          ? Image.network(e.logo!,
-                              width: 100, height: 100, fit: BoxFit.cover)
-                          : Container(
-                              width: 100,
-                              height: 100,
-                              color: AppColors.grey200,
-                              child: const Icon(Iconsax.image,
-                                  color: AppColors.grey400))),
+                      child: SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: e.logo != null
+                            ? Image.network(e.logo!,
+                                width: 90,
+                                height: 90,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                    color: AppColors.grey200,
+                                    child: const Icon(Iconsax.image,
+                                        color: AppColors.grey400)))
+                            : Container(
+                                color: AppColors.grey200,
+                                child: const Icon(Iconsax.image,
+                                    color: AppColors.grey400)),
+                      )),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(AppDimens.paddingM),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(e.name,
-                              style: Theme.of(context).textTheme.titleSmall,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(color: AppColors.grey600),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                           const SizedBox(height: AppDimens.paddingXS),
@@ -94,23 +108,31 @@ class NearbySection extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                           const SizedBox(height: AppDimens.paddingS),
-                          Row(children: [
-                            const Text('🇩🇿', style: TextStyle(fontSize: 12)),
-                            const SizedBox(width: 2),
-                            Text(e.displayRating,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(fontWeight: FontWeight.w600)),
-                            if (e.distance != null) ...[
-                              const Spacer(),
-                              Text('${e.distance!.toStringAsFixed(1)} km',
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              const Text('🇩🇿',
+                                  style: TextStyle(fontSize: 12)),
+                              const SizedBox(width: 2),
+                              Text(e.displayRating,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
-                                      ?.copyWith(color: AppColors.grey500))
-                            ]
-                          ]),
+                                      ?.copyWith(fontWeight: FontWeight.w600)),
+                              if (e.distance != null) ...[
+                                const Spacer(),
+                                Text('${e.distance!.toStringAsFixed(1)} km',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(color: AppColors.grey500))
+                              ]
+                            ],
+                          ),
                         ],
                       ),
                     ),

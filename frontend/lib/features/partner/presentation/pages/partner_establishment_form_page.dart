@@ -50,6 +50,11 @@ class _PartnerEstablishmentFormPageState
   final _snapchatController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  final _contactFirstNameController = TextEditingController();
+  final _contactLastNameController = TextEditingController();
+  final _contactPhoneController = TextEditingController();
+  final _contactEmailController = TextEditingController();
+  final _contactPositionController = TextEditingController();
 
   // State
   bool _isLoading = false;
@@ -104,6 +109,11 @@ class _PartnerEstablishmentFormPageState
     _snapchatController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _contactFirstNameController.dispose();
+    _contactLastNameController.dispose();
+    _contactPhoneController.dispose();
+    _contactEmailController.dispose();
+    _contactPositionController.dispose();
     super.dispose();
   }
 
@@ -152,6 +162,11 @@ class _PartnerEstablishmentFormPageState
     _snapchatController.text = establishment.snapchat ?? '';
     _latitudeController.text = establishment.latitude?.toString() ?? '';
     _longitudeController.text = establishment.longitude?.toString() ?? '';
+    _contactFirstNameController.text = establishment.contactFirstName ?? '';
+    _contactLastNameController.text = establishment.contactLastName ?? '';
+    _contactPhoneController.text = establishment.contactPhone ?? '';
+    _contactEmailController.text = establishment.contactEmail ?? '';
+    _contactPositionController.text = establishment.contactPosition ?? '';
 
     _selectedCategoryId = establishment.category?.id;
     _selectedSubcategoryId = establishment.subcategory?.id;
@@ -167,7 +182,8 @@ class _PartnerEstablishmentFormPageState
     }
 
     // Initialize existing images
-    _existingGalleryImages = List.from(establishment.images ?? []);
+    _existingGalleryImages =
+        (establishment.images ?? []).map((p) => p.url).toList();
   }
 
   Future<void> _loadSubcategories(String categoryId) async {
@@ -264,6 +280,16 @@ class _PartnerEstablishmentFormPageState
         if (_selectedWilayaId != null) 'wilaya_id': _selectedWilayaId,
         if (_selectedCommuneId != null) 'commune_id': _selectedCommuneId,
         if (_selectedPriceRange != null) 'price_range': _selectedPriceRange,
+        if (_contactFirstNameController.text.isNotEmpty)
+          'contact_first_name': _contactFirstNameController.text.trim(),
+        if (_contactLastNameController.text.isNotEmpty)
+          'contact_last_name': _contactLastNameController.text.trim(),
+        if (_contactPhoneController.text.isNotEmpty)
+          'contact_phone': _contactPhoneController.text.trim(),
+        if (_contactEmailController.text.isNotEmpty)
+          'contact_email': _contactEmailController.text.trim(),
+        if (_contactPositionController.text.isNotEmpty)
+          'contact_position': _contactPositionController.text.trim(),
       };
 
       Establishment result;
@@ -376,7 +402,7 @@ class _PartnerEstablishmentFormPageState
           title: Text(widget.isEditing
               ? 'Modifier l\'établissement'
               : 'Nouvel établissement'),
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.scaffoldBackground,
           foregroundColor: AppColors.white,
           elevation: 0,
         ),
@@ -554,7 +580,7 @@ class _PartnerEstablishmentFormPageState
                         }
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
+                  backgroundColor: AppColors.scaffoldBackground,
                   foregroundColor: AppColors.white,
                 ),
                 child: _isLoading
@@ -910,6 +936,58 @@ class _PartnerEstablishmentFormPageState
           keyboardType: TextInputType.text,
           hintText: 'Ex: mon.username',
         ),
+        const SizedBox(height: AppDimens.paddingL),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Interlocuteur (optionnel)',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.grey700,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppDimens.paddingXS),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Personne de contact au sein de l\'établissement',
+            style: TextStyle(fontSize: 12, color: AppColors.grey500),
+          ),
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTextField(
+          controller: _contactFirstNameController,
+          label: 'Prénom',
+          icon: Iconsax.user,
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTextField(
+          controller: _contactLastNameController,
+          label: 'Nom',
+          icon: Iconsax.user,
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTextField(
+          controller: _contactPhoneController,
+          label: 'Téléphone',
+          icon: Iconsax.call,
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTextField(
+          controller: _contactEmailController,
+          label: 'Email',
+          icon: Iconsax.sms,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTextField(
+          controller: _contactPositionController,
+          label: 'Poste / Fonction',
+          icon: Iconsax.briefcase,
+          hintText: 'Ex: Directeur, Responsable commercial...',
+        ),
       ],
     );
   }
@@ -1098,11 +1176,16 @@ class _PartnerEstablishmentFormPageState
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      style: const TextStyle(color: AppColors.scaffoldBackground),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          color: AppColors.scaffoldBackground.withValues(alpha: 0.75),
+        ),
         hintText: hintText,
-        hintStyle: const TextStyle(color: AppColors.grey400, fontSize: 13),
-        prefixIcon: Icon(icon, color: AppColors.grey500),
+        hintStyle:
+            const TextStyle(color: AppColors.scaffoldBackground, fontSize: 13),
+        prefixIcon: Icon(icon, color: AppColors.scaffoldBackground),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),
@@ -1130,9 +1213,13 @@ class _PartnerEstablishmentFormPageState
   }) {
     return DropdownButtonFormField<T>(
       initialValue: value,
+      style: const TextStyle(color: AppColors.scaffoldBackground),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.grey500),
+        labelStyle: TextStyle(
+          color: AppColors.scaffoldBackground.withValues(alpha: 0.75),
+        ),
+        prefixIcon: Icon(icon, color: AppColors.scaffoldBackground),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
         ),

@@ -26,6 +26,7 @@ class PartnerEstablishmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.scaffoldBackground,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingS,
@@ -88,10 +89,11 @@ class PartnerEstablishmentCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           establishment.name,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.grey900,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.white,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -110,15 +112,16 @@ class PartnerEstablishmentCard extends StatelessWidget {
                       Icon(
                         Iconsax.location,
                         size: 14,
-                        color: AppColors.grey500,
+                        color: AppColors.white,
                       ),
                       const SizedBox(width: AppDimens.paddingXS),
                       Expanded(
                         child: Text(
                           establishment.address,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.grey600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.white,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -231,20 +234,20 @@ class PartnerEstablishmentCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.grey500),
+        Icon(icon, size: 14, color: AppColors.white),
         const SizedBox(width: AppDimens.paddingXS),
         Text(
           value,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.grey800,
+                color: AppColors.white,
               ),
         ),
         const SizedBox(width: 2),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.grey500,
+                color: AppColors.white,
                 fontSize: 10,
               ),
         ),
@@ -254,7 +257,7 @@ class PartnerEstablishmentCard extends StatelessWidget {
 
   Widget _buildActions(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: const Icon(Iconsax.more, color: AppColors.grey600, size: 20),
+      icon: const Icon(Iconsax.more, color: AppColors.greenAccent, size: 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),

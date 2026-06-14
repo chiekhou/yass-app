@@ -12,6 +12,7 @@ class User extends Equatable {
   final String language;
   final bool emailVerified;
   final String? wilayaId;
+  final bool isElite;
   final DateTime createdAt;
   final DateTime updatedAt;
   final PartnerProfile? partnerProfile;
@@ -28,6 +29,7 @@ class User extends Equatable {
     required this.language,
     required this.emailVerified,
     this.wilayaId,
+    this.isElite = false,
     required this.createdAt,
     required this.updatedAt,
     this.partnerProfile,
@@ -52,7 +54,8 @@ class User extends Equatable {
       language: json['language'] ?? 'fr',
       emailVerified: json['email_verified'] ?? false,
       wilayaId: json['wilaya_id'],
-      createdAt: json['created_at'] != null 
+      isElite: json['is_elite'] ?? false,
+      createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at']) 
           : DateTime.now(),
       updatedAt: json['updated_at'] != null 
@@ -77,6 +80,7 @@ class User extends Equatable {
       'language': language,
       'email_verified': emailVerified,
       'wilaya_id': wilayaId,
+      'is_elite': isElite,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -94,6 +98,7 @@ class User extends Equatable {
     String? language,
     bool? emailVerified,
     String? wilayaId,
+    bool? isElite,
     DateTime? createdAt,
     DateTime? updatedAt,
     PartnerProfile? partnerProfile,
@@ -110,6 +115,7 @@ class User extends Equatable {
       language: language ?? this.language,
       emailVerified: emailVerified ?? this.emailVerified,
       wilayaId: wilayaId ?? this.wilayaId,
+      isElite: isElite ?? this.isElite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       partnerProfile: partnerProfile ?? this.partnerProfile,
@@ -129,10 +135,60 @@ class User extends Equatable {
         language,
         emailVerified,
         wilayaId,
+        isElite,
         createdAt,
         updatedAt,
         partnerProfile,
       ];
+}
+
+class PartnerEstablishmentBasic extends Equatable {
+  final String id;
+  final String name;
+  final String status;
+  final String? contactFirstName;
+  final String? contactLastName;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String? contactPosition;
+
+  const PartnerEstablishmentBasic({
+    required this.id,
+    required this.name,
+    required this.status,
+    this.contactFirstName,
+    this.contactLastName,
+    this.contactPhone,
+    this.contactEmail,
+    this.contactPosition,
+  });
+
+  String get statusLabel {
+    switch (status) {
+      case 'active': return 'Actif';
+      case 'pending': return 'En attente';
+      case 'rejected': return 'Rejeté';
+      case 'suspended': return 'Suspendu';
+      case 'draft': return 'Brouillon';
+      default: return status;
+    }
+  }
+
+  factory PartnerEstablishmentBasic.fromJson(Map<String, dynamic> json) {
+    return PartnerEstablishmentBasic(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      status: json['status'] ?? 'pending',
+      contactFirstName: json['contact_first_name'],
+      contactLastName: json['contact_last_name'],
+      contactPhone: json['contact_phone'],
+      contactEmail: json['contact_email'],
+      contactPosition: json['contact_position'],
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, name, status, contactFirstName, contactLastName, contactPhone, contactEmail, contactPosition];
 }
 
 class PartnerProfile extends Equatable {
@@ -143,6 +199,7 @@ class PartnerProfile extends Equatable {
   final String status;
   final String subscriptionPlan;
   final DateTime? verifiedAt;
+  final List<PartnerEstablishmentBasic>? establishments;
 
   const PartnerProfile({
     required this.id,
@@ -152,6 +209,7 @@ class PartnerProfile extends Equatable {
     required this.status,
     required this.subscriptionPlan,
     this.verifiedAt,
+    this.establishments,
   });
 
   bool get isApproved => status == 'approved';
@@ -168,6 +226,11 @@ class PartnerProfile extends Equatable {
       verifiedAt: json['verified_at'] != null
           ? DateTime.parse(json['verified_at'])
           : null,
+      establishments: json['establishments'] != null
+          ? (json['establishments'] as List)
+              .map((e) => PartnerEstablishmentBasic.fromJson(e))
+              .toList()
+          : null,
     );
   }
 
@@ -180,5 +243,6 @@ class PartnerProfile extends Equatable {
         status,
         subscriptionPlan,
         verifiedAt,
+        establishments,
       ];
 }

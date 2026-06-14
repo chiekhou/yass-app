@@ -25,6 +25,7 @@ class PartnerListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: AppColors.scaffoldBackground,
       margin: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingXS,
@@ -54,7 +55,7 @@ class PartnerListItem extends StatelessWidget {
                 const SizedBox(height: AppDimens.paddingM),
                 _buildUserInfo(context),
               ],
-              if (partner.isPending) ...[
+              if (partner.isPending || onSuspendTap != null) ...[
                 const SizedBox(height: AppDimens.paddingM),
                 _buildActionButtons(context),
               ],
@@ -96,7 +97,7 @@ class PartnerListItem extends StatelessWidget {
           partner.companyName,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.grey900,
+                color: AppColors.white,
               ),
           overflow: TextOverflow.ellipsis,
         ),
@@ -108,7 +109,7 @@ class PartnerListItem extends StatelessWidget {
             Text(
               '${partner.establishmentsCount} établissement(s)',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.grey600,
+                    color: AppColors.white,
                   ),
             ),
           ],
@@ -122,7 +123,7 @@ class PartnerListItem extends StatelessWidget {
               Text(
                 'RC: ${partner.registrationNumber}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.grey600,
+                      color: AppColors.white,
                     ),
               ),
             ],
@@ -197,10 +198,13 @@ class PartnerListItem extends StatelessWidget {
           CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.grey200,
-            backgroundImage: user.avatar != null ? NetworkImage(user.avatar!) : null,
+            backgroundImage:
+                user.avatar != null ? NetworkImage(user.avatar!) : null,
             child: user.avatar == null
                 ? Text(
-                    user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
+                    user.firstName.isNotEmpty
+                        ? user.firstName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
                       color: AppColors.grey600,
                       fontWeight: FontWeight.bold,
@@ -252,34 +256,58 @@ class PartnerListItem extends StatelessWidget {
       );
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onRejectTap,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.error,
-              side: const BorderSide(color: AppColors.error),
-              padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+    // Partenaire en attente → Rejeter / Approuver
+    if (partner.isPending) {
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onRejectTap,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: const BorderSide(color: AppColors.error),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+              ),
+              icon: const Icon(Iconsax.close_circle, size: 16),
+              label: const Text('Rejeter'),
             ),
-            icon: const Icon(Iconsax.close_circle, size: 16),
-            label: const Text('Rejeter'),
           ),
-        ),
-        const SizedBox(width: AppDimens.paddingS),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: onApproveTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+          const SizedBox(width: AppDimens.paddingS),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: onApproveTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: AppColors.white,
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+              ),
+              icon: const Icon(Iconsax.tick_circle, size: 16),
+              label: const Text('Approuver'),
             ),
-            icon: const Icon(Iconsax.tick_circle, size: 16),
-            label: const Text('Approuver'),
           ),
+        ],
+      );
+    }
+
+    // Partenaire approuvé → Suspendre
+    if (onSuspendTap != null) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: onSuspendTap,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.warning,
+            side: const BorderSide(color: AppColors.warning),
+            padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
+          ),
+          icon: const Icon(Iconsax.slash, size: 16),
+          label: const Text('Suspendre le partenaire'),
         ),
-      ],
-    );
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 }

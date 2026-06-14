@@ -26,7 +26,9 @@ class _AdminPendingEstablishmentsPageState
   @override
   void initState() {
     super.initState();
-    context.read<AdminEstablishmentsBloc>().add(AdminEstablishmentsLoadPending());
+    context
+        .read<AdminEstablishmentsBloc>()
+        .add(AdminEstablishmentsLoadPending());
     _scrollController.addListener(_onScroll);
   }
 
@@ -39,7 +41,9 @@ class _AdminPendingEstablishmentsPageState
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      context.read<AdminEstablishmentsBloc>().add(AdminEstablishmentsLoadMore());
+      context
+          .read<AdminEstablishmentsBloc>()
+          .add(AdminEstablishmentsLoadMore());
     }
   }
 
@@ -49,7 +53,7 @@ class _AdminPendingEstablishmentsPageState
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: const Text('Établissements en attente'),
-        backgroundColor: AppColors.primaryGreen,
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -85,8 +89,8 @@ class _AdminPendingEstablishmentsPageState
                   Expanded(
                     child: ListView.builder(
                       controller: _scrollController,
-                      padding:
-                          const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppDimens.paddingM),
                       itemCount: state.establishments.length +
                           (state.isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
@@ -182,7 +186,8 @@ class _AdminPendingEstablishmentsPageState
                 color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
+              child: const Icon(Iconsax.warning_2,
+                  size: 64, color: AppColors.error),
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
@@ -278,7 +283,8 @@ class _AdminPendingEstablishmentsPageState
     );
   }
 
-  void _showRejectDialog(BuildContext context, AdminEstablishment establishment) {
+  void _showRejectDialog(
+      BuildContext context, AdminEstablishment establishment) {
     final reasonController = TextEditingController();
     showDialog(
       context: context,

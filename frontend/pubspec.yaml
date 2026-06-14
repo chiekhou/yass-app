@@ -47,12 +47,14 @@ dependencies:
   geocoding: ^4.0.0
 
   # Maps
-  flutter_map: ^8.2.2
+  mapbox_maps_flutter: ^2.5.0
+  flutter_map: ^8.2.2   # gardé pour la mini-carte dans establishment_details
   latlong2: ^0.9.0
 
-  # Image
+  # Image & Video
   image_picker: ^1.0.7
   image_cropper: ^11.0.0
+  video_player: ^2.9.2
 
   # Utils
   intl: ^0.20.2

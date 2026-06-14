@@ -49,8 +49,12 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _otpControllers) { c.dispose(); }
-    for (final f in _focusNodes) { f.dispose(); }
+    for (final c in _otpControllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -94,7 +98,9 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
 
   void _onResend() {
     if (!_canResend) return;
-    for (final c in _otpControllers) { c.clear(); }
+    for (final c in _otpControllers) {
+      c.clear();
+    }
     _focusNodes.first.requestFocus();
     context
         .read<AuthBloc>()
@@ -130,7 +136,9 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
             setState(() {
               _otpVerified = false;
               _otp = '';
-              for (final c in _otpControllers) { c.clear(); }
+              for (final c in _otpControllers) {
+                c.clear();
+              }
             });
           }
           ScaffoldMessenger.of(context).showSnackBar(
@@ -146,7 +154,7 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
           return LoadingOverlay(
             isLoading: state is AuthLoading,
             child: Scaffold(
-              backgroundColor: AppColors.white,
+              backgroundColor: AppColors.scaffoldBackground,
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
@@ -210,7 +218,7 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
           style: Theme.of(context)
               .textTheme
               .bodyMedium
-              ?.copyWith(color: AppColors.grey600),
+              ?.copyWith(color: AppColors.white),
         ),
         const SizedBox(height: 4),
         Text(
@@ -234,7 +242,7 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
           onPressed: _isOtpComplete ? _onVerifyOtp : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryGreen,
-            disabledBackgroundColor: AppColors.grey300,
+            disabledBackgroundColor: const Color.fromARGB(120, 224, 224, 224),
             foregroundColor: AppColors.white,
             minimumSize: const Size.fromHeight(AppDimens.buttonHeight),
             shape: RoundedRectangleBorder(
@@ -243,7 +251,9 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
           ),
           child: const Text('Vérifier le code',
               style: TextStyle(
-                  fontSize: AppDimens.fontL, fontWeight: FontWeight.w600)),
+                  fontSize: AppDimens.fontL,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFE0E0E0))),
         ),
         const SizedBox(height: AppDimens.paddingL),
 
@@ -263,7 +273,7 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: AppColors.grey600),
+                        ?.copyWith(color: AppColors.white),
                     children: [
                       const TextSpan(text: 'Renvoyer dans '),
                       TextSpan(
@@ -334,7 +344,6 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: AppDimens.paddingL),
-
           Center(
             child: Container(
               width: 88,
@@ -351,7 +360,6 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
             ),
           ),
           const SizedBox(height: AppDimens.paddingL),
-
           Text(
             'Nouveau mot de passe',
             textAlign: TextAlign.center,
@@ -370,7 +378,6 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
                 ?.copyWith(color: AppColors.grey600),
           ),
           const SizedBox(height: AppDimens.paddingXL),
-
           TextFormField(
             controller: _newPasswordController,
             obscureText: _obscureNew,
@@ -378,10 +385,8 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
               labelText: 'Nouveau mot de passe',
               prefixIcon: const Icon(Iconsax.lock),
               suffixIcon: IconButton(
-                icon: Icon(
-                    _obscureNew ? Iconsax.eye_slash : Iconsax.eye),
-                onPressed: () =>
-                    setState(() => _obscureNew = !_obscureNew),
+                icon: Icon(_obscureNew ? Iconsax.eye_slash : Iconsax.eye),
+                onPressed: () => setState(() => _obscureNew = !_obscureNew),
               ),
             ),
             validator: (value) {
@@ -391,15 +396,13 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
               if (value.length < 8) {
                 return 'Au moins 8 caractères';
               }
-              if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)')
-                  .hasMatch(value)) {
+              if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
                 return 'Doit contenir une majuscule, une minuscule et un chiffre';
               }
               return null;
             },
           ),
           const SizedBox(height: AppDimens.paddingM),
-
           TextFormField(
             controller: _confirmPasswordController,
             obscureText: _obscureConfirm,
@@ -407,8 +410,7 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
               labelText: 'Confirmer le mot de passe',
               prefixIcon: const Icon(Iconsax.lock_1),
               suffixIcon: IconButton(
-                icon: Icon(
-                    _obscureConfirm ? Iconsax.eye_slash : Iconsax.eye),
+                icon: Icon(_obscureConfirm ? Iconsax.eye_slash : Iconsax.eye),
                 onPressed: () =>
                     setState(() => _obscureConfirm = !_obscureConfirm),
               ),
@@ -421,7 +423,6 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
             },
           ),
           const SizedBox(height: AppDimens.paddingXL),
-
           ElevatedButton(
             onPressed: _onSubmitNewPassword,
             style: ElevatedButton.styleFrom(

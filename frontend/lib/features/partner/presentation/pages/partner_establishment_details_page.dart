@@ -37,6 +37,8 @@ class _PartnerEstablishmentDetailsPageState
   List<Review> _reviews = [];
   bool _isLoadingReviews = false;
   bool _paymentSubmitted = false;
+  bool _eliteOnly = false;
+  int? _ratingFilter;
 
   @override
   void initState() {
@@ -86,6 +88,8 @@ class _PartnerEstablishmentDetailsPageState
     try {
       final data = await _repository.getEstablishmentReviews(
         widget.establishmentId,
+        eliteOnly: _eliteOnly,
+        rating: _ratingFilter,
       );
       setState(() {
         _reviews = data.reviews;
@@ -157,7 +161,7 @@ class _PartnerEstablishmentDetailsPageState
         SliverAppBar(
           expandedHeight: 200,
           pinned: true,
-          backgroundColor: AppColors.primaryGreen,
+          backgroundColor: AppColors.scaffoldBackground,
           foregroundColor: AppColors.white,
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
@@ -254,7 +258,8 @@ class _PartnerEstablishmentDetailsPageState
               const SizedBox(height: AppDimens.paddingM),
 
               // Social Media Card
-              if (_hasSocialMedia(establishment)) _buildSocialMediaCard(establishment),
+              if (_hasSocialMedia(establishment))
+                _buildSocialMediaCard(establishment),
 
               const SizedBox(height: AppDimens.paddingM),
 
@@ -300,7 +305,8 @@ class _PartnerEstablishmentDetailsPageState
                   : null,
             ),
             child: establishment.logo == null
-                ? const Icon(Iconsax.building, color: AppColors.grey400, size: 32)
+                ? const Icon(Iconsax.building,
+                    color: AppColors.grey400, size: 32)
                 : null,
           ),
           const SizedBox(width: AppDimens.paddingM),
@@ -313,9 +319,12 @@ class _PartnerEstablishmentDetailsPageState
                     Expanded(
                       child: Text(
                         establishment.name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.scaffoldBackground),
                       ),
                     ),
                     if (establishment.isVerified)
@@ -356,7 +365,7 @@ class _PartnerEstablishmentDetailsPageState
   // ── Mise à la une ──────────────────────────────────────────────────────────
 
   static const _featuredPlans = [
-    {'key': 'featured_7',  'label': '7 jours',  'price': '500 DZD'},
+    {'key': 'featured_7', 'label': '7 jours', 'price': '500 DZD'},
     {'key': 'featured_15', 'label': '15 jours', 'price': '800 DZD'},
     {'key': 'featured_30', 'label': '30 jours', 'price': '1 400 DZD'},
   ];
@@ -373,9 +382,7 @@ class _PartnerEstablishmentDetailsPageState
         ),
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
         border: Border.all(
-          color: isActive
-              ? const Color(0xFFFFCA28)
-              : AppColors.grey200,
+          color: isActive ? const Color(0xFFFFCA28) : AppColors.grey200,
         ),
         boxShadow: [
           BoxShadow(
@@ -397,15 +404,16 @@ class _PartnerEstablishmentDetailsPageState
                   'Mise à la une',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: AppColors.scaffoldBackground,
                       ),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isActive
-                        ? const Color(0xFFFFCA28)
-                        : AppColors.grey200,
+                    color:
+                        isActive ? const Color(0xFFFFCA28) : AppColors.grey200,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -424,7 +432,8 @@ class _PartnerEstablishmentDetailsPageState
               isActive
                   ? 'Votre établissement apparaît en tête des résultats.'
                   : 'Boostez votre visibilité — apparaissez en tête des résultats et dans la section "À la une".',
-              style: const TextStyle(fontSize: 13, color: AppColors.grey600, height: 1.4),
+              style: const TextStyle(
+                  fontSize: 13, color: AppColors.grey600, height: 1.4),
             ),
             if (!isActive) ...[
               const SizedBox(height: AppDimens.paddingM),
@@ -440,7 +449,8 @@ class _PartnerEstablishmentDetailsPageState
                       color: const Color(0xFFFFFDE7),
                       borderRadius: BorderRadius.circular(AppDimens.radiusM),
                       border: Border.all(
-                          color: const Color(0xFFFFCA28).withValues(alpha: 0.5)),
+                          color:
+                              const Color(0xFFFFCA28).withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       children: [
@@ -469,11 +479,13 @@ class _PartnerEstablishmentDetailsPageState
                 )
               else if (_paymentSubmitted)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                    border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+                    border: Border.all(
+                        color: AppColors.warning.withValues(alpha: 0.4)),
                   ),
                   child: const Row(
                     children: [
@@ -482,7 +494,8 @@ class _PartnerEstablishmentDetailsPageState
                       Expanded(
                         child: Text(
                           'Paiement en attente de validation par l\'admin.',
-                          style: TextStyle(fontSize: 13, color: AppColors.warning),
+                          style:
+                              TextStyle(fontSize: 13, color: AppColors.warning),
                         ),
                       ),
                     ],
@@ -537,7 +550,8 @@ class _PartnerEstablishmentDetailsPageState
             children: [
               Center(
                 child: Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.grey300,
                     borderRadius: BorderRadius.circular(2),
@@ -551,8 +565,10 @@ class _PartnerEstablishmentDetailsPageState
                   const SizedBox(width: 8),
                   Text(
                     'Mettre à la une',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -570,7 +586,8 @@ class _PartnerEstablishmentDetailsPageState
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.primaryGreen.withValues(alpha: 0.08)
@@ -626,8 +643,8 @@ class _PartnerEstablishmentDetailsPageState
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => _payFeaturedOnline(
-                      ctx, establishment.id, selectedPlan),
+                  onPressed: () =>
+                      _payFeaturedOnline(ctx, establishment.id, selectedPlan),
                   icon: const Icon(Iconsax.card, size: 18),
                   label: const Text('Payer en ligne (CIB / EDAHABIA)'),
                   style: ElevatedButton.styleFrom(
@@ -645,8 +662,8 @@ class _PartnerEstablishmentDetailsPageState
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _payFeaturedManual(
-                      ctx, establishment.id, selectedPlan),
+                  onPressed: () =>
+                      _payFeaturedManual(ctx, establishment.id, selectedPlan),
                   icon: const Icon(Iconsax.bank, size: 18),
                   label: const Text('Virement bancaire'),
                   style: OutlinedButton.styleFrom(
@@ -664,8 +681,8 @@ class _PartnerEstablishmentDetailsPageState
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => _payFeaturedCash(
-                      ctx, establishment.id, selectedPlan),
+                  onPressed: () =>
+                      _payFeaturedCash(ctx, establishment.id, selectedPlan),
                   icon: const Icon(Iconsax.money, size: 18),
                   label: const Text('Paiement en espèces'),
                   style: OutlinedButton.styleFrom(
@@ -701,7 +718,8 @@ class _PartnerEstablishmentDetailsPageState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text(e.toString()), backgroundColor: AppColors.error),
         );
       }
     }
@@ -723,7 +741,8 @@ class _PartnerEstablishmentDetailsPageState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text(e.toString()), backgroundColor: AppColors.error),
         );
       }
     }
@@ -741,7 +760,8 @@ class _PartnerEstablishmentDetailsPageState
         setState(() => _paymentSubmitted = true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Demande enregistrée. Présentez-vous à nos bureaux pour régler en espèces.'),
+            content: Text(
+                'Demande enregistrée. Présentez-vous à nos bureaux pour régler en espèces.'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -749,7 +769,8 @@ class _PartnerEstablishmentDetailsPageState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text(e.toString()), backgroundColor: AppColors.error),
         );
       }
     }
@@ -881,12 +902,13 @@ class _PartnerEstablishmentDetailsPageState
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: AppColors.scaffoldBackground,
               ),
         ),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.grey500,
+                color: AppColors.scaffoldBackground,
               ),
         ),
       ],
@@ -981,12 +1003,12 @@ class _PartnerEstablishmentDetailsPageState
         children: [
           Row(
             children: [
-              const Icon(Iconsax.document_text, color: AppColors.grey600, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
                 'Description',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: AppColors.scaffoldBackground,
                     ),
               ),
             ],
@@ -1023,12 +1045,12 @@ class _PartnerEstablishmentDetailsPageState
         children: [
           Row(
             children: [
-              const Icon(Iconsax.call, color: AppColors.grey600, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
                 'Contact',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: AppColors.scaffoldBackground,
                     ),
               ),
             ],
@@ -1039,12 +1061,52 @@ class _PartnerEstablishmentDetailsPageState
               establishment.phoneSecondary!.isNotEmpty)
             _buildContactRow(
                 Iconsax.call, 'Tél. secondaire', establishment.phoneSecondary!),
-          if (establishment.whatsapp != null && establishment.whatsapp!.isNotEmpty)
-            _buildContactRow(Iconsax.message, 'WhatsApp', establishment.whatsapp!),
+          if (establishment.whatsapp != null &&
+              establishment.whatsapp!.isNotEmpty)
+            _buildContactRow(
+                Iconsax.message, 'WhatsApp', establishment.whatsapp!),
           if (establishment.email != null && establishment.email!.isNotEmpty)
             _buildContactRow(Iconsax.sms, 'Email', establishment.email!),
-          if (establishment.website != null && establishment.website!.isNotEmpty)
-            _buildContactRow(Iconsax.global, 'Site web', establishment.website!),
+          if (establishment.website != null &&
+              establishment.website!.isNotEmpty)
+            _buildContactRow(
+                Iconsax.global, 'Site web', establishment.website!),
+          ...[
+            const SizedBox(height: AppDimens.paddingM),
+            Text(
+              'Interlocuteur',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey700,
+                  ),
+            ),
+            const SizedBox(height: AppDimens.paddingS),
+            _buildContactRow(
+              Iconsax.user,
+              'Prénom',
+              establishment.contactFirstName ?? 'Non renseigné',
+            ),
+            _buildContactRow(
+              Iconsax.user,
+              'Nom',
+              establishment.contactLastName ?? 'Non renseigné',
+            ),
+            _buildContactRow(
+              Iconsax.briefcase,
+              'Poste',
+              establishment.contactPosition ?? 'Non renseigné',
+            ),
+            _buildContactRow(
+              Iconsax.call,
+              'Téléphone',
+              establishment.contactPhone ?? 'Non renseigné',
+            ),
+            _buildContactRow(
+              Iconsax.sms,
+              'Email',
+              establishment.contactEmail ?? 'Non renseigné',
+            ),
+          ],
         ],
       ),
     );
@@ -1095,12 +1157,14 @@ class _PartnerEstablishmentDetailsPageState
         children: [
           Row(
             children: [
-              const Icon(Iconsax.location, color: AppColors.grey600, size: 20),
+              const Icon(Iconsax.location,
+                  color: AppColors.scaffoldBackground, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
                 'Localisation',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: AppColors.scaffoldBackground,
                     ),
               ),
             ],
@@ -1112,7 +1176,8 @@ class _PartnerEstablishmentDetailsPageState
                   color: AppColors.grey700,
                 ),
           ),
-          if (establishment.wilaya != null || establishment.commune != null) ...[
+          if (establishment.wilaya != null ||
+              establishment.commune != null) ...[
             const SizedBox(height: AppDimens.paddingS),
             Text(
               [
@@ -1139,9 +1204,40 @@ class _PartnerEstablishmentDetailsPageState
   }
 
   bool _hasSocialMedia(Establishment establishment) {
-    return (establishment.facebook != null && establishment.facebook!.isNotEmpty) ||
-        (establishment.instagram != null && establishment.instagram!.isNotEmpty) ||
+    return (establishment.facebook != null &&
+            establishment.facebook!.isNotEmpty) ||
+        (establishment.instagram != null &&
+            establishment.instagram!.isNotEmpty) ||
         (establishment.tiktok != null && establishment.tiktok!.isNotEmpty);
+  }
+
+  Widget _ratingChip(int? value, String label) {
+    final isSelected = _ratingFilter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _ratingFilter = value);
+        _loadReviews();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryGreen : AppColors.grey100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryGreen : AppColors.grey300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.grey600,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildReviewsCard() {
@@ -1163,15 +1259,71 @@ class _PartnerEstablishmentDetailsPageState
         children: [
           Row(
             children: [
-              const Icon(Iconsax.message_text, color: AppColors.grey600, size: 20),
+              const Icon(Iconsax.message_text,
+                  color: AppColors.scaffoldBackground, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
                 'Avis clients (${_reviews.length})',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: AppColors.scaffoldBackground,
                     ),
               ),
             ],
+          ),
+          const SizedBox(height: AppDimens.paddingS),
+          const Divider(height: 1),
+          const SizedBox(height: AppDimens.paddingS),
+          // Elite filter
+          GestureDetector(
+            onTap: () {
+              setState(() => _eliteOnly = !_eliteOnly);
+              _loadReviews();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: _eliteOnly ? const Color(0xFFFFD700) : AppColors.grey100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color:
+                      _eliteOnly ? const Color(0xFFFFD700) : AppColors.grey300,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Iconsax.medal_star,
+                      size: 14,
+                      color: _eliteOnly ? Colors.white : AppColors.grey500),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Élite seulement',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _eliteOnly ? Colors.white : AppColors.grey600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimens.paddingS),
+          // Rating filter
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _ratingChip(null, 'Tous'),
+                const SizedBox(width: 6),
+                for (int r = 5; r >= 1; r--) ...[
+                  _ratingChip(r, '$r ★'),
+                  if (r > 1) const SizedBox(width: 6),
+                ],
+              ],
+            ),
           ),
           const SizedBox(height: AppDimens.paddingM),
           if (_isLoadingReviews)
@@ -1205,9 +1357,10 @@ class _PartnerEstablishmentDetailsPageState
               _reviews.length > 5 ? 5 : _reviews.length,
               (index) => Padding(
                 padding: EdgeInsets.only(
-                  bottom: index < (_reviews.length > 5 ? 4 : _reviews.length - 1)
-                      ? AppDimens.paddingM
-                      : 0,
+                  bottom:
+                      index < (_reviews.length > 5 ? 4 : _reviews.length - 1)
+                          ? AppDimens.paddingM
+                          : 0,
                 ),
                 child: _buildPartnerReviewCard(_reviews[index]),
               ),
@@ -1281,7 +1434,13 @@ class _PartnerEstablishmentDetailsPageState
                       children: [
                         ...List.generate(
                           5,
-                          (i) => const Text('🇩🇿', style: TextStyle(fontSize: 12)),
+                          (i) => Icon(
+                            i < review.rating ? Iconsax.star5 : Iconsax.star,
+                            size: 12,
+                            color: i < review.rating
+                                ? const Color(0xFFFFCA28)
+                                : AppColors.grey300,
+                          ),
                         ),
                         const SizedBox(width: AppDimens.paddingXS),
                         Text(
@@ -1289,7 +1448,8 @@ class _PartnerEstablishmentDetailsPageState
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
-                              ?.copyWith(color: AppColors.grey500, fontSize: 11),
+                              ?.copyWith(
+                                  color: AppColors.grey500, fontSize: 11),
                         ),
                       ],
                     ),
@@ -1330,17 +1490,19 @@ class _PartnerEstablishmentDetailsPageState
                       children: [
                         Text(
                           'Votre réponse',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.primaryGreen,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primaryGreen,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           review.partnerReply!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.grey700,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppColors.grey700,
+                                  ),
                         ),
                       ],
                     ),
@@ -1397,7 +1559,13 @@ class _PartnerEstablishmentDetailsPageState
                   Row(
                     children: List.generate(
                       5,
-                      (i) => const Text('🇩🇿', style: TextStyle(fontSize: 12)),
+                      (i) => Icon(
+                        i < review.rating ? Iconsax.star5 : Iconsax.star,
+                        size: 12,
+                        color: i < review.rating
+                            ? const Color(0xFFFFCA28)
+                            : AppColors.grey300,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1516,10 +1684,13 @@ class _PartnerEstablishmentDetailsPageState
             ],
           ),
           const SizedBox(height: AppDimens.paddingM),
-          if (establishment.facebook != null && establishment.facebook!.isNotEmpty)
+          if (establishment.facebook != null &&
+              establishment.facebook!.isNotEmpty)
             _buildContactRow(Iconsax.link, 'Facebook', establishment.facebook!),
-          if (establishment.instagram != null && establishment.instagram!.isNotEmpty)
-            _buildContactRow(Iconsax.instagram, 'Instagram', establishment.instagram!),
+          if (establishment.instagram != null &&
+              establishment.instagram!.isNotEmpty)
+            _buildContactRow(
+                Iconsax.instagram, 'Instagram', establishment.instagram!),
           if (establishment.tiktok != null && establishment.tiktok!.isNotEmpty)
             _buildContactRow(Iconsax.video, 'TikTok', establishment.tiktok!),
         ],

@@ -43,7 +43,7 @@ class SearchSuggestionItem extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.grey200,
+          color: AppColors.scaffoldBackground,
           borderRadius: BorderRadius.circular(AppDimens.radiusS),
         ),
         clipBehavior: Clip.antiAlias,
@@ -64,8 +64,7 @@ class SearchSuggestionItem extends StatelessWidget {
       title: Text(
         establishment.name,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            fontWeight: FontWeight.w500, color: AppColors.background),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -75,7 +74,8 @@ class SearchSuggestionItem extends StatelessWidget {
             Text(
               establishment.category!.name,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.grey600,
+                    color: const Color.from(
+                        alpha: 1, red: 0, green: 0.184, blue: 0.655),
                   ),
             ),
             const SizedBox(width: AppDimens.paddingXS),

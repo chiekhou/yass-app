@@ -42,6 +42,11 @@ class AdminEstablishment extends Equatable {
   final AdminPartner? partner;
   final double averageRating;
   final int reviewsCount;
+  final String? contactFirstName;
+  final String? contactLastName;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String? contactPosition;
 
   const AdminEstablishment({
     required this.id,
@@ -76,6 +81,11 @@ class AdminEstablishment extends Equatable {
     this.partner,
     this.averageRating = 0.0,
     this.reviewsCount = 0,
+    this.contactFirstName,
+    this.contactLastName,
+    this.contactPhone,
+    this.contactEmail,
+    this.contactPosition,
   });
 
   bool get isPending => status == 'pending';
@@ -144,6 +154,11 @@ class AdminEstablishment extends Equatable {
       partner: json['partner'] != null ? AdminPartner.fromJson(json['partner']) : null,
       averageRating: _parseDouble(json['average_rating'] ?? json['averageRating']) ?? 0.0,
       reviewsCount: json['reviews_count'] ?? json['reviewsCount'] ?? 0,
+      contactFirstName: json['contact_first_name'],
+      contactLastName: json['contact_last_name'],
+      contactPhone: json['contact_phone'],
+      contactEmail: json['contact_email'],
+      contactPosition: json['contact_position'],
     );
   }
 
@@ -181,6 +196,11 @@ class AdminEstablishment extends Equatable {
         partner,
         averageRating,
         reviewsCount,
+        contactFirstName,
+        contactLastName,
+        contactPhone,
+        contactEmail,
+        contactPosition,
       ];
 }
 
