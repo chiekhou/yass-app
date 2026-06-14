@@ -81,11 +81,11 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-    });
+    }, { ifNotExists: true });
 
-    await queryInterface.addIndex("establishment_suggestions", ["status"]);
-    await queryInterface.addIndex("establishment_suggestions", ["suggested_by"]);
-    await queryInterface.addIndex("establishment_suggestions", ["vote_count"]);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishment_suggestions_status ON establishment_suggestions (status);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishment_suggestions_suggested_by ON establishment_suggestions (suggested_by);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishment_suggestions_vote_count ON establishment_suggestions (vote_count);`);
 
     // ── Table suggestion_votes ────────────────────────────────────────────────
     await queryInterface.createTable("suggestion_votes", {
@@ -118,13 +118,9 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-    });
+    }, { ifNotExists: true });
 
-    await queryInterface.addIndex(
-      "suggestion_votes",
-      ["suggestion_id", "user_id"],
-      { unique: true, name: "unique_suggestion_vote" }
-    );
+    await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS unique_suggestion_vote ON suggestion_votes (suggestion_id, user_id);`);
   },
 
   async down(queryInterface) {

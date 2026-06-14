@@ -164,6 +164,7 @@ router.post(
  */
 router.post(
   "/reset-password",
+  passwordResetLimiter,
   validate(authValidation.resetPassword),
   authController.resetPassword,
 );
@@ -175,6 +176,7 @@ router.post(
  */
 router.post(
   "/reset-password/phone",
+  passwordResetLimiter,
   validate(authValidation.resetPasswordByPhone),
   authController.resetPasswordByPhone,
 );

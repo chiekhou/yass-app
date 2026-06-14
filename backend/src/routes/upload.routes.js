@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const uploadController = require("../controllers/upload.controller");
 const { authenticate } = require("../middlewares/auth");
-const { avatarUpload, reviewImagesUpload } = require("../config/upload");
+const { avatarUpload, reviewImagesUpload, reviewVideosUpload } = require("../config/upload");
 
 // All upload routes require authentication
 router.use(authenticate);
@@ -29,5 +29,13 @@ router.delete("/avatar", uploadController.deleteAvatar);
  * @body    FormData with 'images' field
  */
 router.post("/review-images", reviewImagesUpload, uploadController.uploadReviewImages);
+
+/**
+ * @route   POST /api/v1/upload/review-videos
+ * @desc    Upload videos for a review (max 3, 50MB each)
+ * @access  Private
+ * @body    FormData with 'videos' field
+ */
+router.post("/review-videos", reviewVideosUpload, uploadController.uploadReviewVideos);
 
 module.exports = router;

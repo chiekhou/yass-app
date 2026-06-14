@@ -192,6 +192,37 @@ const createEstablishment = [
     .trim()
     .isLength({ max: 255 })
     .withMessage("La description méta doit contenir moins de 255 caractères"),
+
+  body("contact_first_name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Le prénom de l'interlocuteur doit contenir moins de 100 caractères"),
+
+  body("contact_last_name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Le nom de l'interlocuteur doit contenir moins de 100 caractères"),
+
+  body("contact_phone")
+    .optional()
+    .trim()
+    .matches(/^[+\d\s\-().]{6,20}$/)
+    .withMessage("Numéro de téléphone de l'interlocuteur invalide"),
+
+  body("contact_email")
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage("Adresse e-mail de l'interlocuteur invalide")
+    .normalizeEmail(),
+
+  body("contact_position")
+    .optional()
+    .trim()
+    .isLength({ max: 150 })
+    .withMessage("Le poste de l'interlocuteur doit contenir moins de 150 caractères"),
 ];
 
 const updateEstablishment = [
@@ -321,6 +352,37 @@ const updateEstablishment = [
     .withMessage("Les équipements doivent être un tableau"),
 
   body("tags").optional().isArray().withMessage("Les tags doivent être un tableau"),
+
+  body("contact_first_name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Le prénom de l'interlocuteur doit contenir moins de 100 caractères"),
+
+  body("contact_last_name")
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Le nom de l'interlocuteur doit contenir moins de 100 caractères"),
+
+  body("contact_phone")
+    .optional()
+    .trim()
+    .matches(/^[+\d\s\-().]{6,20}$/)
+    .withMessage("Numéro de téléphone de l'interlocuteur invalide"),
+
+  body("contact_email")
+    .optional()
+    .trim()
+    .isEmail()
+    .withMessage("Adresse e-mail de l'interlocuteur invalide")
+    .normalizeEmail(),
+
+  body("contact_position")
+    .optional()
+    .trim()
+    .isLength({ max: 150 })
+    .withMessage("Le poste de l'interlocuteur doit contenir moins de 150 caractères"),
 ];
 
 const updateStatus = [

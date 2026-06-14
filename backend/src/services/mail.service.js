@@ -1,22 +1,8 @@
-const nodemailer = require("nodemailer");
-const config = require("../config/app");
+const emailService = require("./email.service");
 
 class MailService {
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.port === 465,
-      auth: {
-        user: config.email.user,
-        pass: config.email.password,
-      },
-    });
-  }
-
   async sendContactMessage({ to, establishmentName, senderName, senderEmail, message }) {
-    await this.transporter.sendMail({
-      from: `"Win-وين" <${config.email.from || config.email.user}>`,
+    return emailService.send({
       to,
       subject: `Nouveau message de contact — ${establishmentName}`,
       html: `

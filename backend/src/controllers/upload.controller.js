@@ -290,6 +290,31 @@ class UploadController {
   }
 
   /**
+   * Upload review videos
+   * POST /api/v1/upload/review-videos
+   */
+  async uploadReviewVideos(req, res, next) {
+    try {
+      if (!req.files || req.files.length === 0) {
+        throw new ApiError(400, "No files uploaded");
+      }
+
+      const processed = await uploadService.processReviewVideos(req.files);
+      const urls = processed.map((p) => p.url);
+
+      ApiResponse.success(
+        { videos: urls },
+        "Videos uploaded successfully",
+      ).send(res);
+    } catch (error) {
+      if (req.files) {
+        req.files.forEach((file) => uploadService.deleteFile(file.path));
+      }
+      next(error);
+    }
+  }
+
+  /**
    * Reorder gallery images
    * PUT /api/v1/partner/establishments/:id/gallery/reorder
    */

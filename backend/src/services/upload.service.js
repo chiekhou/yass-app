@@ -159,6 +159,29 @@ class UploadService {
   }
 
   /**
+   * Save review video (no transcoding — stored as-is)
+   */
+  async processReviewVideo(file) {
+    return {
+      filename: file.filename,
+      path: file.path.replace(process.cwd() + path.sep, ""),
+      url: this.getFileUrl(file.path.replace(process.cwd() + path.sep, "")),
+    };
+  }
+
+  /**
+   * Process multiple review videos
+   */
+  async processReviewVideos(files) {
+    const processed = [];
+    for (const file of files) {
+      const result = await this.processReviewVideo(file);
+      processed.push(result);
+    }
+    return processed;
+  }
+
+  /**
    * Delete file
    */
   deleteFile(filePath) {

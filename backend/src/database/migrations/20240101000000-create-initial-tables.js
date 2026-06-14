@@ -16,7 +16,7 @@ module.exports = {
       order: { type: Sequelize.INTEGER, defaultValue: 0 },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
+    }, { ifNotExists: true });
 
     // 2. categories
     await queryInterface.createTable('categories', {
@@ -36,7 +36,7 @@ module.exports = {
       meta_description: { type: Sequelize.TEXT, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
+    }, { ifNotExists: true });
 
     // 3. communes (dépend de wilayas)
     await queryInterface.createTable('communes', {
@@ -56,8 +56,10 @@ module.exports = {
       is_active: { type: Sequelize.BOOLEAN, defaultValue: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
-    await queryInterface.addIndex('communes', ['wilaya_id', 'code'], { unique: true });
+    }, { ifNotExists: true });
+    await queryInterface.sequelize.query(
+      `CREATE UNIQUE INDEX IF NOT EXISTS communes_wilaya_id_code ON communes (wilaya_id, code);`
+    );
 
     // 4. subcategories (dépend de categories)
     await queryInterface.createTable('subcategories', {
@@ -79,7 +81,7 @@ module.exports = {
       order: { type: Sequelize.INTEGER, defaultValue: 0 },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
+    }, { ifNotExists: true });
 
     // 5. users (dépend de wilayas)
     await queryInterface.createTable('users', {
@@ -114,7 +116,7 @@ module.exports = {
       },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
+    }, { ifNotExists: true });
 
     // 6. refresh_tokens (dépend de users)
     await queryInterface.createTable('refresh_tokens', {
@@ -132,10 +134,10 @@ module.exports = {
       revoked_at: { type: Sequelize.DATE, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
-    await queryInterface.addIndex('refresh_tokens', ['token']);
-    await queryInterface.addIndex('refresh_tokens', ['user_id']);
-    await queryInterface.addIndex('refresh_tokens', ['expires_at']);
+    }, { ifNotExists: true });
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS refresh_tokens_token ON refresh_tokens (token);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS refresh_tokens_user_id ON refresh_tokens (user_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS refresh_tokens_expires_at ON refresh_tokens (expires_at);`);
 
     // 7. partners (dépend de users)
     await queryInterface.createTable('partners', {
@@ -162,7 +164,7 @@ module.exports = {
       notes: { type: Sequelize.TEXT, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
+    }, { ifNotExists: true });
 
     // 8. establishments (dépend de partners, categories, subcategories, wilayas, communes, users)
     await queryInterface.createTable('establishments', {
@@ -243,15 +245,15 @@ module.exports = {
       meta_description: { type: Sequelize.TEXT, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
-    await queryInterface.addIndex('establishments', ['status']);
-    await queryInterface.addIndex('establishments', ['category_id']);
-    await queryInterface.addIndex('establishments', ['subcategory_id']);
-    await queryInterface.addIndex('establishments', ['wilaya_id']);
-    await queryInterface.addIndex('establishments', ['commune_id']);
-    await queryInterface.addIndex('establishments', ['is_featured']);
-    await queryInterface.addIndex('establishments', ['average_rating']);
-    await queryInterface.addIndex('establishments', ['latitude', 'longitude']);
+    }, { ifNotExists: true });
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_status ON establishments (status);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_category_id ON establishments (category_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_subcategory_id ON establishments (subcategory_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_wilaya_id ON establishments (wilaya_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_commune_id ON establishments (commune_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_is_featured ON establishments (is_featured);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_average_rating ON establishments (average_rating);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS establishments_latitude_longitude ON establishments (latitude, longitude);`);
 
     // 9. reviews (dépend de users, establishments)
     await queryInterface.createTable('reviews', {
@@ -286,13 +288,11 @@ module.exports = {
       rejection_reason: { type: Sequelize.TEXT, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
-    await queryInterface.addIndex('reviews', ['user_id', 'establishment_id'], {
-      unique: true, name: 'unique_user_establishment_review',
-    });
-    await queryInterface.addIndex('reviews', ['establishment_id']);
-    await queryInterface.addIndex('reviews', ['status']);
-    await queryInterface.addIndex('reviews', ['rating']);
+    }, { ifNotExists: true });
+    await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS unique_user_establishment_review ON reviews (user_id, establishment_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS reviews_establishment_id ON reviews (establishment_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS reviews_status ON reviews (status);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS reviews_rating ON reviews (rating);`);
 
     // 10. favorites (dépend de users, establishments)
     await queryInterface.createTable('favorites', {
@@ -309,10 +309,8 @@ module.exports = {
       },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
-    await queryInterface.addIndex('favorites', ['user_id', 'establishment_id'], {
-      unique: true, name: 'unique_user_establishment_favorite',
-    });
+    }, { ifNotExists: true });
+    await queryInterface.sequelize.query(`CREATE UNIQUE INDEX IF NOT EXISTS unique_user_establishment_favorite ON favorites (user_id, establishment_id);`);
 
     // 11. promotions (dépend de establishments, users)
     await queryInterface.createTable('promotions', {
@@ -353,12 +351,11 @@ module.exports = {
       rejection_reason: { type: Sequelize.TEXT, allowNull: true },
       created_at: { type: Sequelize.DATE, allowNull: false },
       updated_at: { type: Sequelize.DATE, allowNull: false },
-    });
-    await queryInterface.addIndex('promotions', ['establishment_id']);
-    await queryInterface.addIndex('promotions', ['status']);
-    await queryInterface.addIndex('promotions', ['start_date', 'end_date']);
-    await queryInterface.addIndex('promotions', ['is_featured']);
-
+    }, { ifNotExists: true });
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS promotions_establishment_id ON promotions (establishment_id);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS promotions_status ON promotions (status);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS promotions_start_date_end_date ON promotions (start_date, end_date);`);
+    await queryInterface.sequelize.query(`CREATE INDEX IF NOT EXISTS promotions_is_featured ON promotions (is_featured);`);
   },
 
   async down(queryInterface) {
