@@ -35,6 +35,8 @@ class EstablishmentService {
         model: Wilaya,
         as: "wilaya",
         attributes: ["id", "code", "name", "name_ar"],
+        where: { is_active: true },
+        required: true,
       },
       {
         model: Commune,
