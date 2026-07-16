@@ -160,6 +160,190 @@
   "searchFor": "Rechercher \"{term}\"",
   "signIn": "Se connecter",
   "connect": "Connexion requise",
+  "acceptTermsError": "Veuillez accepter les conditions d'utilisation",
+  "selectWilaya": "Sélectionner votre wilaya",
+  "becomePartner": "Devenir partenaire",
+  "passwordResetSuccess": "Mot de passe réinitialisé avec succès !",
+  "verifyCode": "Vérifier le code",
+  "resendCode": "Renvoyer le code",
+  "verifying": "Vérification en cours...",
+  "backToLogin": "Retour à la connexion",
+  "resendEmail": "Renvoyer l'email",
+  "codeSentSuccess": "Code renvoyé avec succès",
+  "noFeatured": "Aucun établissement à la une",
+  "noCategoriesAvailable": "Aucune catégorie disponible",
+  "explore": "Explorer",
+  "noNearbyEstablishments": "Aucun établissement trouvé dans votre wilaya",
+  "addressCopied": "Adresse copiée",
+  "checkInComingSoon": "Check-In — bientôt disponible",
+  "notAvailable": "Non disponible",
+  "coordinatesNotAvailable": "Coordonnées non disponibles pour cet établissement",
+  "reviewDeleted": "Avis supprimé",
+  "deleteReviewTitle": "Supprimer cet avis ?",
+  "maxPhotosPerReview": "Maximum 5 photos par avis",
+  "maxVideosPerReview": "Maximum 3 vidéos par avis",
+  "ratingRequired": "Veuillez donner une note d'ensemble",
+  "allCriteriaRequired": "Veuillez noter tous les critères",
+  "reviewMinChars": "Décrivez votre expérience (min. 10 caractères)",
+  "photoUploadError": "Erreur lors de l'envoi des photos",
+  "videoUploadError": "Erreur lors de l'envoi des vidéos",
+  "clearFavorites": "Vider les favoris",
+  "clear": "Vider",
+  "deleteAllNotifications": "Supprimer toutes les notifications",
+  "message": "Message",
+  "openEmail": "Ouvrir l'email",
+  "close": "Fermer",
+  "locationError": "Impossible de récupérer votre position",
+  "openWith": "Ouvrir avec",
+  "goHere": "Y aller",
+  "reset": "Réinitialiser",
+  "takePhoto": "Prendre une photo",
+  "chooseFromGallery": "Choisir de la galerie",
+  "profileUpdated": "Profil mis à jour avec succès",
+  "notConnected": "Non connecté",
+  "changePhoto": "Changer la photo",
+  "personalInfo": "Informations personnelles",
+  "firstNameRequired": "Le prénom est requis",
+  "lastNameRequired": "Le nom est requis",
+  "wilaya": "Wilaya",
+  "changePassword": "Changer le mot de passe",
+  "businessInfo": "Informations entreprise",
+  "editInfo": "Modifier les informations",
+  "validationError": "Erreur de validation",
+  "incorrectCurrentPassword": "Le mot de passe actuel est incorrect",
+  "genericError": "Une erreur est survenue. Veuillez réessayer.",
+  "currentPassword": "Mot de passe actuel",
+  "required": "Requis",
+  "newPassword": "Nouveau mot de passe",
+  "minSixChars": "Minimum 6 caractères",
+  "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+  "passwordChanged": "Mot de passe modifié avec succès",
+  "change": "Changer",
+  "ourMission": "Notre mission",
+  "appDescription": "Win est l'annuaire de référence des établissements en Algérie. Nous aidons les Algériens à trouver facilement les commerces, restaurants, services et lieux culturels près de chez eux, grâce aux avis et recommandations de la communauté.",
+  "legalInfo": "Informations légales",
+  "sendEmail": "Envoyer un e-mail",
+  "backToList": "Retour à la liste",
+  "suggestAnother": "Suggérer un autre",
+  "suggestEstablishment": "Suggérer un établissement",
+  "submitSuggestion": "Envoyer ma suggestion",
+  "noCategorySelected": "Aucune catégorie sélectionnée",
+  "noWilayaSelected": "Aucune wilaya sélectionnée",
+  "mySuggestions": "Mes suggestions",
+  "makeSuggestion": "Faire une suggestion",
+  "noSuggestionsYet": "Aucune suggestion pour le moment",
+  "communitySuggestions": "Suggestions de la communauté",
+  "beFirstToSuggest": "Soyez le premier à suggérer un établissement !",
+  "createAccount": "Créer un compte",
+  "loginToSeeSuggestions": "Connectez-vous pour accéder aux suggestions de la communauté et voter pour vos établissements préférés.",
+  "suggestYourEstablishment": "Suggérez un établissement que vous aimeriez voir sur la plateforme.",
+  "infoBannerSuggest": "Signalez un établissement manquant dans l'annuaire. Plus il y a de votes, plus vite il sera ajouté.",
+  "establishmentNameLabel": "Nom de l'établissement *",
+  "addressLabel": "Adresse *",
+  "phoneOptional": "Téléphone (optionnel)",
+  "contactEmailLabel": "Email de contact *",
+  "categoryOptional": "Catégorie (optionnel)",
+  "wilayaOptional": "Wilaya (optionnel)",
+  "descriptionOptional": "Description (optionnel)",
+  "suggestionReasonOptional": "Motif de la suggestion (optionnel)",
+  "fieldRequired": "Champ obligatoire",
+  "invalidEmail": "Email invalide",
+  "nameHint": "Ex: Café Central, Clinique El Amel...",
+  "addressHint": "Rue, quartier, ville...",
+  "descriptionHint": "Décrivez brièvement cet établissement...",
+  "selectCategory": "Sélectionner une catégorie",
+  "selectAWilaya": "Sélectionner une wilaya",
+  "paymentAccepted": "Paiement accepté — abonnement activé !",
+  "paymentFailed": "Le paiement a échoué. Veuillez réessayer.",
+  "subscriptionCancelled": "Abonnement annulé",
+  "cancelSubscription": "Annuler l'abonnement",
+  "keepSubscription": "Garder",
+  "cannotOpenPaymentPage": "Impossible d'ouvrir la page de paiement",
+  "requestSubmitted": "Demande soumise",
+  "visitOurOffice": "Rendez-vous à notre bureau :",
+  "bankDetailsColon": "Coordonnées bancaires :",
+  "bankDetailsTitle": "Coordonnées bancaires",
+  "understood": "Compris",
+  "transferRefHint": "Référence du virement (optionnel)",
+  "paymentOnline": "En ligne",
+  "paymentTransfer": "Virement",
+  "paymentCash": "Espèces",
+  "inOffice": "En bureau",
+  "seePlan": "Voir l'offre {plan}",
+  "@seePlan": {
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "freePlan": "Gratuit",
+  "alwaysFree": "toujours gratuit",
+  "noCommitment": "sans engagement",
+  "paymentMethodLabel": "Méthode de paiement",
+  "cancelQuestion": "Annuler ?",
+  "cancelConfirmBody": "Êtes-vous sûr de vouloir annuler ? Les modifications non enregistrées seront perdues.",
+  "noContinue": "Non, continuer",
+  "yesCancel": "Oui, annuler",
+  "editEstablishment": "Modifier l'établissement",
+  "newEstablishment": "Nouvel établissement",
+  "nameAr": "Nom en arabe",
+  "descriptionLabel": "Description",
+  "descriptionAr": "Description en arabe",
+  "categoryRequired": "Catégorie *",
+  "subcategoryLabel": "Sous-catégorie",
+  "communeLabel": "Commune",
+  "addressAr": "Adresse en arabe",
+  "latitudeLabel": "Latitude",
+  "longitudeLabel": "Longitude",
+  "wilayaRequired": "Wilaya *",
+  "phoneRequired": "Le téléphone est requis",
+  "secondaryPhone": "Téléphone secondaire",
+  "websiteLabel": "Site web",
+  "socialNetworks": "Réseaux sociaux",
+  "nameRequired": "Le nom est requis",
+  "addressRequired": "L'adresse est requise",
+  "phoneTooShort": "Numéro trop court",
+  "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+  "priceEconomy": "Économique ($)",
+  "priceModerate": "Modéré ($$)",
+  "priceHigh": "Élevé ($$$)",
+  "priceLuxury": "Luxe ($$$$)",
+  "featuredActivated": "Mise à la une activée avec succès !",
+  "featureEstablishment": "Mettre à la une",
+  "payOnline": "Payer en ligne (CIB / EDAHABIA)",
+  "bankTransfer": "Virement bancaire",
+  "cashPayment": "Paiement en espèces",
+  "replyReviewTitle": "Répondre à cet avis",
+  "responseHintLong": "Votre réponse (min. 10 caractères)",
+  "replySent": "Réponse envoyée",
+  "replyButton": "Répondre",
+  "filterAll": "Tous",
+  "filterActive": "Actifs",
+  "filterInactive": "Inactifs",
+  "filterRejected": "Rejetés",
+  "statusInactive": "Inactif",
+  "statusLabel": "Statut",
+  "establishmentDeleted": "Établissement supprimé",
+  "deleteEstablishmentTitle": "Supprimer l'établissement",
+  "changeStatus": "Changer le statut",
+  "activateStatus": "Activer",
+  "deactivateStatus": "Désactiver",
+  "replyToReview": "Répondre à l'avis",
+  "replyHint": "Votre réponse...",
+  "publishReply": "Publier",
+  "replyPublished": "Réponse publiée",
+  "myInvoices": "Mes factures",
+  "noInvoices": "Aucune facture",
+  "invoicesWillAppear": "Vos factures apparaîtront ici après votre premier paiement.",
+  "subscribe": "S'abonner",
+  "paymentReceipt": "Reçu de paiement",
+  "invoiceNumber": "N° Facture",
+  "paidOn": "Payé le",
+  "plan": "Plan",
+  "paymentMethod": "Méthode",
+  "reference": "Référence",
+  "period": "Période",
   "@reviewsCount": {
     "placeholders": {
       "count": {
@@ -173,5 +357,908 @@
         "type": "String"
       }
     }
-  }
+  },
+  "welcomeAdmin": "Bienvenue, Admin",
+  "managePlatformWin": "Gérez votre plateforme Win",
+  "generalStats": "Statistiques générales",
+  "users": "Utilisateurs",
+  "partners": "Partenaires",
+  "establishments": "Établissements",
+  "userDemographics": "Démographie des utilisateurs",
+  "males": "Hommes",
+  "females": "Femmes",
+  "youth": "Jeunes",
+  "children": "Enfants",
+  "notProvided": "Non renseigné",
+  "ageRanges": "Tranches d'âge",
+  "appVisits": "Visites de l'application",
+  "today": "Aujourd'hui",
+  "thisWeek": "Cette semaine",
+  "thisMonth": "Ce mois",
+  "pendingApproval": "En attente d'approbation",
+  "pendingPartners": "Partenaires en attente",
+  "pendingEstablishments": "Établissements en attente",
+  "quickActions": "Actions rapides",
+  "managementEstablishments": "Gestion des établissements",
+  "managementPartners": "Gestion des partenaires",
+  "managementUsers": "Gestion des utilisateurs",
+  "searchByNameAddress": "Rechercher par nom ou adresse...",
+  "searchPartner": "Rechercher un partenaire...",
+  "searchUser": "Rechercher un utilisateur...",
+  "allPlans": "Tous les plans",
+  "allRoles": "Tous les rôles",
+  "noEstablishmentFound": "Aucun établissement trouvé",
+  "noPartnerFound": "Aucun partenaire trouvé",
+  "noUserFound": "Aucun utilisateur trouvé",
+  "noEstablishmentPending": "Aucun établissement en attente d'approbation",
+  "noPartnerPending": "Aucun partenaire en attente d'approbation",
+  "noPaymentPending": "Aucun paiement manuel en attente de validation",
+  "noReviewFound": "Aucun avis trouvé",
+  "noReviewForFilter": "Aucun avis ne correspond à ce filtre",
+  "noReportedReview": "Aucun avis signalé",
+  "noReportedReviewYet": "Aucun avis n'a été signalé pour le moment",
+  "noSuggestion": "Aucune suggestion",
+  "modifySearchFilters": "Essayez de modifier vos filtres de recherche",
+  "allUpToDate": "Tout est à jour !",
+  "approve": "Approuver",
+  "reject": "Rejeter",
+  "suspend": "Suspendre",
+  "remove": "Retirer",
+  "validate": "Valider",
+  "dismiss": "Ignorer",
+  "revoke": "Révoquer",
+  "promote": "Promouvoir",
+  "refresh": "Actualiser",
+  "approveEstablishment": "Approuver l'établissement",
+  "rejectEstablishment": "Rejeter l'établissement",
+  "rejectPartner": "Rejeter le partenaire",
+  "suspendPartner": "Suspendre le partenaire",
+  "deleteUser": "Supprimer l'utilisateur",
+  "deleteThisReview": "Supprimer cet avis",
+  "rejectThisReview": "Rejeter cet avis",
+  "approveSuggestion": "Approuver la suggestion",
+  "rejectSuggestion": "Rejeter la suggestion",
+  "rejectReasonLabel": "Raison du rejet *",
+  "suspensionReasonLabel": "Raison de la suspension",
+  "enterReason": "Entrez la raison...",
+  "enterRejectReason": "Entrez la raison du rejet...",
+  "pleaseEnterReason": "Veuillez entrer une raison",
+  "rejectReasonMin10": "Raison du rejet (min. 10 caractères)",
+  "deleteReasonMin10": "Raison de la suppression (min. 10 caractères)",
+  "rejectReasonOptional": "Raison du rejet (optionnel)",
+  "reasonMinChars": "La raison doit faire au moins 10 caractères",
+  "removeFeatured": "Retirer de la une",
+  "featuredDuration": "Durée :",
+  "noLimit": "Sans limite",
+  "assignPartner": "Associer un partenaire",
+  "detachCurrentPartner": "Détacher le partenaire actuel",
+  "changePartner": "Changer de partenaire",
+  "generalInformation": "Informations générales",
+  "category": "Catégorie",
+  "coordinates": "Coordonnées",
+  "interlocutor": "Interlocuteur",
+  "positionLabel": "Poste",
+  "positionFunction": "Poste / Fonction",
+  "partnerSection": "Partenaire",
+  "company": "Société",
+  "createdOn": "Créé le",
+  "updatedOn": "Mis à jour",
+  "accountManager": "Responsable du compte",
+  "actions": "Actions",
+  "addEstablishmentShort": "Ajouter établ.",
+  "addPartner": "Ajouter un partenaire",
+  "tel": "Tél.",
+  "admins": "Admins",
+  "userRole": "Utilisateur",
+  "adminRole": "Admin",
+  "role": "Rôle",
+  "gender": "Sexe",
+  "age": "Âge",
+  "ageCategory": "Tranche",
+  "lastLogin": "Dernière connexion",
+  "connections": "Connexions",
+  "emailVerified": "Email vérifié",
+  "emailNotVerified": "Email non vérifié",
+  "activity": "Activité",
+  "partnerProfile": "Profil Partenaire",
+  "seeDetails": "Voir détails",
+  "establishmentsAndInterlocutors": "Établissements & Interlocuteurs",
+  "eliteStatus": "Statut Élite",
+  "eliteMember": "Membre Élite",
+  "standardUser": "Utilisateur standard",
+  "promoteToElite": "Promouvoir en Élite",
+  "revokeEliteStatus": "Révoquer le statut Élite",
+  "userDeleted": "Utilisateur supprimé avec succès",
+  "userDetail": "Détail utilisateur",
+  "pendingPayments": "Paiements en attente",
+  "paymentValidated": "Paiement validé — abonnement activé",
+  "paymentCancelledAdmin": "Paiement annulé — abonnement révoqué",
+  "verifyManualPayments": "Vérifiez et validez les paiements manuels",
+  "verifyApproveEstablishments": "Vérifiez et approuvez les nouveaux établissements",
+  "verifyApprovePartners": "Vérifiez et approuvez les nouveaux partenaires",
+  "planYearly": "Annuel",
+  "planMonthly": "Mensuel",
+  "totalAmount": "Montant total",
+  "submittedOn": "Soumis le",
+  "confirmValidation": "Confirmer la validation",
+  "cancelPaymentTitle": "Annuler le paiement ?",
+  "allReviews": "Tous les avis",
+  "reportedReviews": "Avis signalés",
+  "managePlatformReviews": "Gérez l'ensemble des avis de la plateforme",
+  "suggestionApproved": "Suggestion approuvée",
+  "suggestionRejected": "Suggestion rejetée",
+  "anonymeUser": "Anonyme",
+  "allFeminine": "Toutes",
+  "approvedFeminine": "Approuvées",
+  "rejectedFeminine": "Rejetées",
+  "adminSuggestions": "Suggestions communauté",
+  "wilayasAvailability": "Disponibilité wilayas",
+  "categoriesAvailability": "Disponibilité catégories",
+  "wilayasAvailable": "Wilayas disponibles",
+  "categoriesAvailable": "Catégories disponibles",
+  "updateError": "Erreur lors de la mise à jour",
+  "createPartner": "Créer un partenaire",
+  "accountInfo": "Informations du compte",
+  "atLeast8Chars": "Au moins 8 caractères",
+  "passwordStrength": "Doit contenir majuscule, minuscule et chiffre",
+  "invalidPhone": "Numéro invalide",
+  "companyInfo": "Informations de la société",
+  "societyName": "Nom de la société",
+  "companyNameRequired": "Nom de la société requis",
+  "registrationNumberOptional": "N° registre de commerce (optionnel)",
+  "taxIdOptional": "NIF / Identifiant fiscal (optionnel)",
+  "emailRequired": "Email requis",
+  "management": "Gestion",
+  "moderation": "Modération",
+  "paymentsSection": "Paiements",
+  "community": "Communauté",
+  "suggestionsMenu": "Suggestions",
+  "deployment": "Déploiement",
+  "administration": "Administration",
+  "createEstablishment": "Créer un établissement",
+  "saveChanges": "Enregistrer les modifications",
+  "subcategoryRequired": "Sous-catégorie requise",
+  "descriptionRequired": "Description requise",
+  "address": "Adresse",
+  "addressRequiredMsg": "Adresse requise",
+  "interlocutorOptional": "Interlocuteur (optionnel)",
+  "contactPersonDesc": "Personne de contact au sein de l'établissement",
+  "pricing": "Tarification",
+  "servicesOptional": "Services (optionnel)",
+  "amenitiesOptional": "Équipements (optionnel)",
+  "openingHoursOptional": "Horaires d'ouverture (optionnel)",
+  "openShort": "Ouv.",
+  "closeShort": "Ferm.",
+  "pleaseSelectSubcategory": "Veuillez sélectionner une sous-catégorie",
+  "partnerCreatedSuccess": "Partenaire {companyName} créé avec succès",
+  "@partnerCreatedSuccess": {
+    "placeholders": {
+      "companyName": {
+        "type": "String"
+      }
+    }
+  },
+  "establishmentCreatedSuccess": "Établissement \"{name}\" créé avec succès",
+  "@establishmentCreatedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "establishmentUpdatedSuccess": "Établissement \"{name}\" modifié avec succès",
+  "@establishmentUpdatedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "filterPending": "En attente",
+  "filterSuspended": "Suspendus",
+  "filterApproved": "Approuvés",
+  "resetFilters": "Réinitialiser",
+  "commune": "Commune",
+  "subscription": "Abonnement",
+  "description": "Description",
+  "yesLabel": "Oui",
+  "setAsFeatured": "Mettre à la une",
+  "editTooltip": "Modifier",
+  "partnerRole": "Partenaire",
+  "approveEstablishmentQuestion": "Approuver « {name} » ? Il sera visible sur l'annuaire.",
+  "@approveEstablishmentQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rejectQuestion": "Rejeter « {name} » ?",
+  "@rejectQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removeFromFeaturedQuestion": "Retirer « {name} » de la mise en avant ?",
+  "@removeFromFeaturedQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "setAsFeaturedQuestion": "Mettre « {name} » à la une.",
+  "@setAsFeaturedQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEstablishmentConfirm": "Supprimer « {name} » ?\n\nCette action est irréversible.",
+  "@deleteEstablishmentConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "establishmentApprovedMsg": "{name} a été approuvé",
+  "@establishmentApprovedMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "establishmentRejectedMsg": "{name} a été rejeté",
+  "@establishmentRejectedMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pendingEstablishmentsCount": "{count} établissement(s) en attente",
+  "@pendingEstablishmentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "partnerApprovedMsg": "{name} a été approuvé",
+  "@partnerApprovedMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rejectPartnerQuestion": "Êtes-vous sûr de vouloir rejeter {name} ?",
+  "@rejectPartnerQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "suspendPartnerQuestion": "Êtes-vous sûr de vouloir suspendre {name} ?",
+  "@suspendPartnerQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "searchReview": "Rechercher un avis...",
+  "searchReportedReview": "Rechercher un avis signalé...",
+  "examineReports": "Examinez et traitez les signalements",
+  "approveSuggestionQuestion": "Approuver « {name} » ? Elle sera convertie en établissement.",
+  "@approveSuggestionQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noEstablishment": "Aucun établissement",
+  "phoneShort": "Tél.",
+  "explainRejectReason": "Expliquez la raison du rejet...",
+  "explainSuspendReason": "Expliquez la raison de la suspension...",
+  "noLabel": "Non",
+  "refLabel": "Référence",
+  "deleteEstablishmentQuestion": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible.",
+  "@deleteEstablishmentQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "validatePaymentQuestion": "Valider le paiement de \"{name}\" ?\n\nL'abonnement sera activé immédiatement.",
+  "@validatePaymentQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelPaymentQuestion": "Annuler le paiement de \"{name}\" ?\n\nL'abonnement sera immédiatement révoqué.",
+  "@cancelPaymentQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "previousShort": "Préc.",
+  "nextShort": "Suiv.",
+  "deleteUserQuestion": "Êtes-vous sûr de vouloir supprimer \"{name}\" ? Cette action est irréversible et supprimera également ses avis, favoris et profil partenaire.",
+  "@deleteUserQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "allEstablishments": "Tous les établissements",
+  "performances": "Performances",
+  "mySubscription": "Mon abonnement",
+  "suggestions": "Suggestions",
+  "versionNumber": "Version {version}",
+  "@versionNumber": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "copyrightNotice": "© {year} Win — Tous droits réservés",
+  "@copyrightNotice": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "privacyHeaderTitle": "Vos données sont protégées",
+  "lastUpdatedJuly2026": "Dernière mise à jour : juillet 2026",
+  "privacyS1Title": "1. Qui sommes-nous ?",
+  "privacyS1Content": "Win (وِين) est un annuaire numérique des établissements en Algérie. Cette politique décrit comment nous collectons, utilisons et protégeons vos informations personnelles lorsque vous utilisez notre application mobile.",
+  "privacyS2Title": "2. Données collectées",
+  "privacyS2Content": "Lors de votre inscription :\n• Nom et prénom\n• Adresse e-mail\n• Numéro de téléphone (optionnel)\n• Wilaya de résidence\n\nLors de l'utilisation de l'application :\n• Localisation approximative (pour les recherches à proximité, uniquement si vous l'autorisez)\n• Historique de navigation dans l'application\n• Avis et notes publiés\n• Établissements ajoutés en favoris",
+  "privacyS3Title": "3. Utilisation des données",
+  "privacyS3Content": "Vos données nous permettent de :\n• Vous fournir les services de l'annuaire Win\n• Personnaliser les résultats de recherche selon votre localisation\n• Vous envoyer des notifications relatives à vos favoris ou avis\n• Améliorer la qualité et la pertinence de nos contenus\n• Garantir la sécurité des comptes utilisateurs",
+  "privacyS4Title": "4. Partage des données",
+  "privacyS4Content": "Nous ne vendons jamais vos données personnelles. Elles peuvent être partagées avec :\n• Firebase (Google) : notifications push et authentification\n• Prestataires de paiement : traitement des abonnements partenaires (aucune donnée bancaire n'est stockée sur nos serveurs)\n• Autorités compétentes : uniquement si la loi algérienne l'exige",
+  "privacyS5Title": "5. Conservation des données",
+  "privacyS5Content": "Vos données sont conservées tant que votre compte est actif. En cas de suppression de compte, vos informations personnelles sont effacées dans un délai de 30 jours, à l'exception des données requises à des fins légales ou comptables.",
+  "privacyS6Title": "6. Vos droits",
+  "privacyS6Content": "Conformément à la réglementation applicable, vous disposez des droits suivants :\n• Accès à vos données personnelles\n• Rectification des informations inexactes\n• Suppression de votre compte et de vos données\n• Opposition au traitement de vos données\n\nPour exercer ces droits, contactez-nous via la section \"Nous contacter\" de l'application.",
+  "privacyS7Title": "7. Sécurité",
+  "privacyS7Content": "Nous utilisons le chiffrement HTTPS pour toutes les communications entre l'application et nos serveurs. Les mots de passe sont hachés et ne sont jamais stockés en clair. L'accès aux données est restreint au personnel autorisé.",
+  "privacyS8Title": "8. Modifications",
+  "privacyS8Content": "Cette politique peut être mise à jour. Toute modification importante vous sera notifiée par e-mail ou via une notification dans l'application.",
+  "privacyS9Title": "9. Contact",
+  "privacyS9Content": "Pour toute question relative à cette politique de confidentialité, contactez-nous à :\nYassine-o@hotmail.fr",
+  "termsS1Title": "1. Présentation du service",
+  "termsS1Content": "Win (وِين) est un annuaire numérique recensant les établissements commerciaux, culturels et de services en Algérie. En utilisant l'application, vous acceptez sans réserve les présentes conditions d'utilisation.",
+  "termsS2Title": "2. Inscription et compte utilisateur",
+  "termsS2Content": "• Vous devez fournir des informations exactes lors de votre inscription.\n• Vous êtes responsable de la confidentialité de votre mot de passe et de toutes les activités effectuées depuis votre compte.\n• Un seul compte par personne est autorisé.\n• L'inscription est réservée aux personnes âgées de 13 ans et plus.",
+  "termsS3Title": "3. Règles d'utilisation",
+  "termsS3Content": "Il est interdit de :\n• Publier des avis faux, trompeurs ou diffamatoires\n• Usurper l'identité d'un établissement ou d'une personne\n• Utiliser l'application à des fins illicites ou contraires à la législation algérienne\n• Scraper, copier ou reproduire le contenu sans autorisation\n• Spammer d'autres utilisateurs ou partenaires\n• Tenter de compromettre la sécurité de la plateforme",
+  "termsS4Title": "4. Avis et contenus utilisateurs",
+  "termsS4Content": "En publiant un avis ou un contenu sur Win, vous nous accordez une licence non exclusive d'utilisation de ce contenu à des fins d'affichage sur la plateforme.\n\nNous nous réservons le droit de modérer, modifier ou supprimer tout contenu qui ne respecte pas nos règles ou la législation en vigueur, sans préavis.",
+  "termsS5Title": "5. Espace partenaire",
+  "termsS5Content": "Les établissements référencés sur Win peuvent souscrire à un abonnement partenaire pour bénéficier de fonctionnalités avancées (mise en avant, statistiques, etc.).\n\n• Les partenaires s'engagent à fournir des informations exactes sur leurs établissements.\n• Les abonnements sont soumis à des conditions tarifaires spécifiques communiquées lors de la souscription.\n• Aucun remboursement n'est accordé pour les périodes déjà consommées.",
+  "termsS6Title": "6. Propriété intellectuelle",
+  "termsS6Content": "L'ensemble du contenu de l'application Win (logo, design, textes, base de données) est protégé et appartient à ses créateurs. Toute reproduction, même partielle, sans autorisation écrite est interdite.",
+  "termsS7Title": "7. Disponibilité du service",
+  "termsS7Content": "Nous nous efforçons de maintenir l'application disponible 24h/24, mais nous ne garantissons pas une disponibilité ininterrompue. Des interruptions peuvent survenir pour maintenance ou en cas de problème technique.",
+  "termsS8Title": "8. Limitation de responsabilité",
+  "termsS8Content": "Win agit en tant qu'annuaire et ne peut être tenu responsable des informations fournies par les établissements ou les utilisateurs. Nous ne garantissons pas l'exactitude ou l'exhaustivité des données présentées.",
+  "termsS9Title": "9. Modifications des conditions",
+  "termsS9Content": "Ces conditions peuvent être mises à jour à tout moment. Vous serez informé de toute modification importante. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions.",
+  "termsS10Title": "10. Droit applicable",
+  "termsS10Content": "Les présentes conditions sont régies par le droit algérien. Tout litige sera soumis aux tribunaux compétents de la wilaya d'Alger.",
+  "termsS11Title": "11. Contact",
+  "termsS11Content": "Pour toute question relative aux présentes conditions, contactez-nous à :\nYassine-o@hotmail.fr",
+  "welcomePartner": "Bienvenue, Partenaire",
+  "manageYourEstablishments": "Gérez vos établissements",
+  "totalLabel": "Total",
+  "averageRating": "Note moyenne",
+  "reviewsN": "{count} avis",
+  "@reviewsN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "myEstablishmentsShort": "Mes établ.",
+  "invoicesLabel": "Factures",
+  "engagementFunnel": "Funnel d'engagement",
+  "ratingDistributionTitle": "Distribution des notes",
+  "ratingTrend6Months": "Note moyenne — 6 mois",
+  "topCustomerWilayas": "Top wilayas de vos clients",
+  "stepGeneral": "Général",
+  "stepLocation": "Lieu",
+  "stepDetails": "Détails",
+  "stepImages": "Images",
+  "establishmentUpdated": "Établissement mis à jour",
+  "establishmentCreated": "Établissement créé avec succès",
+  "coverImageLabel": "Image de couverture",
+  "imageGallery": "Galerie d'images",
+  "noImage": "Aucune image",
+  "deleteImageTitle": "Supprimer l'image ?",
+  "irreversibleAction": "Cette action est irréversible.",
+  "imageDeleted": "Image supprimée",
+  "addService": "Ajouter un service",
+  "addAmenity": "Ajouter un équipement",
+  "openAbbrev": "Ouv.",
+  "closeAbbrev": "Ferm.",
+  "addImage": "Ajouter une image",
+  "positionFunctionLabel": "Poste / Fonction",
+  "errorInvalidPhone": "Numéro de téléphone invalide. Formats acceptés : 0555123456, +213555123456, 0770 123 456",
+  "errorInvalidEstablishmentName": "Le nom de l'établissement est invalide.",
+  "errorInvalidAddress": "L'adresse est invalide.",
+  "errorSelectCategory": "Veuillez sélectionner une catégorie.",
+  "errorSelectWilaya": "Veuillez sélectionner une wilaya.",
+  "errorInvalidEmail": "Adresse e-mail invalide.",
+  "errorInvalidUrl": "L'URL saisie est invalide.",
+  "errorSessionExpired": "Session expirée. Veuillez vous reconnecter.",
+  "errorNetworkConnection": "Erreur de connexion. Vérifiez votre accès internet.",
+  "chooseYourOffer": "Choisissez votre offre",
+  "subscriptionPageSubtitle": "Basic est gratuit pour toujours. Passez à Premium ou Gold pour débloquer plus de fonctionnalités.",
+  "featureEstablishmentProfile": "Profil établissement visible",
+  "featureContactLocation": "Coordonnées & localisation",
+  "featureAppointmentBooking": "Prise de rendez-vous client",
+  "featureWhatsappButton": "Bouton WhatsApp",
+  "featureSocialNetworks": "Réseaux sociaux (Facebook, Instagram…)",
+  "featurePhotoGallery": "Galerie photos & vidéos",
+  "featureCustomerReviews": "Avis & notes clients",
+  "featureAllBasicIncluded": "Tout Basic inclus",
+  "featureAllPremiumIncluded": "Tout Premium inclus",
+  "featureFeaturedListing": "Mise à la une automatique",
+  "featurePriorityResults": "Priorité dans les résultats",
+  "featureGoldBadge": "Badge établissement Gold",
+  "pricePerMonth": "{price} DA / mois",
+  "@pricePerMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "pricePerYear": "{price} DA / an",
+  "@pricePerYear": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "monthlyEquivalent": "soit {price} DA/mois",
+  "@monthlyEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "savingPercent": "Économisez {percent}%",
+  "@savingPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "transferInstructions": "Effectuez votre virement puis soumettez votre demande. L'admin validera dans les 24-48h.",
+  "inAgencyPayment": "Paiement en agence",
+  "cashInstructions": "Soumettez votre demande, puis rendez-vous à notre bureau pour régler en espèces. L'admin validera votre paiement sur place.",
+  "submitMyRequest": "Soumettre ma demande",
+  "confirmMyVisit": "Je confirme ma visite",
+  "takeAdvantage": "J'en profite",
+  "allFeatures": "Toutes les fonctionnalités",
+  "featureOfPlan": "Fonctionnalité {planLabel}",
+  "@featureOfPlan": {
+    "placeholders": {
+      "planLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "featureAvailableFromPlan": "Cette fonctionnalité est disponible à partir de l'offre {planLabel}. Sélectionnez l'offre {planLabel} ci-dessus pour en profiter.",
+  "@featureAvailableFromPlan": {
+    "placeholders": {
+      "planLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentPendingValidation": "Paiement en cours de validation",
+  "paymentPendingDescription": "Votre demande a bien été enregistrée. Notre équipe la validera dans les 24–48h. Votre accès sera activé dès confirmation.",
+  "refreshStatus": "Actualiser le statut",
+  "activeSubscriptionPlan": "Abonnement actif — {planLabel}",
+  "@activeSubscriptionPlan": {
+    "placeholders": {
+      "planLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "expiresOn": "Expire le {date}",
+  "@expiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "establishmentsVisibleOnApp": "Vos établissements sont visibles sur l'application.",
+  "confirmCancelSubscriptionContent": "Êtes-vous sûr de vouloir annuler votre abonnement ?\n\nVos établissements ne seront plus visibles sur l'application.",
+  "requestRegisteredWithNumber": "Votre demande a été enregistrée ({number}).",
+  "@requestRegisteredWithNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "bringRequestNumber": "Munissez-vous de votre numéro de demande. L'admin validera votre paiement sur place.",
+  "adminValidates24_48h": "L'admin validera votre paiement sous 24-48h.",
+  "beneficiary": "Bénéficiaire",
+  "moreCategoriesTitle": "Plus de catégories",
+  "moreButton": "Plus",
+  "comingSoon": "Bientôt",
+  "comingSoonFull": "Bientôt disponible",
+  "seeLess": "Voir moins",
+  "seeNMore": "Voir {n} de plus",
+  "@seeNMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "noEstablishmentsInCategory": "Il n'y a pas encore d'établissement dans cette catégorie",
+  "anErrorOccurred": "Une erreur est survenue",
+  "tabOverview": "Aperçu",
+  "tabInfos": "Infos",
+  "tabSimilar": "Similaires",
+  "seeAllPhotos": "Voir toutes les photos ({count})",
+  "@seeAllPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "contactRequest": "Prise de contact",
+  "yourName": "Votre nom",
+  "yourEmail": "Votre email",
+  "yourMessage": "Votre message",
+  "contactRequestSent": "Votre demande a bien été envoyée !",
+  "contactRequestError": "Une erreur est survenue, réessayez.",
+  "customerReviews": "Avis clients",
+  "notAvailableForEstab": "Non disponible pour cet établissement",
+  "featureNotAvailable": "{feature} n'est pas disponible pour cet établissement pour le moment.",
+  "@featureNotAvailable": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "sortMostRecent": "Plus récents",
+  "sortOldest": "Plus anciens",
+  "sortHighestRated": "Mieux notés",
+  "sortLowestRated": "Moins bien notés",
+  "eliteReviews": "Avis d'Élites",
+  "nStars": "{n} étoiles",
+  "@nStars": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "visitedOn": "Visité le {date}",
+  "@visitedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailedRatings": "Notes détaillées",
+  "subRatingQuality": "Qualité",
+  "subRatingWelcome": "Accueil",
+  "subRatingInformation": "Information",
+  "subRatingValue": "Qualité/prix",
+  "subRatingAvailability": "Disponibilité",
+  "subRatingReliability": "Fiabilité",
+  "subRatingComfort": "Confort",
+  "timeAgoYears": "il y a {count} an(s)",
+  "@timeAgoYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeAgoMonths": "il y a {count} mois",
+  "@timeAgoMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeAgoDays": "il y a {count} jour(s)",
+  "@timeAgoDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeAgoHours": "il y a {count}h",
+  "@timeAgoHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeAgoJustNow": "à l'instant",
+  "seeHours": "· Voir les horaires",
+  "addReview": "Ajouter un avis",
+  "website": "Site internet",
+  "favorited": "Favori ✓",
+  "recommendQuestion": "Recommander cet établissement ?",
+  "maybe": "Peut-être",
+  "removedFromFavorites": "Retiré de vos favoris",
+  "addedToFavorites": "Ajouté à vos favoris ! Revenez quand vous voulez 😊",
+  "informationSection": "Informations",
+  "drivingMinutes": "{min} min en voiture",
+  "@drivingMinutes": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "seeDirections": "Voir l'itinéraire",
+  "features": "Fonctionnalités",
+  "aboutThisPlace": "À propos de cet établissement",
+  "showLess": "Réduire",
+  "readMore": "Continuer à lire",
+  "writeAReview": "Laisser un avis",
+  "writeReviewHint": "Tapez pour écrire un avis...",
+  "addPhoto": "Ajouter une photo",
+  "recommendedReviews": "Avis recommandés",
+  "noSimilarEstablishments": "Aucun établissement similaire trouvé.",
+  "chooseNavApp": "Choisissez une application de navigation",
+  "gpsNavigation": "Navigation GPS",
+  "socialNavigation": "Navigation sociale",
+  "appleNavigation": "Navigation Apple",
+  "otherApps": "Autres applications",
+  "openWithSystem": "Ouvrir avec le système",
+  "copyAddress": "Copier l'adresse",
+  "loginToClaimBusiness": "Connectez-vous pour revendiquer cet établissement et accéder aux offres partenaires.",
+  "ownThisPlace": "Vous possédez cet établissement ?",
+  "claimNow": "Revendiquez-le dès maintenant",
+  "allPhotosTab": "Tout ({count})",
+  "@allPhotosTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noPhotosAvailable": "Aucune photo disponible",
+  "photoCategoryOthers": "Autres",
+  "photoCategoryPlats": "Plats",
+  "photoCategoryBoissons": "Boissons",
+  "photoCategoryDesserts": "Desserts",
+  "photoCategoryMenu": "Menu",
+  "photoCategoryInterieur": "Intérieur",
+  "photoCategoryExterieur": "Extérieur",
+  "photoCategoryTerrasse": "Terrasse",
+  "photoCategoryAmbiance": "Ambiance",
+  "photoCategoryBar": "Bar",
+  "photoCategorySalle": "Salle",
+  "photoCategoryEntree": "Façade",
+  "photoCategoryCuisine": "Cuisine",
+  "photoCategoryParking": "Parking",
+  "photoCategoryEvenements": "Événements",
+  "photoCategoryPromotions": "Promos",
+  "photoCategoryProduits": "Produits",
+  "searchBarHint": "Restaurants, hôpitaux, banques...",
+  "resultsNearYou": "Résultats près de vous",
+  "locationDetectedRefresh": "Position détectée — Actualiser",
+  "useMyLocation": "Utiliser ma position actuelle",
+  "searchesIncludeLocation": "Les recherches incluent automatiquement votre position",
+  "recentSearches": "Recherches récentes",
+  "popularSearches": "Recherches populaires",
+  "searchNearMeFor": "Rechercher \"{query}\" près de moi",
+  "@searchNearMeFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "seeAllResultsFor": "Voir tous les résultats pour \"{query}\"",
+  "@seeAllResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchResultsOnMap": "Les résultats s'affichent directement sur la carte",
+  "searchWilayaHint": "Rechercher une wilaya...",
+  "filterMinRating": "Note minimum",
+  "ratingAndAbove": "{rating} et plus",
+  "@ratingAndAbove": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      }
+    }
+  },
+  "sortRelevance": "Pertinence",
+  "sortRecentLabel": "Plus récent",
+  "priceEconomicalLabel": "Économique",
+  "priceModerateLabel": "Modéré",
+  "priceHighLabel": "Élevé",
+  "priceLuxuryLabel": "Luxe",
+  "mapSearchHint": "Restaurant, hôtel...",
+  "filteredResults": "Résultats filtrés",
+  "searchOnMap": "Rechercher sur la carte...",
+  "placesCount": "{count, plural, one{# lieu} other{# lieux}}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recommended": "Recommandés",
+  "openedNow": "Ouverts maintenant",
+  "searchInArea": "Rechercher dans cette zone",
+  "noEstablishmentsInArea": "Aucun établissement trouvé dans cette zone",
+  "filterAvailability": "Disponibilité",
+  "maxDistanceLabel": "Distance max.",
+  "filterMinRatingLabel": "Note minimale",
+  "kwRestaurant": "Restaurant",
+  "kwCafe": "Café",
+  "kwHospital": "Hôpital",
+  "kwPharmacy": "Pharmacie",
+  "kwBank": "Banque",
+  "kwHotel": "Hôtel",
+  "kwHairdresser": "Coiffeur",
+  "kwSupermarket": "Supermarché",
+  "kwSchool": "École",
+  "kwDentist": "Dentiste",
+  "kwDoctor": "Médecin",
+  "kwBakery": "Boulangerie",
+  "suggestionSent": "Suggestion envoyée !",
+  "suggestionSentBody": "Merci pour votre contribution !\nD'autres utilisateurs pourront voter pour votre suggestion. L'admin l'examinera et pourra l'ajouter à l'annuaire.",
+  "reasonHint": "Ex : souvent demandé dans le quartier, nouvel établissement...",
+  "activeLabel": "Active",
+  "inactiveLabel": "Inactive",
+  "pendingValidation": "En attente de validation",
+  "phoneSecondary": "Tél. secondaire",
+  "featuredTitle": "Mise à la une",
+  "featuredActiveDesc": "Votre établissement apparaît en tête des résultats.",
+  "featuredInactiveDesc": "Boostez votre visibilité — apparaissez en tête des résultats et dans la section « À la une ».",
+  "reservedForGold": "Réservé au plan Gold",
+  "upgradeToGold": "Passer à Gold →",
+  "paymentPendingAdmin": "Paiement en attente de validation par l'admin.",
+  "chooseDuration": "Choisissez une durée et un mode de paiement.",
+  "cashRequestRegistered": "Demande enregistrée. Présentez-vous à nos bureaux pour régler en espèces.",
+  "accountHolder": "Titulaire",
+  "featuredActivationPending": "La mise à la une sera activée après validation par l'admin.",
+  "bankTransferInstruction": "Effectuez le virement et envoyez la preuve à votre gestionnaire.",
+  "featuredDaysLabel": "{count} jours",
+  "@featuredDaysLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "customerReviewsCount": "Avis clients ({count})",
+  "@customerReviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eliteOnly": "Élite seulement",
+  "allFilter": "Tous",
+  "seeAllReviewsCount": "Voir tous les avis ({count})",
+  "@seeAllReviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "yourReplyLabel": "Votre réponse",
+  "timeAgoNow": "à l'instant",
+  "youLabel": "Vous",
+  "featureWifi": "WiFi",
+  "featureFreeWifi": "WiFi gratuit",
+  "featureParking": "Parking",
+  "featureCoveredParking": "Parking couvert",
+  "featureDelivery": "Livraison",
+  "featureReservation": "Réservation",
+  "featureOnlineOrder": "Commande en ligne",
+  "featureOnlinePayment": "Paiement en ligne",
+  "featureCardPayment": "Carte bancaire",
+  "featureDisabledAccess": "Accès PMR",
+  "featureDineIn": "Sur place",
+  "featureTakeaway": "À emporter",
+  "featureDrive": "Drive",
+  "featureAirConditioning": "Climatisation",
+  "featureTerrace": "Terrasse",
+  "featureBar": "Bar",
+  "featurePrayerRoom": "Salle de prière",
+  "featureGarden": "Jardin",
+  "featureNonSmoking": "Non-fumeur",
+  "featureSmokingArea": "Espace fumeur",
+  "featurePetsWelcome": "Animaux acceptés",
+  "featureSeaView": "Vue mer",
+  "featurePool": "Piscine",
+  "featureGym": "Salle de sport",
+  "featureKidsArea": "Espace enfants",
+  "featureRoomService": "Service en chambre",
+  "featureHeating": "Chauffage",
+  "featureHallRental": "Location salle",
+  "featureDecoration": "Décoration",
+  "featureCatering": "Traiteur",
+  "featureDj": "DJ",
+  "featurePhotographer": "Photographe",
+  "featureSoundSystem": "Sonorisation",
+  "featureProjector": "Vidéoprojecteur",
+  "featureVipArea": "Espace VIP",
+  "featureConferenceRoom": "Salle de conférence",
+  "featureAnimation": "Animation",
+  "featureEntertainment": "Spectacle",
+  "featureEquippedKitchen": "Cuisine équipée",
+  "featureChangingRooms": "Vestiaires",
+  "featureShortTermRental": "Location courte durée",
+  "featureLongTermRental": "Location longue durée",
+  "featureInsurance": "Assurance",
+  "featureNearbyParking": "Parking à proximité",
+  "featureHammam": "Hammam",
+  "featureScrub": "Gommage",
+  "featureMassage": "Massage",
+  "featureFacialTreatment": "Soin visage",
+  "featureBodyTreatment": "Soins corps",
+  "featureSpa": "Spa",
+  "featureSauna": "Sauna",
+  "featureJacuzzi": "Jacuzzi",
+  "featureManicure": "Manucure",
+  "featurePedicure": "Pédicure",
+  "featureWaxing": "Épilation",
+  "featureMakeup": "Maquillage",
+  "featureFitness": "Fitness",
+  "featureTennis": "Tennis",
+  "featureConsultation": "Conseil",
+  "featureLaundry": "Blanchisserie",
+  "featureValet": "Service voiturier",
+  "featureBicycles": "Vélos disponibles",
+  "featureEVCharging": "Borne de recharge",
+  "featureSafe": "Coffre-fort",
+  "feature24hReception": "Réception 24h/24"
 }

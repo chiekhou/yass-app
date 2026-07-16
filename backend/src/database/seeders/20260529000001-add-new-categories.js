@@ -8,25 +8,25 @@ module.exports = {
 
     // ── 1. Nouvelles catégories ──────────────────────────────────────────
     const newCategories = [
-      { name: "Vie nocturne",                        name_ar: "الحياة الليلية",          name_en: "Nightlife",                    slug: "vie-nocturne",                    icon: "nightlife",          color: "#8E44AD", order: 13 },
-      { name: "Shopping",                            name_ar: "تسوق",                    name_en: "Shopping",                     slug: "shopping",                        icon: "shopping_bag",       color: "#E91E63", order: 14 },
-      { name: "Alimentation",                        name_ar: "الغذاء",                  name_en: "Food & Grocery",               slug: "alimentation",                    icon: "local_grocery_store",color: "#FF9800", order: 15 },
-      { name: "Salons de beauté & Spas",             name_ar: "صالونات التجميل والسبا",   name_en: "Beauty Salons & Spas",         slug: "salons-beaute-spas",              icon: "spa",                color: "#F06292", order: 16 },
+      { name: "Organisation religieuse",             name_ar: "المنظمات الدينية",          name_en: "Religious Organizations",      slug: "organisation-religieuse",         icon: "church",             color: "#6D4C41", order: 2  },
+      { name: "Sports et activités de loisirs",      name_ar: "الرياضة وأنشطة الترفيه",  name_en: "Sports & Leisure Activities",  slug: "sports-activites-loisirs",        icon: "sports_soccer",      color: "#4CAF50", order: 4  },
+      { name: "Alimentation",                        name_ar: "الغذاء",                  name_en: "Food & Grocery",               slug: "alimentation",                    icon: "local_grocery_store",color: "#FF9800", order: 5  },
+      { name: "Salons de beauté & Spas",             name_ar: "صالونات التجميل والسبا",   name_en: "Beauty Salons & Spas",         slug: "salons-beaute-spas",              icon: "spa",                color: "#F06292", order: 6  },
+      { name: "Vie nocturne",                        name_ar: "الحياة الليلية",          name_en: "Nightlife",                    slug: "vie-nocturne",                    icon: "nightlife",          color: "#8E44AD", order: 7  },
+      { name: "Shopping",                            name_ar: "تسوق",                    name_en: "Shopping",                     slug: "shopping",                        icon: "shopping_bag",       color: "#E91E63", order: 8  },
       { name: "Maison & Travaux",                    name_ar: "المنزل والأشغال",          name_en: "Home & Works",                 slug: "maison-travaux",                  icon: "home_repair_service",color: "#795548", order: 17 },
       { name: "Services locaux",                     name_ar: "الخدمات المحلية",          name_en: "Local Services",               slug: "services-locaux",                 icon: "handyman",           color: "#607D8B", order: 18 },
       { name: "Organisation d'événements",           name_ar: "تنظيم الفعاليات",          name_en: "Event Planning",               slug: "organisation-evenements",         icon: "celebration",        color: "#D35400", order: 19 },
       { name: "Art & loisirs",                       name_ar: "الفن والترفيه",            name_en: "Arts & Entertainment",         slug: "art-loisirs",                     icon: "palette",            color: "#009688", order: 20 },
-      { name: "Sports et activités de loisirs",      name_ar: "الرياضة وأنشطة الترفيه",  name_en: "Sports & Leisure Activities",  slug: "sports-activites-loisirs",        icon: "sports_soccer",      color: "#4CAF50", order: 21 },
-      { name: "Services destinés aux professionnels",name_ar: "خدمات للمهنيين",           name_en: "Professional Services",        slug: "services-destines-professionnels",icon: "business_center",    color: "#34495E", order: 22 },
-      { name: "Hôtels & séjours",                   name_ar: "الفنادق والإقامة",          name_en: "Hotels & Stays",               slug: "hotels-sejours",                  icon: "hotel",              color: "#1ABC9C", order: 23 },
-      { name: "Formation & Enseignement",            name_ar: "التكوين والتعليم",          name_en: "Training & Education",         slug: "formation-enseignement",          icon: "school",             color: "#3F51B5", order: 24 },
-      { name: "Animaux de compagnie",                name_ar: "الحيوانات الأليفة",        name_en: "Pets",                         slug: "animaux-compagnie",               icon: "pets",               color: "#FF5722", order: 25 },
-      { name: "Services financiers",                 name_ar: "الخدمات المالية",           name_en: "Financial Services",           slug: "services-financiers",             icon: "account_balance",    color: "#2196F3", order: 26 },
-      { name: "Couleur locale",                      name_ar: "الثقافة المحلية",           name_en: "Local Color",                  slug: "couleur-locale",                  icon: "flag",               color: "#009688", order: 27 },
-      { name: "Services publics et gouvernementaux", name_ar: "الخدمات العامة والحكومية", name_en: "Public & Government Services", slug: "services-publics-gouvernementaux",icon: "account_balance",    color: "#37474F", order: 28 },
-      { name: "Média",                               name_ar: "الإعلام",                  name_en: "Media",                        slug: "media",                           icon: "newspaper",          color: "#455A64", order: 29 },
-      { name: "Organisation religieuse",             name_ar: "المنظمات الدينية",          name_en: "Religious Organizations",      slug: "organisation-religieuse",         icon: "church",             color: "#6D4C41", order: 30 },
-      { name: "Santé & Médical",                     name_ar: "الصحة والطب",              name_en: "Health & Medical",             slug: "sante-medical",                   icon: "local_hospital",     color: "#F44336", order: 31 },
+      { name: "Services destinés aux professionnels",name_ar: "خدمات للمهنيين",           name_en: "Professional Services",        slug: "services-destines-professionnels",icon: "business_center",    color: "#34495E", order: 21 },
+      { name: "Hôtels & séjours",                   name_ar: "الفنادق والإقامة",          name_en: "Hotels & Stays",               slug: "hotels-sejours",                  icon: "hotel",              color: "#1ABC9C", order: 22 },
+      { name: "Formation & Enseignement",            name_ar: "التكوين والتعليم",          name_en: "Training & Education",         slug: "formation-enseignement",          icon: "school",             color: "#3F51B5", order: 23 },
+      { name: "Animaux de compagnie",                name_ar: "الحيوانات الأليفة",        name_en: "Pets",                         slug: "animaux-compagnie",               icon: "pets",               color: "#FF5722", order: 24 },
+      { name: "Services financiers",                 name_ar: "الخدمات المالية",           name_en: "Financial Services",           slug: "services-financiers",             icon: "account_balance",    color: "#2196F3", order: 25 },
+      { name: "Couleur locale",                      name_ar: "الثقافة المحلية",           name_en: "Local Color",                  slug: "couleur-locale",                  icon: "flag",               color: "#009688", order: 26 },
+      { name: "Services publics et gouvernementaux", name_ar: "الخدمات العامة والحكومية", name_en: "Public & Government Services", slug: "services-publics-gouvernementaux",icon: "account_balance",    color: "#37474F", order: 27 },
+      { name: "Média",                               name_ar: "الإعلام",                  name_en: "Media",                        slug: "media",                           icon: "newspaper",          color: "#455A64", order: 28 },
+      { name: "Santé & Médical",                     name_ar: "الصحة والطب",              name_en: "Health & Medical",             slug: "sante-medical",                   icon: "local_hospital",     color: "#F44336", order: 29 },
     ];
 
     const categoriesToInsert = newCategories.map((c) => ({
@@ -61,12 +61,10 @@ module.exports = {
     const newSubcategories = [
 
       // ==================== VIE NOCTURNE ====================
-      { category: "vie-nocturne", name: "Bar",                        name_ar: "بار",                    slug: "bar",                        icon: "local_bar",         order: 1 },
-      { category: "vie-nocturne", name: "Boîte de nuit",              name_ar: "ملهى ليلي",              slug: "boite-nuit",                  icon: "nightlife",         order: 2 },
-      { category: "vie-nocturne", name: "Karaoké",                    name_ar: "كاراوكي",                slug: "karaoke",                     icon: "mic",               order: 3 },
-      { category: "vie-nocturne", name: "Lounge & Rooftop",           name_ar: "لاونج وروفتوب",          slug: "lounge-rooftop",              icon: "roofing",           order: 4 },
-      { category: "vie-nocturne", name: "Concert & Spectacle",        name_ar: "حفلات موسيقية",          slug: "concert-spectacle",           icon: "music_note",        order: 5 },
-      { category: "vie-nocturne", name: "Salle de billard",           name_ar: "قاعة بلياردو",           slug: "salle-billard",               icon: "sports_billiards",  order: 6 },
+      { category: "vie-nocturne", name: "Karaoké",                    name_ar: "كاراوكي",                slug: "karaoke",                     icon: "mic",               order: 1 },
+      { category: "vie-nocturne", name: "Lounge & Rooftop",           name_ar: "لاونج وروفتوب",          slug: "lounge-rooftop",              icon: "roofing",           order: 2 },
+      { category: "vie-nocturne", name: "Concert & Spectacle",        name_ar: "حفلات موسيقية",          slug: "concert-spectacle",           icon: "music_note",        order: 3 },
+      { category: "vie-nocturne", name: "Salle de billard",           name_ar: "قاعة بلياردو",           slug: "salle-billard",               icon: "sports_billiards",  order: 4 },
 
       // ==================== SHOPPING ====================
       { category: "shopping", name: "Centre commercial",      name_ar: "مركز تجاري",     slug: "centre-commercial",    icon: "local_mall",      order: 1 },
@@ -99,7 +97,6 @@ module.exports = {
       { category: "salons-beaute-spas", name: "Maquillage",               name_ar: "مكياج",            slug: "maquillage-sbs",      icon: "brush",                    order: 6 },
       { category: "salons-beaute-spas", name: "Massage",                  name_ar: "تدليك",            slug: "massage-sbs",         icon: "self_improvement",         order: 7 },
       { category: "salons-beaute-spas", name: "Épilation & Cire",         name_ar: "إزالة الشعر",      slug: "epilation-cire",      icon: "auto_fix_high",            order: 8 },
-      { category: "salons-beaute-spas", name: "Tatouage & Piercing",      name_ar: "وشم وثقب",         slug: "tatouage-piercing",   icon: "draw",                     order: 9 },
 
       // ==================== MAISON & TRAVAUX ====================
       { category: "maison-travaux", name: "Plombier",            name_ar: "سباك",            slug: "plombier-mt",      icon: "plumbing",           order: 1 },
@@ -250,7 +247,6 @@ module.exports = {
       { category: "services-financiers", name: "Assurance",          name_ar: "تأمين",        slug: "assurance-sf",       icon: "security",          order: 2 },
       { category: "services-financiers", name: "Transfert d'argent", name_ar: "تحويل أموال", slug: "transfert-argent",   icon: "payments",          order: 3 },
       { category: "services-financiers", name: "Bureau de change",   name_ar: "مكتب صرف",    slug: "bureau-change",      icon: "currency_exchange", order: 4 },
-      { category: "services-financiers", name: "Courtier crédit",    name_ar: "وسيط قروض",   slug: "courtier-credit",    icon: "request_quote",     order: 5 },
       { category: "services-financiers", name: "Comptabilité",       name_ar: "محاسبة",       slug: "comptabilite-sf",    icon: "calculate",         order: 6 },
 
       // ==================== COULEUR LOCALE ====================
@@ -279,9 +275,6 @@ module.exports = {
       { category: "organisation-religieuse", name: "Mosquée",           name_ar: "مسجد",            slug: "mosquee",           icon: "mosque",    order: 1 },
       { category: "organisation-religieuse", name: "Église",            name_ar: "كنيسة",           slug: "eglise",            icon: "church",    order: 2 },
       { category: "organisation-religieuse", name: "Synagogue",         name_ar: "كنيس",            slug: "synagogue",         icon: "synagogue", order: 3 },
-      { category: "organisation-religieuse", name: "Temple Hindou",     name_ar: "معبد هندوسي",     slug: "temple-hindou",     icon: "temple_hindu",order: 4 },
-      { category: "organisation-religieuse", name: "Temple bouddhiste", name_ar: "معبد بوذي",       slug: "temple-bouddhiste", icon: "temple_buddhist",order: 5 },
-      { category: "organisation-religieuse", name: "Temples sikh",      name_ar: "معبد سيخي",       slug: "temples-sikh",      icon: "temple_buddhist",order: 6 },
 
       // ==================== SANTÉ & MÉDICAL ====================
       { category: "sante-medical", name: "Médecin généraliste",  name_ar: "طبيب عام",         slug: "medecin-sm",       icon: "medical_services",  order: 1 },

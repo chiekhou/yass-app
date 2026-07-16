@@ -44,11 +44,11 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                     isSelected:
                         widget.currentRoute == AppRoutes.partnerDashboard,
                   ),
-                  _buildSectionTitle(context, 'Mes établissements'),
+                  _buildSectionTitle(context, context.l10n.myEstablishments),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.building,
-                    title: 'Tous les établissements',
+                    title: context.l10n.allEstablishments,
                     route: AppRoutes.partnerEstablishments,
                     isSelected:
                         widget.currentRoute == AppRoutes.partnerEstablishments,
@@ -56,7 +56,7 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                   _buildMenuItem(
                     context,
                     icon: Iconsax.add_circle,
-                    title: 'Ajouter un établissement',
+                    title: context.l10n.addEstablishment,
                     route: AppRoutes.partnerEstablishmentCreate,
                     isSelected: widget.currentRoute ==
                         AppRoutes.partnerEstablishmentCreate,
@@ -64,23 +64,23 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                   _buildMenuItem(
                     context,
                     icon: Iconsax.star,
-                    title: 'Mes avis',
+                    title: context.l10n.myReviews,
                     route: AppRoutes.partnerReviews,
                     isSelected: widget.currentRoute == AppRoutes.partnerReviews,
                   ),
-                  _buildSectionTitle(context, 'Statistiques'),
+                  _buildSectionTitle(context, context.l10n.statistics),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.chart,
-                    title: 'Performances',
+                    title: context.l10n.performances,
                     route: AppRoutes.partnerDashboard,
                     isSelected: false,
                   ),
-                  _buildSectionTitle(context, 'Mon compte'),
+                  _buildSectionTitle(context, context.l10n.myAccount),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.award,
-                    title: 'Mon abonnement',
+                    title: context.l10n.mySubscription,
                     route: AppRoutes.partnerSubscription,
                     isSelected:
                         widget.currentRoute == AppRoutes.partnerSubscription,
@@ -88,7 +88,7 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                   _buildMenuItem(
                     context,
                     icon: Iconsax.receipt,
-                    title: 'Mes factures',
+                    title: context.l10n.myInvoices,
                     route: AppRoutes.partnerInvoices,
                     isSelected:
                         widget.currentRoute == AppRoutes.partnerInvoices,
@@ -133,7 +133,7 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Espace Partenaire',
+                  context.l10n.partnerSpace,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.grey900,
@@ -260,7 +260,7 @@ class _PartnerDrawerState extends State<PartnerDrawer> {
                 ),
               ),
               title: Text(
-                'Accueil',
+                context.l10n.home,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.grey800,
                     ),

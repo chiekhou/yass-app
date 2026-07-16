@@ -248,6 +248,22 @@ class AdminController {
     }
   }
 
+  /**
+   * Cancel a manual payment and revoke the associated subscription
+   * POST /api/v1/admin/payments/:invoiceId/cancel
+   */
+  async cancelPayment(req, res, next) {
+    try {
+      const invoice = await adminService.cancelManualPayment(
+        req.params.invoiceId,
+        req.userId
+      );
+      ApiResponse.success(invoice, "Paiement annulé, abonnement révoqué").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // ==================== ESTABLISHMENT MANAGEMENT ====================
 
   /**
@@ -480,6 +496,64 @@ class AdminController {
       );
 
       ApiResponse.success(result, "Facture manuelle mise à la une créée").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==================== WILAYA AVAILABILITY ====================
+
+  async getAdminWilayas(req, res, next) {
+    try {
+      const wilayaService = require("../services/wilaya.service");
+      const wilayas = await wilayaService.getAllWilayas({ activeOnly: false });
+      ApiResponse.success(wilayas, "Wilayas retrieved").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async toggleWilayaAvailability(req, res, next) {
+    try {
+      const { Wilaya } = require("../models");
+      const { ApiError } = require("../utils");
+      const wilaya = await Wilaya.findByPk(req.params.id);
+      if (!wilaya) throw ApiError.notFound("Wilaya introuvable");
+      wilaya.is_active = !wilaya.is_active;
+      await wilaya.save();
+      ApiResponse.success(
+        { id: wilaya.id, is_active: wilaya.is_active },
+        `Wilaya ${wilaya.is_active ? "activée" : "désactivée"}`
+      ).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==================== CATEGORY AVAILABILITY ====================
+
+  async getAdminCategories(req, res, next) {
+    try {
+      const categoryService = require("../services/category.service");
+      const categories = await categoryService.getAllCategories({ activeOnly: false });
+      ApiResponse.success(categories, "Categories retrieved").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async toggleCategoryAvailability(req, res, next) {
+    try {
+      const { Category } = require("../models");
+      const { ApiError } = require("../utils");
+      const category = await Category.findByPk(req.params.id);
+      if (!category) throw ApiError.notFound("Catégorie introuvable");
+      category.is_active = !category.is_active;
+      await category.save();
+      ApiResponse.success(
+        { id: category.id, is_active: category.is_active },
+        `Catégorie ${category.is_active ? "activée" : "désactivée"}`
+      ).send(res);
     } catch (error) {
       next(error);
     }

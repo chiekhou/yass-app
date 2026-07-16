@@ -820,6 +820,8 @@ class EstablishmentService {
    * Get partner statistics
    */
   async getPartnerStats(partnerId) {
+    const { sequelize } = require("../models");
+
     const establishments = await Establishment.findAll({
       where: { partner_id: partnerId },
       attributes: [
@@ -837,12 +839,7 @@ class EstablishmentService {
 
     const stats = {
       total_establishments: establishments.length,
-      by_status: {
-        active: 0,
-        pending: 0,
-        inactive: 0,
-        rejected: 0,
-      },
+      by_status: { active: 0, pending: 0, inactive: 0, rejected: 0 },
       totals: {
         views: 0,
         favorites: 0,
@@ -852,26 +849,22 @@ class EstablishmentService {
         reviews: 0,
       },
       average_rating: 0,
+      rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      top_wilayas: [],
+      rating_trend: [],
     };
 
     let totalRating = 0;
     let ratedCount = 0;
 
     establishments.forEach((est) => {
-      // Count by status
-      if (stats.by_status[est.status] !== undefined) {
-        stats.by_status[est.status]++;
-      }
-
-      // Sum totals
+      if (stats.by_status[est.status] !== undefined) stats.by_status[est.status]++;
       stats.totals.views += est.total_views || 0;
       stats.totals.favorites += est.total_favorites || 0;
       stats.totals.calls += est.total_calls || 0;
       stats.totals.whatsapp_clicks += est.total_whatsapp_clicks || 0;
       stats.totals.contacts += est.total_contacts || 0;
       stats.totals.reviews += est.total_reviews || 0;
-
-      // Average rating
       if (est.average_rating && est.total_reviews > 0) {
         totalRating += parseFloat(est.average_rating);
         ratedCount++;
@@ -881,6 +874,87 @@ class EstablishmentService {
     if (ratedCount > 0) {
       stats.average_rating = (totalRating / ratedCount).toFixed(2);
     }
+
+    if (establishments.length === 0) return stats;
+
+    const estIds = establishments.map((e) => e.id);
+
+    // ── Distribution des notes ─────────────────────────────────────────────────
+    const ratingRows = await Review.findAll({
+      where: { establishment_id: estIds, status: "approved" },
+      attributes: [
+        "rating",
+        [sequelize.fn("COUNT", sequelize.col("rating")), "count"],
+      ],
+      group: ["rating"],
+      raw: true,
+    });
+    ratingRows.forEach((r) => {
+      const star = parseInt(r.rating, 10);
+      if (star >= 1 && star <= 5) stats.rating_distribution[star] = parseInt(r.count, 10);
+    });
+
+    // ── Top 5 wilayas des clients ──────────────────────────────────────────────
+    const wilayaRows = await Review.findAll({
+      where: { establishment_id: estIds, status: "approved" },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: [],
+          include: [
+            {
+              model: Wilaya,
+              as: "wilaya",
+              attributes: ["name"],
+            },
+          ],
+        },
+      ],
+      attributes: [
+        [sequelize.fn("COUNT", sequelize.col("Review.id")), "count"],
+      ],
+      group: ["user->wilaya.id", "user->wilaya.name"],
+      order: [[sequelize.literal("count"), "DESC"]],
+      limit: 5,
+      raw: true,
+      nest: true,
+    });
+    stats.top_wilayas = wilayaRows
+      .filter((r) => r.user?.wilaya?.name)
+      .map((r) => ({ name: r.user.wilaya.name, count: parseInt(r.count, 10) }));
+
+    // ── Tendance note moyenne sur 6 mois ──────────────────────────────────────
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const trendRows = await Review.findAll({
+      where: {
+        establishment_id: estIds,
+        status: "approved",
+        created_at: { [Op.gte]: sixMonthsAgo },
+      },
+      attributes: [
+        [sequelize.fn("DATE_TRUNC", "month", sequelize.col("created_at")), "month"],
+        [sequelize.fn("AVG", sequelize.col("rating")), "average"],
+        [sequelize.fn("COUNT", sequelize.col("Review.id")), "count"],
+      ],
+      group: [sequelize.fn("DATE_TRUNC", "month", sequelize.col("created_at"))],
+      order: [[sequelize.fn("DATE_TRUNC", "month", sequelize.col("created_at")), "ASC"]],
+      raw: true,
+    });
+
+    const monthNames = ["jan.", "fév.", "mar.", "avr.", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."];
+    stats.rating_trend = trendRows.map((r) => {
+      const d = new Date(r.month);
+      return {
+        month: monthNames[d.getMonth()],
+        average: parseFloat(parseFloat(r.average).toFixed(1)),
+        count: parseInt(r.count, 10),
+      };
+    });
 
     return stats;
   }

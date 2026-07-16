@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -151,9 +152,9 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                     ],
                   ),
                   const SizedBox(height: AppDimens.paddingM),
-                  const Text(
-                    'Suggestion envoyée !',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.suggestionSent,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
@@ -179,10 +180,10 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
               padding: const EdgeInsets.all(AppDimens.paddingL),
               child: Column(
                 children: [
-                  const Text(
-                    'Merci pour votre contribution !\nD\'autres utilisateurs pourront voter pour votre suggestion. L\'admin l\'examinera et pourra l\'ajouter à l\'annuaire.',
+                  Text(
+                    context.l10n.suggestionSentBody,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
                       height: 1.5,
@@ -203,7 +204,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                         backgroundColor: AppColors.accentGreen,
                         foregroundColor: AppColors.white,
                       ),
-                      child: const Text('Retour à la liste'),
+                      child: Text(context.l10n.backToList),
                     ),
                   ),
                   const SizedBox(height: AppDimens.paddingS),
@@ -229,7 +230,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                         foregroundColor: AppColors.primaryRed,
                         side: const BorderSide(color: AppColors.primaryRed),
                       ),
-                      child: const Text('Suggérer un autre'),
+                      child: Text(context.l10n.suggestAnother),
                     ),
                   ),
                 ],
@@ -250,7 +251,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
         appBar: AppBar(
           backgroundColor: AppColors.kleinBlue,
           foregroundColor: AppColors.white,
-          title: const Text('Suggérer un établissement'),
+          title: Text(context.l10n.suggestEstablishment),
         ),
         body: _buildForm(),
       ),
@@ -269,7 +270,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
             Container(
               padding: const EdgeInsets.all(AppDimens.paddingM),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
               ),
               child: Row(
@@ -279,7 +280,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
                   const SizedBox(width: AppDimens.paddingS),
                   Expanded(
                     child: Text(
-                      'Signalez un établissement manquant dans l\'annuaire. Plus il y a de votes, plus vite il sera ajouté.',
+                      context.l10n.infoBannerSuggest,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.primaryGreen,
                           ),
@@ -291,28 +292,30 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
 
             const SizedBox(height: AppDimens.paddingL),
 
-            _label('Nom de l\'établissement *'),
+            _label(context.l10n.establishmentNameLabel),
             _field(
               controller: _nameCtrl,
-              hint: 'Ex: Café Central, Clinique El Amel...',
+              hint: context.l10n.nameHint,
               icon: Iconsax.shop,
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Champ obligatoire' : null,
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? context.l10n.fieldRequired
+                  : null,
             ),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Adresse *'),
+            _label(context.l10n.addressLabel),
             _field(
               controller: _addressCtrl,
-              hint: 'Rue, quartier, ville...',
+              hint: context.l10n.addressHint,
               icon: Iconsax.location,
               maxLines: 2,
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Champ obligatoire' : null,
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? context.l10n.fieldRequired
+                  : null,
             ),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Téléphone (optionnel)'),
+            _label(context.l10n.phoneOptional),
             _field(
               controller: _phoneCtrl,
               hint: '05 XX XX XX XX',
@@ -321,42 +324,42 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
             ),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Email de contact *'),
+            _label(context.l10n.contactEmailLabel),
             _field(
               controller: _emailCtrl,
               hint: 'votre@email.com',
               icon: Iconsax.sms,
               keyboardType: TextInputType.emailAddress,
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Champ obligatoire';
-                if (!v.contains('@')) return 'Email invalide';
+                if (v == null || v.trim().isEmpty)
+                  return context.l10n.fieldRequired;
+                if (!v.contains('@')) return context.l10n.invalidEmail;
                 return null;
               },
             ),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Catégorie (optionnel)'),
+            _label(context.l10n.categoryOptional),
             _buildCategoryDropdown(),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Wilaya (optionnel)'),
+            _label(context.l10n.wilayaOptional),
             _buildWilayaDropdown(),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Description (optionnel)'),
+            _label(context.l10n.descriptionOptional),
             _field(
               controller: _descCtrl,
-              hint: 'Décrivez brièvement cet établissement...',
+              hint: context.l10n.descriptionHint,
               icon: Iconsax.document_text,
               maxLines: 3,
             ),
 
             const SizedBox(height: AppDimens.paddingM),
-            _label('Motif de la suggestion (optionnel)'),
+            _label(context.l10n.suggestionReasonOptional),
             _field(
               controller: _reasonCtrl,
-              hint:
-                  'Ex: souvent demandé dans le quartier, nouveau établissement...',
+              hint: context.l10n.reasonHint,
               icon: Iconsax.message_question,
               maxLines: 2,
             ),
@@ -367,7 +370,7 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
               child: ElevatedButton.icon(
                 onPressed: _submit,
                 icon: const Icon(Iconsax.send_1),
-                label: const Text('Envoyer ma suggestion'),
+                label: Text(context.l10n.submitSuggestion),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accentGreen,
                   foregroundColor: AppColors.black,
@@ -411,24 +414,27 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      style: const TextStyle(color: AppColors.white),
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, size: 18, color: AppColors.black),
+        hintStyle: TextStyle(color: AppColors.white.withValues(alpha: 0.45)),
+        prefixIcon: Icon(icon, size: 18, color: Colors.white70),
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: Colors.white.withValues(alpha: 0.12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide: const BorderSide(color: AppColors.black),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide: const BorderSide(color: AppColors.black),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           borderSide:
               const BorderSide(color: AppColors.accentGreen, width: 1.5),
         ),
+        errorStyle: const TextStyle(color: AppColors.redLight),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.paddingM,
           vertical: AppDimens.paddingM,
@@ -437,39 +443,52 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
     );
   }
 
+  InputDecoration _dropdownDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: AppColors.white.withValues(alpha: 0.45)),
+      prefixIcon: Icon(icon, size: 18, color: Colors.white70),
+      filled: true,
+      fillColor: Colors.white.withValues(alpha: 0.12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        borderSide: const BorderSide(color: AppColors.accentGreen, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingM,
+        vertical: AppDimens.paddingM,
+      ),
+    );
+  }
+
   Widget _buildCategoryDropdown() {
+    final lang = Localizations.localeOf(context).languageCode;
     return DropdownButtonFormField<String>(
       initialValue: _selectedCategoryId,
-      decoration: InputDecoration(
-        hintText: 'Sélectionner une catégorie',
-        prefixIcon:
-            const Icon(Iconsax.category, size: 18, color: AppColors.black),
-        filled: true,
-        fillColor: AppColors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide: const BorderSide(color: AppColors.black),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide: const BorderSide(color: AppColors.black),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide:
-              const BorderSide(color: AppColors.accentGreen, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM,
-          vertical: AppDimens.paddingM,
-        ),
+      style: const TextStyle(color: AppColors.white),
+      dropdownColor: AppColors.primaryBlueDark,
+      iconEnabledColor: Colors.white70,
+      decoration: _dropdownDecoration(
+        hint: context.l10n.selectCategory,
+        icon: Iconsax.category,
       ),
       items: [
-        const DropdownMenuItem<String>(
-            value: null, child: Text('Aucune catégorie séléctionnée')),
+        DropdownMenuItem<String>(
+            value: null, child: Text(context.l10n.noCategorySelected)),
         ..._categories.map((c) => DropdownMenuItem<String>(
               value: c.id,
-              child: Text(c.name, overflow: TextOverflow.ellipsis),
+              child: Text(c.localizedName(lang), overflow: TextOverflow.ellipsis),
             )),
       ],
       onChanged: (v) => setState(() => _selectedCategoryId = v),
@@ -479,33 +498,16 @@ class _SuggestEstablishmentPageState extends State<SuggestEstablishmentPage> {
   Widget _buildWilayaDropdown() {
     return DropdownButtonFormField<String>(
       initialValue: _selectedWilayaId,
-      decoration: InputDecoration(
-        hintText: 'Sélectionner une wilaya',
-        prefixIcon:
-            const Icon(Iconsax.location, size: 18, color: AppColors.black),
-        filled: true,
-        fillColor: AppColors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide: const BorderSide(color: AppColors.grey200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide: const BorderSide(color: AppColors.grey200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          borderSide:
-              const BorderSide(color: AppColors.accentGreen, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM,
-          vertical: AppDimens.paddingM,
-        ),
+      style: const TextStyle(color: AppColors.white),
+      dropdownColor: AppColors.primaryBlueDark,
+      iconEnabledColor: Colors.white70,
+      decoration: _dropdownDecoration(
+        hint: context.l10n.selectAWilaya,
+        icon: Iconsax.location,
       ),
       items: [
-        const DropdownMenuItem<String>(
-            value: null, child: Text('Aucune wilaya séléctionnée')),
+        DropdownMenuItem<String>(
+            value: null, child: Text(context.l10n.noWilayaSelected)),
         ..._wilayas.map((w) => DropdownMenuItem<String>(
               value: w.id,
               child: Text('${w.code} - ${w.name}',

@@ -90,8 +90,8 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_formKey.currentState!.validate()) {
       if (!_acceptTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veuillez accepter les conditions d\'utilisation'),
+          SnackBar(
+            content: Text(context.l10n.acceptTermsError),
             backgroundColor: AppColors.error,
           ),
         );
@@ -391,8 +391,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           hint: _loadingWilayas
-                              ? const Text('Chargement...')
-                              : const Text('Sélectionner votre wilaya'),
+                              ? Text(context.l10n.loading)
+                              : Text(context.l10n.selectWilaya),
                           items: _wilayas
                               .map((w) => DropdownMenuItem(
                                     value: w.id,
@@ -607,7 +607,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 onPressed: () =>
                                     context.push(AppRoutes.registerPartner),
                                 icon: const Icon(Iconsax.building, size: 18),
-                                label: const Text('Devenir partenaire'),
+                                label: Text(context.l10n.becomePartner),
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppColors.accentGreen,
                                 ),

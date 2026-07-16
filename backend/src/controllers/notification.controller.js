@@ -63,6 +63,15 @@ class NotificationController {
       next(err);
     }
   }
+
+  async deleteAllNotifications(req, res, next) {
+    try {
+      const result = await notificationService.deleteAll(req.userId);
+      ApiResponse.success(result, 'Toutes les notifications supprimées').send(res);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = new NotificationController();

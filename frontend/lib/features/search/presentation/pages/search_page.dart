@@ -41,19 +41,20 @@ class _SearchPageState extends State<SearchPage> {
   bool _loadingLocation = false;
   final List<String> _recentSearches = [];
 
-  static const _popularKeywords = [
-    'Restaurant',
-    'Café',
-    'Hôpital',
-    'Pharmacie',
-    'Banque',
-    'Hôtel',
-    'Coiffeur',
-    'Supermarché',
-    'École',
-    'Dentiste',
-    'Médecin',
-    'Boulangerie',
+  // query = terme envoyé au backend (FR), label = affichage traduit
+  List<({String query, String label})> get _popularKeywords => [
+    (query: 'Restaurant',  label: context.l10n.kwRestaurant),
+    (query: 'Café',        label: context.l10n.kwCafe),
+    (query: 'Hôpital',    label: context.l10n.kwHospital),
+    (query: 'Pharmacie',  label: context.l10n.kwPharmacy),
+    (query: 'Banque',     label: context.l10n.kwBank),
+    (query: 'Hôtel',      label: context.l10n.kwHotel),
+    (query: 'Coiffeur',   label: context.l10n.kwHairdresser),
+    (query: 'Supermarché',label: context.l10n.kwSupermarket),
+    (query: 'École',      label: context.l10n.kwSchool),
+    (query: 'Dentiste',   label: context.l10n.kwDentist),
+    (query: 'Médecin',    label: context.l10n.kwDoctor),
+    (query: 'Boulangerie',label: context.l10n.kwBakery),
   ];
 
   // Filter values
@@ -341,9 +342,9 @@ class _SearchPageState extends State<SearchPage> {
                       const Icon(Icons.my_location,
                           size: 13, color: AppColors.primaryGreen),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Résultats près de vous',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.resultsNearYou,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.primaryGreen,
                           fontWeight: FontWeight.w500,
@@ -390,7 +391,7 @@ class _SearchPageState extends State<SearchPage> {
         onSubmitted: (_) => _performSearch(),
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Restaurants, hôpitaux, banques...',
+          hintText: context.l10n.searchBarHint,
           hintStyle: const TextStyle(color: AppColors.grey400),
           prefixIcon:
               const Icon(Iconsax.search_normal, color: AppColors.grey500),
@@ -456,17 +457,17 @@ class _SearchPageState extends State<SearchPage> {
                     AppColors.primaryGreen.withValues(alpha: 0.1)),
             title: Text(
               _userLocation != null
-                  ? 'Position détectée — Actualiser'
-                  : 'Utiliser ma position actuelle',
+                  ? context.l10n.locationDetectedRefresh
+                  : context.l10n.useMyLocation,
               style: const TextStyle(
                 color: AppColors.primaryGreen,
                 fontWeight: FontWeight.w600,
               ),
             ),
             subtitle: _userLocation != null
-                ? const Text(
-                    'Les recherches incluent automatiquement votre position',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF002FA7)),
+                ? Text(
+                    context.l10n.searchesIncludeLocation,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF002FA7)),
                   )
                 : null,
             trailing: const Icon(Iconsax.arrow_right_3,
@@ -478,26 +479,47 @@ class _SearchPageState extends State<SearchPage> {
           // Recent searches
           if (_recentSearches.isNotEmpty) ...[
             _sectionHeader(
-              'Recherches récentes',
-              action: 'Effacer',
+              context.l10n.recentSearches,
+              action: context.l10n.clear,
               onAction: () => setState(() => _recentSearches.clear()),
             ),
-            ..._recentSearches.map(
-              (s) => ListTile(
-                dense: true,
-                leading: const Icon(Iconsax.clock,
-                    size: 18, color: AppColors.grey400),
-                title: Text(s, style: const TextStyle(fontSize: 14)),
-                trailing: const Icon(Iconsax.arrow_right_3,
-                    size: 16, color: AppColors.grey400),
-                onTap: () => _performSearch(keyword: s),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _recentSearches.map((s) {
+                  return GestureDetector(
+                    onTap: () => _performSearch(keyword: s),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.scaffoldBackground,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Iconsax.clock,
+                              size: 14, color: Colors.white70),
+                          const SizedBox(width: 6),
+                          Text(s,
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            const Divider(height: 1),
           ],
 
           // Popular keywords
-          _sectionHeader('Recherches populaires'),
+          _sectionHeader(context.l10n.popularSearches),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             child: Wrap(
@@ -505,7 +527,7 @@ class _SearchPageState extends State<SearchPage> {
               runSpacing: 8,
               children: _popularKeywords.map((kw) {
                 return GestureDetector(
-                  onTap: () => _performSearch(keyword: kw),
+                  onTap: () => _performSearch(keyword: kw.query),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -515,7 +537,7 @@ class _SearchPageState extends State<SearchPage> {
                       border: Border.all(color: AppColors.grey200),
                     ),
                     child: Text(
-                      kw,
+                      kw.label,
                       style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.grey700,
@@ -542,20 +564,11 @@ class _SearchPageState extends State<SearchPage> {
             ListTile(
               leading: _circleIcon(Icons.my_location, AppColors.primaryGreen,
                   AppColors.primaryGreen.withValues(alpha: 0.1)),
-              title: Text.rich(TextSpan(children: [
-                const TextSpan(
-                    text: 'Rechercher "',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-                TextSpan(
-                    text: query,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-                const TextSpan(
-                    text: '" près de moi',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              ])),
+              title: Text(
+                context.l10n.searchNearMeFor(query),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Color(0xFF002FA7)),
+              ),
               trailing: const Icon(Iconsax.arrow_right_3,
                   size: 16, color: AppColors.grey400),
               onTap: () => _performSearch(),
@@ -563,20 +576,11 @@ class _SearchPageState extends State<SearchPage> {
           ListTile(
             leading: _circleIcon(
                 Iconsax.search_normal, AppColors.grey500, AppColors.grey100),
-            title: Text.rich(TextSpan(children: [
-              const TextSpan(
-                  text: 'Rechercher "',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              TextSpan(
-                  text: query,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              const TextSpan(
-                  text: '"',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-            ])),
+            title: Text(
+              context.l10n.searchFor(query),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Color(0xFF002FA7)),
+            ),
             trailing: const Icon(Iconsax.arrow_right_3,
                 size: 16, color: AppColors.grey400),
             onTap: () => _performSearch(),
@@ -603,22 +607,15 @@ class _SearchPageState extends State<SearchPage> {
                 : _circleIcon(Iconsax.search_normal, AppColors.grey500,
                     AppColors.grey100),
             title: Text.rich(TextSpan(children: [
-              const TextSpan(
-                  text: 'Voir tous les résultats pour "',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
               TextSpan(
-                  text: query,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              const TextSpan(
-                  text: '"',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
+                text: context.l10n.seeAllResultsFor(query),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Color(0xFF002FA7)),
+              ),
               if (_userLocation != null)
-                const TextSpan(
-                  text: ' près de moi',
-                  style: TextStyle(
+                TextSpan(
+                  text: ' ${context.l10n.nearMe}',
+                  style: const TextStyle(
                       color: AppColors.primaryGreen,
                       fontWeight: FontWeight.w500),
                 ),
@@ -719,7 +716,7 @@ class _SearchPageState extends State<SearchPage> {
           if (_selectedCategoryId != null && _subcategories.isNotEmpty) ...[
             const SizedBox(width: AppDimens.paddingS),
             _FilterChip(
-              label: _selectedSubcategoryName ?? 'Sous-catégorie',
+              label: _selectedSubcategoryName ?? context.l10n.subcategoryLabel,
               isSelected: _selectedSubcategoryId != null,
               onTap: _showSubcategoryFilter,
             ),
@@ -733,7 +730,7 @@ class _SearchPageState extends State<SearchPage> {
           if (_selectedWilayaId != null && _communes.isNotEmpty) ...[
             const SizedBox(width: AppDimens.paddingS),
             _FilterChip(
-              label: _selectedCommuneName ?? 'Commune',
+              label: _selectedCommuneName ?? context.l10n.commune,
               isSelected: _selectedCommuneId != null,
               onTap: _showCommuneFilter,
             ),
@@ -788,13 +785,19 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         _selectedCategoryId = selected?.id;
         _selectedCategoryName = selected?.name;
-        // Réinitialiser la sous-catégorie si la catégorie change
         _selectedSubcategoryId = null;
         _selectedSubcategoryName = null;
         _subcategories = [];
       });
-      if (selected != null) _loadSubcategories(selected.id);
-      _performSearch();
+      if (selected != null) {
+        await _loadSubcategories(selected.id);
+        _performSearch();
+        if (_subcategories.isNotEmpty && mounted) {
+          await _showSubcategoryFilter();
+        }
+      } else {
+        _performSearch();
+      }
     }
   }
 
@@ -825,13 +828,19 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         _selectedWilayaId = selected?.id;
         _selectedWilayaName = selected?.name;
-        // Réinitialiser la commune si la wilaya change
         _selectedCommuneId = null;
         _selectedCommuneName = null;
         _communes = [];
       });
-      if (selected != null) _loadCommunes(selected.id);
-      _performSearch();
+      if (selected != null) {
+        await _loadCommunes(selected.id);
+        _performSearch();
+        if (_communes.isNotEmpty && mounted) {
+          await _showCommuneFilter();
+        }
+      } else {
+        _performSearch();
+      }
     }
   }
 
@@ -900,7 +909,7 @@ class _SearchPageState extends State<SearchPage> {
             const Icon(Iconsax.map_1, size: 64, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Recherchez un établissement',
+              context.l10n.searchEstablishment,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -909,7 +918,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Les résultats s\'affichent directement sur la carte',
+              context.l10n.searchResultsOnMap,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.white.withValues(alpha: 0.7),
                   ),

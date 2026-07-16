@@ -91,7 +91,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppDimens.paddingS),
@@ -136,7 +136,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Bienvenue, Admin',
+                  context.l10n.welcomeAdmin,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
@@ -144,7 +144,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
                 const SizedBox(height: AppDimens.paddingXS),
                 Text(
-                  'Gérez votre plateforme Win',
+                  context.l10n.managePlatformWin,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.white.withValues(alpha: 0.8),
                       ),
@@ -175,7 +175,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Statistiques générales',
+          context.l10n.generalStats,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.grey900,
@@ -191,7 +191,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           childAspectRatio: 1.2,
           children: [
             AdminStatCard(
-              title: 'Utilisateurs',
+              title: context.l10n.users,
               value: stats.totalUsers.toString(),
               icon: Iconsax.people,
               color: AppColors.info,
@@ -199,7 +199,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               onTap: () => context.push(AppRoutes.adminUsers),
             ),
             AdminStatCard(
-              title: 'Partenaires',
+              title: context.l10n.partners,
               value: stats.totalPartners.toString(),
               icon: Iconsax.briefcase,
               color: AppColors.primaryGreen,
@@ -222,13 +222,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final total = d.total > 0 ? d.total : 1;
 
     final items = [
-      _DemoItem('Hommes', d.male, const Color(0xFF3B82F6), Icons.male),
-      _DemoItem('Femmes', d.female, const Color(0xFFEC4899), Icons.female),
-      _DemoItem('Jeunes', d.young, const Color(0xFFF59E0B), Icons.emoji_people),
-      _DemoItem('Enfants', d.child, const Color(0xFF10B981), Icons.child_care),
+      _DemoItem(context.l10n.males, d.male, const Color(0xFF3B82F6), Icons.male),
+      _DemoItem(context.l10n.females, d.female, const Color(0xFFEC4899), Icons.female),
+      _DemoItem(context.l10n.youth, d.young, const Color(0xFFF59E0B), Icons.emoji_people),
+      _DemoItem(context.l10n.children, d.child, const Color(0xFF10B981), Icons.child_care),
       if (d.unknown > 0)
-        _DemoItem(
-            'Non renseigné', d.unknown, AppColors.grey400, Icons.help_outline),
+        _DemoItem(context.l10n.notProvided, d.unknown, AppColors.grey400, Icons.help_outline),
     ];
 
     return Container(
@@ -254,7 +253,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Démographie des utilisateurs',
+                context.l10n.userDemographics,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.grey900,
@@ -351,7 +350,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             const Icon(Icons.cake_outlined, size: 16, color: AppColors.grey500),
             const SizedBox(width: AppDimens.paddingS),
             Text(
-              'Tranches d\'âge',
+              context.l10n.ageRanges,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.grey700,
@@ -439,7 +438,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Visites de l\'application',
+                context.l10n.appVisits,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.grey900,
@@ -468,11 +467,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           const SizedBox(height: AppDimens.paddingM),
           Row(
             children: [
-              _buildVisitChip(context, 'Aujourd\'hui', visits.today),
+              _buildVisitChip(context, context.l10n.today, visits.today),
               const SizedBox(width: AppDimens.paddingS),
-              _buildVisitChip(context, 'Cette semaine', visits.thisWeek),
+              _buildVisitChip(context, context.l10n.thisWeek, visits.thisWeek),
               const SizedBox(width: AppDimens.paddingS),
-              _buildVisitChip(context, 'Ce mois', visits.thisMonth),
+              _buildVisitChip(context, context.l10n.thisMonth, visits.thisMonth),
             ],
           ),
         ],
@@ -528,7 +527,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'En attente d\'approbation',
+              context.l10n.pendingApproval,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.grey900,
@@ -563,7 +562,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         const SizedBox(height: AppDimens.paddingM),
         if (stats.pendingPartners > 0)
           AdminStatCardCompact(
-            title: 'Partenaires en attente',
+            title: context.l10n.pendingPartners,
             value: stats.pendingPartners.toString(),
             icon: Iconsax.briefcase,
             color: AppColors.warning,
@@ -573,7 +572,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           const SizedBox(height: AppDimens.paddingS),
         if (stats.pendingEstablishments > 0)
           AdminStatCardCompact(
-            title: 'Établissements en attente',
+            title: context.l10n.pendingEstablishments,
             value: stats.pendingEstablishments.toString(),
             icon: Iconsax.building,
             color: AppColors.warning,
@@ -588,7 +587,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Actions rapides',
+          context.l10n.quickActions,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.grey900,
@@ -601,7 +600,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _buildQuickActionButton(
                 context,
                 icon: Iconsax.people,
-                label: 'Utilisateurs',
+                label: context.l10n.users,
                 color: AppColors.info,
                 onTap: () => context.push(AppRoutes.adminUsers),
               ),
@@ -611,7 +610,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _buildQuickActionButton(
                 context,
                 icon: Iconsax.briefcase,
-                label: 'Partenaires',
+                label: context.l10n.partners,
                 color: AppColors.primaryGreen,
                 onTap: () => context.push(AppRoutes.adminPartners),
               ),
@@ -621,7 +620,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               child: _buildQuickActionButton(
                 context,
                 icon: Iconsax.buildings,
-                label: 'Établissements',
+                label: context.l10n.establishments,
                 color: AppColors.warning,
                 onTap: () => context.push(AppRoutes.adminEstablishments),
               ),

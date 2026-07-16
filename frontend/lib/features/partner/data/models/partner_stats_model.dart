@@ -12,6 +12,9 @@ class PartnerStats extends Equatable {
   final int whatsappClicks;
   final int totalContacts;
   final List<EstablishmentStats>? topEstablishments;
+  final Map<int, int> ratingDistribution;
+  final List<WilayaStat> topWilayas;
+  final List<RatingTrend> ratingTrend;
 
   const PartnerStats({
     required this.totalEstablishments,
@@ -25,11 +28,21 @@ class PartnerStats extends Equatable {
     required this.whatsappClicks,
     required this.totalContacts,
     this.topEstablishments,
+    this.ratingDistribution = const {},
+    this.topWilayas = const [],
+    this.ratingTrend = const [],
   });
 
   factory PartnerStats.fromJson(Map<String, dynamic> json) {
     final totals = json['totals'] as Map<String, dynamic>?;
     final byStatus = json['by_status'] as Map<String, dynamic>?;
+
+    final rawDist = json['rating_distribution'] as Map<String, dynamic>? ?? {};
+    final dist = <int, int>{};
+    for (int i = 1; i <= 5; i++) {
+      dist[i] = (rawDist[i.toString()] ?? 0) as int;
+    }
+
     return PartnerStats(
       totalEstablishments: json['total_establishments'] ?? 0,
       activeEstablishments: byStatus?['active'] ?? json['active_establishments'] ?? 0,
@@ -46,6 +59,13 @@ class PartnerStats extends Equatable {
               .map((e) => EstablishmentStats.fromJson(e))
               .toList()
           : null,
+      ratingDistribution: dist,
+      topWilayas: (json['top_wilayas'] as List? ?? [])
+          .map((e) => WilayaStat.fromJson(e))
+          .toList(),
+      ratingTrend: (json['rating_trend'] as List? ?? [])
+          .map((e) => RatingTrend.fromJson(e))
+          .toList(),
     );
   }
 
@@ -62,6 +82,9 @@ class PartnerStats extends Equatable {
         whatsappClicks,
         totalContacts,
         topEstablishments,
+        ratingDistribution,
+        topWilayas,
+        ratingTrend,
       ];
 }
 
@@ -92,4 +115,44 @@ class EstablishmentStats extends Equatable {
 
   @override
   List<Object?> get props => [id, name, views, favorites, rating];
+}
+
+class WilayaStat extends Equatable {
+  final String name;
+  final int count;
+
+  const WilayaStat({required this.name, required this.count});
+
+  factory WilayaStat.fromJson(Map<String, dynamic> json) {
+    return WilayaStat(
+      name: json['name'] ?? '',
+      count: (json['count'] ?? 0) as int,
+    );
+  }
+
+  @override
+  List<Object?> get props => [name, count];
+}
+
+class RatingTrend extends Equatable {
+  final String month;
+  final double average;
+  final int count;
+
+  const RatingTrend({
+    required this.month,
+    required this.average,
+    required this.count,
+  });
+
+  factory RatingTrend.fromJson(Map<String, dynamic> json) {
+    return RatingTrend(
+      month: json['month'] ?? '',
+      average: double.tryParse(json['average']?.toString() ?? '0') ?? 0.0,
+      count: (json['count'] ?? 0) as int,
+    );
+  }
+
+  @override
+  List<Object?> get props => [month, average, count];
 }

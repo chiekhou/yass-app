@@ -114,7 +114,7 @@ class _CategoryPageState extends State<CategoryPage> {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: Text(widget.categoryName ?? 'Catégorie'),
+        title: Text(widget.categoryName ?? context.l10n.category),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -172,14 +172,14 @@ class _CategoryPageState extends State<CategoryPage> {
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.white,
                   ),
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              _error ?? 'Une erreur est survenue',
+              _error ?? context.l10n.anErrorOccurred,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.white.withValues(alpha: 0.7),
                   ),
@@ -223,14 +223,14 @@ class _CategoryPageState extends State<CategoryPage> {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Aucun établissement',
+              context.l10n.noEstablishment,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.white,
                   ),
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Il n\'y a pas encore d\'établissement dans cette catégorie',
+              context.l10n.noEstablishmentsInCategory,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.white.withValues(alpha: 0.7),
                   ),
@@ -244,7 +244,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 foregroundColor: AppColors.primaryGreen,
               ),
               icon: const Icon(Iconsax.search_normal_1),
-              label: const Text('Explorer'),
+              label: Text(context.l10n.explore),
             ),
           ],
         ),
@@ -253,6 +253,8 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   Widget _buildEstablishmentCard(Establishment e) {
+    final imageUrl = e.coverImage ?? e.logo;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimens.paddingM),
       child: GestureDetector(
@@ -265,123 +267,136 @@ class _CategoryPageState extends State<CategoryPage> {
             borderRadius: BorderRadius.circular(AppDimens.radiusM),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Grande image ──
               ClipRRect(
-                borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(AppDimens.radiusM),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppDimens.radiusM),
                 ),
-                child: e.logo != null || e.coverImage != null
-                    ? Image.network(
-                        e.logo ?? e.coverImage!,
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, o, s) => _buildPlaceholderImage(),
-                      )
-                    : _buildPlaceholderImage(),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 200,
+                  child: imageUrl != null
+                      ? Image.network(
+                          imageUrl,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
+                        )
+                      : _buildPlaceholderImage(),
+                ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppDimens.paddingM),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              e.name,
-                              style: Theme.of(context).textTheme.titleSmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+
+              // ── Infos ──
+              Padding(
+                padding: const EdgeInsets.all(AppDimens.paddingM),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nom + badge vérifié
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            e.name,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          if (e.isVerified)
-                            const Icon(
-                              Iconsax.verify5,
-                              color: AppColors.primaryGreen,
-                              size: 16,
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppDimens.paddingXS),
-                      Row(
-                        children: [
+                        ),
+                        if (e.isVerified) ...[
+                          const SizedBox(width: 6),
                           const Icon(
-                            Iconsax.location,
-                            color: AppColors.grey500,
-                            size: 14,
+                            Iconsax.verify5,
+                            color: AppColors.primaryGreen,
+                            size: 16,
                           ),
-                          const SizedBox(width: AppDimens.paddingXS),
-                          Expanded(
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Étoiles + note + avis
+                    Row(
+                      children: [
+                        _buildStarRating(e.averageRating),
+                        const SizedBox(width: 6),
+                        Text(
+                          e.displayRating,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${context.l10n.reviewsN(e.totalReviews)})',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8A8A8A),
+                          ),
+                        ),
+                        if (e.category != null) ...[
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppDimens.paddingS,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.greenSurface,
+                              borderRadius:
+                                  BorderRadius.circular(AppDimens.radiusS),
+                            ),
                             child: Text(
-                              e.wilaya?.name ?? e.address,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: AppColors.grey600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              e.category!.name,
+                              style: const TextStyle(
+                                color: AppColors.primaryGreen,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: AppDimens.paddingS),
-                      Row(
-                        children: [
-                          const Text('🇩🇿', style: TextStyle(fontSize: 12)),
-                          const SizedBox(width: 2),
-                          Text(
-                            e.displayRating,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: AppDimens.paddingXS),
-                          Text(
-                            '(${e.totalReviews} avis)',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(color: AppColors.grey500),
-                          ),
-                          if (e.category != null) ...[
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppDimens.paddingS,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.greenSurface,
-                                borderRadius: BorderRadius.circular(
-                                  AppDimens.radiusS,
-                                ),
-                              ),
-                              child: Text(
-                                e.category!.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.copyWith(
-                                      color: AppColors.primaryGreen,
-                                      fontSize: 10,
-                                    ),
-                              ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Adresse
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 13,
+                          color: AppColors.grey400,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            e.wilaya?.name ?? e.address,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF8A8A8A),
                             ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -391,14 +406,30 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
+  Widget _buildStarRating(double rating) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final full = i < rating.floor();
+        final half = !full && i < rating && (rating - i) >= 0.5;
+        return Icon(
+          full
+              ? Icons.star_rounded
+              : half
+                  ? Icons.star_half_rounded
+                  : Icons.star_outline_rounded,
+          size: 14,
+          color: const Color(0xFFFF8C00),
+        );
+      }),
+    );
+  }
+
   Widget _buildPlaceholderImage() {
     return Container(
-      width: 100,
-      height: 100,
       color: AppColors.grey200,
-      child: const Icon(
-        Iconsax.image,
-        color: AppColors.grey400,
+      child: const Center(
+        child: Icon(Iconsax.image, color: AppColors.grey400, size: 40),
       ),
     );
   }

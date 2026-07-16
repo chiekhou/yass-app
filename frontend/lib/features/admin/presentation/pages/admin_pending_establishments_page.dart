@@ -52,7 +52,7 @@ class _AdminPendingEstablishmentsPageState
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Établissements en attente'),
+        title: Text(context.l10n.pendingEstablishments),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -153,14 +153,14 @@ class _AdminPendingEstablishmentsPageState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${state.total} établissement(s) en attente',
+                  context.l10n.pendingEstablishmentsCount(state.total),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.grey900,
                       ),
                 ),
                 Text(
-                  'Vérifiez et approuvez les nouveaux établissements',
+                  context.l10n.verifyApproveEstablishments,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.grey600,
                       ),
@@ -241,7 +241,7 @@ class _AdminPendingEstablishmentsPageState
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Tout est à jour !',
+              context.l10n.allUpToDate,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.grey900,
@@ -249,7 +249,7 @@ class _AdminPendingEstablishmentsPageState
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Aucun établissement en attente d\'approbation',
+              context.l10n.noEstablishmentPending,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.grey600,
                   ),
@@ -261,7 +261,7 @@ class _AdminPendingEstablishmentsPageState
                   .read<AdminEstablishmentsBloc>()
                   .add(AdminEstablishmentsRefresh()),
               icon: const Icon(Iconsax.refresh),
-              label: const Text('Actualiser'),
+              label: Text(context.l10n.refresh),
             ),
           ],
         ),
@@ -276,7 +276,7 @@ class _AdminPendingEstablishmentsPageState
         );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${establishment.name} a été approuvé'),
+        content: Text(context.l10n.establishmentApprovedMsg(establishment.name)),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
       ),
@@ -289,19 +289,19 @@ class _AdminPendingEstablishmentsPageState
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Rejeter l\'établissement'),
+        title: Text(context.l10n.rejectEstablishment),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Êtes-vous sûr de vouloir rejeter "${establishment.name}" ?'),
+            Text(context.l10n.rejectQuestion(establishment.name)),
             const SizedBox(height: AppDimens.paddingM),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Raison du rejet *',
-                hintText: 'Entrez la raison du rejet...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.rejectReasonLabel,
+                hintText: context.l10n.enterRejectReason,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -316,8 +316,8 @@ class _AdminPendingEstablishmentsPageState
             onPressed: () {
               if (reasonController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Veuillez entrer une raison'),
+                  SnackBar(
+                    content: Text(context.l10n.pleaseEnterReason),
                     backgroundColor: AppColors.error,
                   ),
                 );
@@ -332,7 +332,7 @@ class _AdminPendingEstablishmentsPageState
                   );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${establishment.name} a été rejeté'),
+                  content: Text(context.l10n.establishmentRejectedMsg(establishment.name)),
                   backgroundColor: AppColors.error,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -342,7 +342,7 @@ class _AdminPendingEstablishmentsPageState
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Rejeter'),
+            child: Text(context.l10n.reject),
           ),
         ],
       ),

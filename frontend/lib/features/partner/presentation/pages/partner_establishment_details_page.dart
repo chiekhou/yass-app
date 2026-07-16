@@ -49,15 +49,15 @@ class _PartnerEstablishmentDetailsPageState
         if (!mounted) return;
         if (widget.paymentResult == 'featured_success') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Mise à la une activée avec succès !'),
+            SnackBar(
+              content: Text(context.l10n.featuredActivated),
               backgroundColor: Colors.green,
             ),
           );
         } else if (widget.paymentResult == 'featured_failed') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Le paiement a échoué. Veuillez réessayer.'),
+            SnackBar(
+              content: Text(context.l10n.paymentFailed),
               backgroundColor: Colors.red,
             ),
           );
@@ -123,7 +123,7 @@ class _PartnerEstablishmentDetailsPageState
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppDimens.paddingS),
@@ -338,7 +338,8 @@ class _PartnerEstablishmentDetailsPageState
                 if (establishment.category != null) ...[
                   const SizedBox(height: AppDimens.paddingXS),
                   Text(
-                    establishment.category!.name,
+                    establishment.category!.localizedName(
+                        Localizations.localeOf(context).languageCode),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.grey600,
                         ),
@@ -365,9 +366,9 @@ class _PartnerEstablishmentDetailsPageState
   // ── Mise à la une ──────────────────────────────────────────────────────────
 
   static const _featuredPlans = [
-    {'key': 'featured_7', 'label': '7 jours', 'price': '500 DZD'},
-    {'key': 'featured_15', 'label': '15 jours', 'price': '800 DZD'},
-    {'key': 'featured_30', 'label': '30 jours', 'price': '1 400 DZD'},
+    {'key': 'featured_7',  'days': '7',  'price': '500 DZD'},
+    {'key': 'featured_15', 'days': '15', 'price': '800 DZD'},
+    {'key': 'featured_30', 'days': '30', 'price': '1 400 DZD'},
   ];
 
   Widget _buildFeaturedCard(Establishment establishment) {
@@ -401,7 +402,7 @@ class _PartnerEstablishmentDetailsPageState
                 const Icon(Iconsax.star5, color: Color(0xFFFFCA28), size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'Mise à la une',
+                  context.l10n.featuredTitle,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.scaffoldBackground,
@@ -417,7 +418,7 @@ class _PartnerEstablishmentDetailsPageState
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    isActive ? 'Active' : 'Inactive',
+                    isActive ? context.l10n.activeLabel : context.l10n.inactiveLabel,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -430,8 +431,8 @@ class _PartnerEstablishmentDetailsPageState
             const SizedBox(height: AppDimens.paddingS),
             Text(
               isActive
-                  ? 'Votre établissement apparaît en tête des résultats.'
-                  : 'Boostez votre visibilité — apparaissez en tête des résultats et dans la section "À la une".',
+                  ? context.l10n.featuredActiveDesc
+                  : context.l10n.featuredInactiveDesc,
               style: const TextStyle(
                   fontSize: 13, color: AppColors.grey600, height: 1.4),
             ),
@@ -457,18 +458,18 @@ class _PartnerEstablishmentDetailsPageState
                         const Icon(Icons.lock_rounded,
                             size: 15, color: Color(0xFFFFCA28)),
                         const SizedBox(width: 8),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Réservé au plan Gold',
-                            style: TextStyle(
+                            context.l10n.reservedForGold,
+                            style: const TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF795548),
                                 fontWeight: FontWeight.w500),
                           ),
                         ),
-                        const Text(
-                          'Passer à Gold →',
-                          style: TextStyle(
+                        Text(
+                          context.l10n.upgradeToGold,
+                          style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFF795548),
                               fontWeight: FontWeight.w700),
@@ -487,15 +488,14 @@ class _PartnerEstablishmentDetailsPageState
                     border: Border.all(
                         color: AppColors.warning.withValues(alpha: 0.4)),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Iconsax.clock, size: 16, color: AppColors.warning),
-                      SizedBox(width: 8),
+                      const Icon(Iconsax.clock, size: 16, color: AppColors.warning),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Paiement en attente de validation par l\'admin.',
-                          style:
-                              TextStyle(fontSize: 13, color: AppColors.warning),
+                          context.l10n.paymentPendingAdmin,
+                          style: const TextStyle(fontSize: 13, color: AppColors.warning),
                         ),
                       ),
                     ],
@@ -507,7 +507,7 @@ class _PartnerEstablishmentDetailsPageState
                   child: ElevatedButton.icon(
                     onPressed: () => _showFeaturedPaymentSheet(establishment),
                     icon: const Icon(Iconsax.star, size: 16),
-                    label: const Text('Mettre à la une'),
+                    label: Text(context.l10n.featuredTitle),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFCA28),
                       foregroundColor: Colors.brown[900],
@@ -564,7 +564,7 @@ class _PartnerEstablishmentDetailsPageState
                   const Icon(Iconsax.star5, color: Color(0xFFFFCA28), size: 22),
                   const SizedBox(width: 8),
                   Text(
-                    'Mettre à la une',
+                    context.l10n.featuredTitle,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -573,9 +573,9 @@ class _PartnerEstablishmentDetailsPageState
                 ],
               ),
               const SizedBox(height: AppDimens.paddingS),
-              const Text(
-                'Choisissez une durée et un mode de paiement.',
-                style: TextStyle(fontSize: 13, color: AppColors.grey500),
+              Text(
+                context.l10n.chooseDuration,
+                style: const TextStyle(fontSize: 13, color: AppColors.grey500),
               ),
               const SizedBox(height: AppDimens.paddingM),
               // Plan selector
@@ -614,7 +614,7 @@ class _PartnerEstablishmentDetailsPageState
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            p['label']!,
+                            context.l10n.featuredDaysLabel(int.parse(p['days']!)),
                             style: TextStyle(
                               fontWeight: isSelected
                                   ? FontWeight.w600
@@ -646,7 +646,7 @@ class _PartnerEstablishmentDetailsPageState
                   onPressed: () =>
                       _payFeaturedOnline(ctx, establishment.id, selectedPlan),
                   icon: const Icon(Iconsax.card, size: 18),
-                  label: const Text('Payer en ligne (CIB / EDAHABIA)'),
+                  label: Text(context.l10n.payOnline),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
                     foregroundColor: AppColors.white,
@@ -665,7 +665,7 @@ class _PartnerEstablishmentDetailsPageState
                   onPressed: () =>
                       _payFeaturedManual(ctx, establishment.id, selectedPlan),
                   icon: const Icon(Iconsax.bank, size: 18),
-                  label: const Text('Virement bancaire'),
+                  label: Text(context.l10n.bankTransfer),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primaryGreen,
                     side: const BorderSide(color: AppColors.primaryGreen),
@@ -684,7 +684,7 @@ class _PartnerEstablishmentDetailsPageState
                   onPressed: () =>
                       _payFeaturedCash(ctx, establishment.id, selectedPlan),
                   icon: const Icon(Iconsax.money, size: 18),
-                  label: const Text('Paiement en espèces'),
+                  label: Text(context.l10n.cashPayment),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.grey700,
                     side: const BorderSide(color: AppColors.grey400),
@@ -759,9 +759,8 @@ class _PartnerEstablishmentDetailsPageState
       if (mounted) {
         setState(() => _paymentSubmitted = true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Demande enregistrée. Présentez-vous à nos bureaux pour régler en espèces.'),
+          SnackBar(
+            content: Text(context.l10n.cashRequestRegistered),
             backgroundColor: AppColors.success,
           ),
         );
@@ -785,25 +784,25 @@ class _PartnerEstablishmentDetailsPageState
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Iconsax.bank, color: AppColors.primaryGreen),
-            SizedBox(width: 8),
-            Text('Coordonnées bancaires'),
+            const Icon(Iconsax.bank, color: AppColors.primaryGreen),
+            const SizedBox(width: 8),
+            Text(context.l10n.bankDetailsTitle),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Effectuez le virement et envoyez la preuve à votre gestionnaire.',
-              style: TextStyle(fontSize: 13, color: AppColors.grey600),
+            Text(
+              context.l10n.bankTransferInstruction,
+              style: const TextStyle(fontSize: 13, color: AppColors.grey600),
             ),
             const SizedBox(height: AppDimens.paddingM),
             _bankRow('CCP', ccp),
             _bankRow('RIB', rib),
-            _bankRow('Titulaire', name),
+            _bankRow(context.l10n.accountHolder, name),
             const SizedBox(height: AppDimens.paddingS),
             Container(
               padding: const EdgeInsets.all(10),
@@ -811,14 +810,14 @@ class _PartnerEstablishmentDetailsPageState
                 color: AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Iconsax.info_circle, size: 14, color: AppColors.warning),
-                  SizedBox(width: 6),
+                  const Icon(Iconsax.info_circle, size: 14, color: AppColors.warning),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'La mise à la une sera activée après validation par l\'admin.',
-                      style: TextStyle(fontSize: 12, color: AppColors.warning),
+                      context.l10n.featuredActivationPending,
+                      style: const TextStyle(fontSize: 12, color: AppColors.warning),
                     ),
                   ),
                 ],
@@ -829,7 +828,7 @@ class _PartnerEstablishmentDetailsPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fermer'),
+            child: Text(context.l10n.close),
           ),
         ],
       ),
@@ -872,12 +871,12 @@ class _PartnerEstablishmentDetailsPageState
           _buildStatItem(
             icon: Iconsax.eye,
             value: establishment.totalViews.toString(),
-            label: 'Vues',
+            label: context.l10n.views,
           ),
           _buildStatItem(
             icon: Iconsax.heart,
             value: establishment.totalFavorites.toString(),
-            label: 'Favoris',
+            label: context.l10n.favorites,
           ),
           _buildStatItem(
             icon: Iconsax.star,
@@ -928,7 +927,7 @@ class _PartnerEstablishmentDetailsPageState
         break;
       case 'pending':
         statusColor = AppColors.warning;
-        statusLabel = 'En attente de validation';
+        statusLabel = context.l10n.pendingValidation;
         statusIcon = Iconsax.clock;
         break;
       case 'rejected':
@@ -938,7 +937,7 @@ class _PartnerEstablishmentDetailsPageState
         break;
       case 'inactive':
         statusColor = AppColors.grey500;
-        statusLabel = 'Inactif';
+        statusLabel = context.l10n.statusInactive;
         statusIcon = Iconsax.minus_cirlce;
         break;
       default:
@@ -964,7 +963,7 @@ class _PartnerEstablishmentDetailsPageState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Statut',
+                  context.l10n.statusLabel,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.grey600,
                       ),
@@ -1005,7 +1004,7 @@ class _PartnerEstablishmentDetailsPageState
             children: [
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Description',
+                context.l10n.descriptionLabel,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.scaffoldBackground,
@@ -1047,7 +1046,7 @@ class _PartnerEstablishmentDetailsPageState
             children: [
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Contact',
+                context.l10n.contact,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.scaffoldBackground,
@@ -1056,25 +1055,25 @@ class _PartnerEstablishmentDetailsPageState
             ],
           ),
           const SizedBox(height: AppDimens.paddingM),
-          _buildContactRow(Iconsax.call, 'Téléphone', establishment.phone),
+          _buildContactRow(Iconsax.call, context.l10n.phone, establishment.phone),
           if (establishment.phoneSecondary != null &&
               establishment.phoneSecondary!.isNotEmpty)
             _buildContactRow(
-                Iconsax.call, 'Tél. secondaire', establishment.phoneSecondary!),
+                Iconsax.call, context.l10n.phoneSecondary, establishment.phoneSecondary!),
           if (establishment.whatsapp != null &&
               establishment.whatsapp!.isNotEmpty)
             _buildContactRow(
-                Iconsax.message, 'WhatsApp', establishment.whatsapp!),
+                Iconsax.message, context.l10n.whatsapp, establishment.whatsapp!),
           if (establishment.email != null && establishment.email!.isNotEmpty)
-            _buildContactRow(Iconsax.sms, 'Email', establishment.email!),
+            _buildContactRow(Iconsax.sms, context.l10n.email, establishment.email!),
           if (establishment.website != null &&
               establishment.website!.isNotEmpty)
             _buildContactRow(
-                Iconsax.global, 'Site web', establishment.website!),
+                Iconsax.global, context.l10n.websiteLabel, establishment.website!),
           ...[
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Interlocuteur',
+              context.l10n.interlocutor,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.grey700,
@@ -1083,28 +1082,28 @@ class _PartnerEstablishmentDetailsPageState
             const SizedBox(height: AppDimens.paddingS),
             _buildContactRow(
               Iconsax.user,
-              'Prénom',
-              establishment.contactFirstName ?? 'Non renseigné',
+              context.l10n.firstName,
+              establishment.contactFirstName ?? context.l10n.notProvided,
             ),
             _buildContactRow(
               Iconsax.user,
-              'Nom',
-              establishment.contactLastName ?? 'Non renseigné',
+              context.l10n.lastName,
+              establishment.contactLastName ?? context.l10n.notProvided,
             ),
             _buildContactRow(
               Iconsax.briefcase,
-              'Poste',
-              establishment.contactPosition ?? 'Non renseigné',
+              context.l10n.positionLabel,
+              establishment.contactPosition ?? context.l10n.notProvided,
             ),
             _buildContactRow(
               Iconsax.call,
-              'Téléphone',
-              establishment.contactPhone ?? 'Non renseigné',
+              context.l10n.phone,
+              establishment.contactPhone ?? context.l10n.notProvided,
             ),
             _buildContactRow(
               Iconsax.sms,
-              'Email',
-              establishment.contactEmail ?? 'Non renseigné',
+              context.l10n.email,
+              establishment.contactEmail ?? context.l10n.notProvided,
             ),
           ],
         ],
@@ -1161,7 +1160,7 @@ class _PartnerEstablishmentDetailsPageState
                   color: AppColors.scaffoldBackground, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Localisation',
+                context.l10n.location,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.scaffoldBackground,
@@ -1192,7 +1191,7 @@ class _PartnerEstablishmentDetailsPageState
           if (establishment.hasCoordinates) ...[
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Coordonnées: ${establishment.latitude}, ${establishment.longitude}',
+              '${context.l10n.coordinates}: ${establishment.latitude}, ${establishment.longitude}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.grey500,
                   ),
@@ -1263,7 +1262,7 @@ class _PartnerEstablishmentDetailsPageState
                   color: AppColors.scaffoldBackground, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Avis clients (${_reviews.length})',
+                context.l10n.customerReviewsCount(_reviews.length),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.scaffoldBackground,
@@ -1299,7 +1298,7 @@ class _PartnerEstablishmentDetailsPageState
                       color: _eliteOnly ? Colors.white : AppColors.grey500),
                   const SizedBox(width: 4),
                   Text(
-                    'Élite seulement',
+                    context.l10n.eliteOnly,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1316,7 +1315,7 @@ class _PartnerEstablishmentDetailsPageState
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _ratingChip(null, 'Tous'),
+                _ratingChip(null, context.l10n.allFilter),
                 const SizedBox(width: 6),
                 for (int r = 5; r >= 1; r--) ...[
                   _ratingChip(r, '$r ★'),
@@ -1343,7 +1342,7 @@ class _PartnerEstablishmentDetailsPageState
                         size: 40, color: AppColors.grey300),
                     const SizedBox(height: AppDimens.paddingS),
                     Text(
-                      'Aucun avis pour le moment',
+                      context.l10n.noReviews,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.grey500,
                           ),
@@ -1378,7 +1377,7 @@ class _PartnerEstablishmentDetailsPageState
                   );
                 },
                 child: Text(
-                  'Voir tous les avis (${_reviews.length})',
+                  context.l10n.seeAllReviewsCount(_reviews.length),
                   style: const TextStyle(color: AppColors.primaryGreen),
                 ),
               ),
@@ -1392,7 +1391,7 @@ class _PartnerEstablishmentDetailsPageState
   Widget _buildPartnerReviewCard(Review review) {
     final userName = review.user != null
         ? '${review.user!.firstName} ${review.user!.lastName}'
-        : 'Utilisateur';
+        : context.l10n.anonymous;
     final initials =
         review.user != null ? review.user!.firstName[0].toUpperCase() : 'U';
     final timeAgo = _formatTimeAgo(review.createdAt);
@@ -1489,7 +1488,7 @@ class _PartnerEstablishmentDetailsPageState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Votre réponse',
+                          context.l10n.yourReplyLabel,
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: AppColors.primaryGreen,
@@ -1524,7 +1523,7 @@ class _PartnerEstablishmentDetailsPageState
                   textStyle: const TextStyle(fontSize: 12),
                 ),
                 icon: const Icon(Iconsax.message, size: 14),
-                label: const Text('Répondre'),
+                label: Text(context.l10n.replyButton),
               ),
             ),
           ],
@@ -1541,7 +1540,7 @@ class _PartnerEstablishmentDetailsPageState
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
         ),
-        title: const Text('Répondre à cet avis'),
+        title: Text(context.l10n.replyReviewTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1585,9 +1584,9 @@ class _PartnerEstablishmentDetailsPageState
               controller: controller,
               maxLines: 4,
               maxLength: 1000,
-              decoration: const InputDecoration(
-                hintText: 'Votre réponse (min. 10 caractères)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: context.l10n.responseHintLong,
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -1595,7 +1594,7 @@ class _PartnerEstablishmentDetailsPageState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1608,8 +1607,8 @@ class _PartnerEstablishmentDetailsPageState
                   );
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Réponse envoyée'),
+                      SnackBar(
+                        content: Text(context.l10n.replySent),
                         backgroundColor: AppColors.success,
                       ),
                     );
@@ -1642,15 +1641,15 @@ class _PartnerEstablishmentDetailsPageState
     final difference = now.difference(date);
 
     if (difference.inDays > 365) {
-      return 'il y a ${difference.inDays ~/ 365} an${difference.inDays ~/ 365 > 1 ? 's' : ''}';
+      return context.l10n.timeAgoYears(difference.inDays ~/ 365);
     } else if (difference.inDays > 30) {
-      return 'il y a ${difference.inDays ~/ 30} mois';
+      return context.l10n.timeAgoMonths(difference.inDays ~/ 30);
     } else if (difference.inDays > 0) {
-      return 'il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}';
+      return context.l10n.timeAgoDays(difference.inDays);
     } else if (difference.inHours > 0) {
-      return 'il y a ${difference.inHours}h';
+      return context.l10n.timeAgoHours(difference.inHours);
     } else {
-      return 'à l\'instant';
+      return context.l10n.timeAgoNow;
     }
   }
 
@@ -1676,7 +1675,7 @@ class _PartnerEstablishmentDetailsPageState
               const Icon(Iconsax.link, color: AppColors.grey600, size: 20),
               const SizedBox(width: AppDimens.paddingS),
               Text(
-                'Réseaux sociaux',
+                context.l10n.socialNetworks,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

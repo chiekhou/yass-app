@@ -297,7 +297,7 @@ class _PartnerDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Responsable du compte',
+              context.l10n.accountManager,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryGreen,
@@ -366,7 +366,7 @@ class _PartnerDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Actions',
+              context.l10n.actions,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryGreen,
@@ -388,7 +388,7 @@ class _PartnerDetailView extends StatelessWidget {
                               vertical: AppDimens.paddingS),
                         ),
                         icon: const Icon(Iconsax.close_circle, size: 16),
-                        label: const Text('Rejeter'),
+                        label: Text(context.l10n.reject),
                       ),
                     ),
                   if (partner.isPending)
@@ -405,7 +405,7 @@ class _PartnerDetailView extends StatelessWidget {
                             vertical: AppDimens.paddingS),
                       ),
                       icon: const Icon(Iconsax.tick_circle, size: 16),
-                      label: const Text('Approuver'),
+                      label: Text(context.l10n.approve),
                     ),
                   ),
                 ],
@@ -425,7 +425,7 @@ class _PartnerDetailView extends StatelessWidget {
                             vertical: AppDimens.paddingS),
                       ),
                       icon: const Icon(Iconsax.slash, size: 16),
-                      label: const Text('Suspendre'),
+                      label: Text(context.l10n.suspend),
                     ),
                   ),
                   const SizedBox(width: AppDimens.paddingS),
@@ -445,7 +445,7 @@ class _PartnerDetailView extends StatelessWidget {
                             vertical: AppDimens.paddingS),
                       ),
                       icon: const Icon(Iconsax.add_square, size: 16),
-                      label: const Text('Ajouter établ.'),
+                      label: Text(context.l10n.addEstablishmentShort),
                     ),
                   ),
                 ],
@@ -474,7 +474,7 @@ class _PartnerDetailView extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Établissements',
+                  context.l10n.establishments,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: AppColors.primaryGreen,
@@ -512,7 +512,7 @@ class _PartnerDetailView extends StatelessWidget {
                           size: 40, color: AppColors.grey300),
                       const SizedBox(height: AppDimens.paddingS),
                       Text(
-                        'Aucun établissement',
+                        context.l10n.noEstablishment,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: AppColors.white,
                             ),
@@ -619,7 +619,7 @@ class _PartnerDetailView extends StatelessWidget {
             const SizedBox(width: AppDimens.paddingXS),
             IconButton(
               icon: const Icon(Iconsax.trash, size: 18, color: AppColors.error),
-              tooltip: 'Supprimer',
+              tooltip: context.l10n.delete,
               onPressed: () => _showDeleteEstablishmentDialog(context, est),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -637,23 +637,23 @@ class _PartnerDetailView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Interlocuteur',
+                context.l10n.interlocutor,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.primaryGreen,
                       fontWeight: FontWeight.w600,
                     ),
               ),
               const SizedBox(height: AppDimens.paddingXS),
-              _interlocuteurRow(context, Iconsax.user, 'Prénom',
-                  est.contactFirstName ?? 'Non renseigné'),
-              _interlocuteurRow(context, Iconsax.user, 'Nom',
-                  est.contactLastName ?? 'Non renseigné'),
-              _interlocuteurRow(context, Iconsax.briefcase, 'Poste',
-                  est.contactPosition ?? 'Non renseigné'),
-              _interlocuteurRow(context, Iconsax.call, 'Tél.',
-                  est.contactPhone ?? 'Non renseigné'),
-              _interlocuteurRow(context, Iconsax.sms, 'Email',
-                  est.contactEmail ?? 'Non renseigné'),
+              _interlocuteurRow(context, Iconsax.user, context.l10n.firstName,
+                  est.contactFirstName ?? context.l10n.notProvided),
+              _interlocuteurRow(context, Iconsax.user, context.l10n.lastName,
+                  est.contactLastName ?? context.l10n.notProvided),
+              _interlocuteurRow(context, Iconsax.briefcase, context.l10n.positionLabel,
+                  est.contactPosition ?? context.l10n.notProvided),
+              _interlocuteurRow(context, Iconsax.call, context.l10n.phoneShort,
+                  est.contactPhone ?? context.l10n.notProvided),
+              _interlocuteurRow(context, Iconsax.sms, context.l10n.email,
+                  est.contactEmail ?? context.l10n.notProvided),
             ],
           ),
         ),
@@ -697,14 +697,12 @@ class _PartnerDetailView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer l\'établissement'),
-        content: Text(
-          'Êtes-vous sûr de vouloir supprimer "${est.name}" ? Cette action est irréversible.',
-        ),
+        title: Text(context.l10n.deleteEstablishmentTitle),
+        content: Text(context.l10n.deleteEstablishmentQuestion(est.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -720,7 +718,7 @@ class _PartnerDetailView extends StatelessWidget {
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -755,19 +753,19 @@ class _PartnerDetailView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Rejeter le partenaire'),
+        title: Text(context.l10n.rejectPartner),
         content: TextField(
           controller: reasonCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Motif du rejet',
-            hintText: 'Expliquez la raison du rejet...',
+          decoration: InputDecoration(
+            labelText: context.l10n.rejectReasonLabel,
+            hintText: context.l10n.explainRejectReason,
           ),
           maxLines: 3,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -784,7 +782,7 @@ class _PartnerDetailView extends StatelessWidget {
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: AppColors.white),
-            child: const Text('Rejeter'),
+            child: Text(context.l10n.reject),
           ),
         ],
       ),
@@ -796,19 +794,19 @@ class _PartnerDetailView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Suspendre le partenaire'),
+        title: Text(context.l10n.suspendPartner),
         content: TextField(
           controller: reasonCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Motif de suspension',
-            hintText: 'Expliquez la raison de la suspension...',
+          decoration: InputDecoration(
+            labelText: context.l10n.suspensionReasonLabel,
+            hintText: context.l10n.explainSuspendReason,
           ),
           maxLines: 3,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -825,7 +823,7 @@ class _PartnerDetailView extends StatelessWidget {
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.warning,
                 foregroundColor: AppColors.white),
-            child: const Text('Suspendre'),
+            child: Text(context.l10n.suspend),
           ),
         ],
       ),

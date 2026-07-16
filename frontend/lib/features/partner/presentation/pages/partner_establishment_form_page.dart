@@ -56,6 +56,30 @@ class _PartnerEstablishmentFormPageState
   final _contactEmailController = TextEditingController();
   final _contactPositionController = TextEditingController();
 
+  // Services & amenities
+  final List<String> _services = [];
+  final List<String> _amenities = [];
+  final _newServiceCtrl = TextEditingController();
+  final _newAmenityCtrl = TextEditingController();
+
+  // Opening hours
+  static const _days = [
+    'monday', 'tuesday', 'wednesday', 'thursday',
+    'friday', 'saturday', 'sunday',
+  ];
+  Map<String, String> _getDayLabels(BuildContext context) => {
+    'monday': context.l10n.monday,
+    'tuesday': context.l10n.tuesday,
+    'wednesday': context.l10n.wednesday,
+    'thursday': context.l10n.thursday,
+    'friday': context.l10n.friday,
+    'saturday': context.l10n.saturday,
+    'sunday': context.l10n.sunday,
+  };
+  late final Map<String, bool> _dayClosed;
+  late final Map<String, TextEditingController> _openCtrl;
+  late final Map<String, TextEditingController> _closeCtrl;
+
   // State
   bool _isLoading = false;
   bool _isLoadingData = true;
@@ -87,6 +111,9 @@ class _PartnerEstablishmentFormPageState
   @override
   void initState() {
     super.initState();
+    _dayClosed = {for (final d in _days) d: false};
+    _openCtrl = {for (final d in _days) d: TextEditingController()};
+    _closeCtrl = {for (final d in _days) d: TextEditingController()};
     _loadInitialData();
   }
 
@@ -114,6 +141,12 @@ class _PartnerEstablishmentFormPageState
     _contactPhoneController.dispose();
     _contactEmailController.dispose();
     _contactPositionController.dispose();
+    _newServiceCtrl.dispose();
+    _newAmenityCtrl.dispose();
+    for (final d in _days) {
+      _openCtrl[d]!.dispose();
+      _closeCtrl[d]!.dispose();
+    }
     super.dispose();
   }
 
@@ -179,6 +212,27 @@ class _PartnerEstablishmentFormPageState
     }
     if (_selectedWilayaId != null) {
       _loadCommunes(_selectedWilayaId!);
+    }
+
+    // Opening hours
+    if (establishment.openingHours != null) {
+      for (final day in _days) {
+        final hours = establishment.openingHours![day];
+        if (hours != null) {
+          _dayClosed[day] = false;
+          _openCtrl[day]!.text = (hours['open'] ?? '').toString();
+          _closeCtrl[day]!.text = (hours['close'] ?? '').toString();
+        } else {
+          _dayClosed[day] = true;
+        }
+      }
+    }
+    // Services & amenities
+    if (establishment.services != null) {
+      _services.addAll(establishment.services!);
+    }
+    if (establishment.amenities != null) {
+      _amenities.addAll(establishment.amenities!);
     }
 
     // Initialize existing images
@@ -290,6 +344,10 @@ class _PartnerEstablishmentFormPageState
           'contact_email': _contactEmailController.text.trim(),
         if (_contactPositionController.text.isNotEmpty)
           'contact_position': _contactPositionController.text.trim(),
+        if (_services.isNotEmpty) 'services': _services,
+        if (_amenities.isNotEmpty) 'amenities': _amenities,
+        if (_buildOpeningHours().isNotEmpty)
+          'opening_hours': _buildOpeningHours(),
       };
 
       Establishment result;
@@ -329,8 +387,8 @@ class _PartnerEstablishmentFormPageState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.isEditing
-                ? 'Établissement mis à jour'
-                : 'Établissement créé avec succès'),
+                ? context.l10n.establishmentUpdated
+                : context.l10n.establishmentCreated),
             backgroundColor: AppColors.success,
           ),
         );
@@ -353,14 +411,12 @@ class _PartnerEstablishmentFormPageState
     final shouldPop = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Annuler ?'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir annuler ? Les modifications non enregistrées seront perdues.',
-        ),
+        title: Text(context.l10n.cancelQuestion),
+        content: Text(context.l10n.cancelConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Non, continuer'),
+            child: Text(context.l10n.noContinue),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -368,7 +424,7 @@ class _PartnerEstablishmentFormPageState
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Oui, annuler'),
+            child: Text(context.l10n.yesCancel),
           ),
         ],
       ),
@@ -400,8 +456,8 @@ class _PartnerEstablishmentFormPageState
             },
           ),
           title: Text(widget.isEditing
-              ? 'Modifier l\'établissement'
-              : 'Nouvel établissement'),
+              ? context.l10n.editEstablishment
+              : context.l10n.newEstablishment),
           backgroundColor: AppColors.scaffoldBackground,
           foregroundColor: AppColors.white,
           elevation: 0,
@@ -436,7 +492,13 @@ class _PartnerEstablishmentFormPageState
   }
 
   Widget _buildStepIndicators() {
-    final steps = ['Général', 'Lieu', 'Contact', 'Images'];
+    final steps = [
+      context.l10n.stepGeneral,
+      context.l10n.stepLocation,
+      context.l10n.contact,
+      context.l10n.stepDetails,
+      context.l10n.stepImages,
+    ];
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingM,
@@ -535,6 +597,8 @@ class _PartnerEstablishmentFormPageState
       case 2:
         return _buildContactStep();
       case 3:
+        return _buildDetailsStep();
+      case 4:
         return _buildImagesStep();
       default:
         return const SizedBox.shrink();
@@ -563,7 +627,7 @@ class _PartnerEstablishmentFormPageState
                 child: OutlinedButton(
                   onPressed:
                       _isLoading ? null : () => setState(() => _currentStep--),
-                  child: const Text('Précédent'),
+                  child: Text(context.l10n.previous),
                 ),
               ),
             if (_currentStep > 0) const SizedBox(width: AppDimens.paddingM),
@@ -573,7 +637,7 @@ class _PartnerEstablishmentFormPageState
                 onPressed: _isLoading
                     ? null
                     : () {
-                        if (_currentStep < 3) {
+                        if (_currentStep < 4) {
                           setState(() => _currentStep++);
                         } else {
                           _submitForm();
@@ -592,7 +656,7 @@ class _PartnerEstablishmentFormPageState
                           strokeWidth: 2,
                         ),
                       )
-                    : Text(_currentStep == 3 ? 'Enregistrer' : 'Suivant'),
+                    : Text(_currentStep == 4 ? context.l10n.save : context.l10n.next),
               ),
             ),
           ],
@@ -605,11 +669,11 @@ class _PartnerEstablishmentFormPageState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.error_outline, color: AppColors.error),
-            SizedBox(width: 8),
-            Text('Erreur'),
+            const Icon(Icons.error_outline, color: AppColors.error),
+            const SizedBox(width: 8),
+            Text(context.l10n.error),
           ],
         ),
         content: Text(message),
@@ -620,7 +684,7 @@ class _PartnerEstablishmentFormPageState
               backgroundColor: AppColors.primaryGreen,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('OK'),
+            child: Text(context.l10n.ok),
           ),
         ],
       ),
@@ -630,38 +694,38 @@ class _PartnerEstablishmentFormPageState
   String _translateError(String error) {
     final e = error.toLowerCase();
     if (e.contains('phone') || e.contains('numéro')) {
-      return 'Numéro de téléphone invalide. Formats acceptés : 0555123456, +213555123456, 0770 123 456';
+      return context.l10n.errorInvalidPhone;
     }
     if (e.contains('name') || e.contains('nom')) {
-      return 'Le nom de l\'établissement est invalide.';
+      return context.l10n.errorInvalidEstablishmentName;
     }
     if (e.contains('address') || e.contains('adresse')) {
-      return 'L\'adresse est invalide.';
+      return context.l10n.errorInvalidAddress;
     }
     if (e.contains('category') || e.contains('catégorie')) {
-      return 'Veuillez sélectionner une catégorie.';
+      return context.l10n.errorSelectCategory;
     }
     if (e.contains('wilaya')) {
-      return 'Veuillez sélectionner une wilaya.';
+      return context.l10n.errorSelectWilaya;
     }
     if (e.contains('email')) {
-      return 'Adresse e-mail invalide.';
+      return context.l10n.errorInvalidEmail;
     }
     if (e.contains('url') || e.contains('website') || e.contains('facebook')) {
-      return 'L\'URL saisie est invalide.';
+      return context.l10n.errorInvalidUrl;
     }
     if (e.contains('unauthorized') || e.contains('401')) {
-      return 'Session expirée. Veuillez vous reconnecter.';
+      return context.l10n.errorSessionExpired;
     }
     if (e.contains('network') ||
         e.contains('connection') ||
         e.contains('socket')) {
-      return 'Erreur de connexion. Vérifiez votre accès internet.';
+      return context.l10n.errorNetworkConnection;
     }
     if (e.contains('500') || e.contains('server')) {
-      return 'Erreur serveur. Veuillez réessayer plus tard.';
+      return context.l10n.serverError;
     }
-    return 'Une erreur est survenue. Veuillez réessayer.';
+    return context.l10n.genericError;
   }
 
   Widget _buildGeneralInfoStep() {
@@ -669,11 +733,11 @@ class _PartnerEstablishmentFormPageState
       children: [
         _buildTextField(
           controller: _nameController,
-          label: 'Nom de l\'établissement *',
+          label: context.l10n.establishmentNameLabel,
           icon: Iconsax.building,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Le nom est requis';
+              return context.l10n.nameRequired;
             }
             return null;
           },
@@ -681,20 +745,20 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _nameArController,
-          label: 'Nom en arabe',
+          label: context.l10n.nameAr,
           icon: Iconsax.translate,
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _descriptionController,
-          label: 'Description',
+          label: context.l10n.descriptionLabel,
           icon: Iconsax.document_text,
           maxLines: 4,
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _descriptionArController,
-          label: 'Description en arabe',
+          label: context.l10n.descriptionAr,
           icon: Iconsax.translate,
           maxLines: 4,
         ),
@@ -703,9 +767,11 @@ class _PartnerEstablishmentFormPageState
           value:
               _categories.where((c) => c.id == _selectedCategoryId).firstOrNull,
           items: _categories,
-          label: 'Catégorie *',
+          label: context.l10n.categoryRequired,
           icon: Iconsax.category,
           itemBuilder: (category) => category.name,
+          itemTextColor: AppColors.white,
+          selectedTextColor: AppColors.primaryBlue,
           onChanged: (category) {
             setState(() {
               _selectedCategoryId = category?.id;
@@ -724,9 +790,11 @@ class _PartnerEstablishmentFormPageState
                 .where((s) => s.id == _selectedSubcategoryId)
                 .firstOrNull,
             items: _subcategories,
-            label: 'Sous-catégorie',
+            label: context.l10n.subcategoryLabel,
             icon: Iconsax.category_2,
             itemBuilder: (subcategory) => subcategory.name,
+            itemTextColor: AppColors.white,
+            selectedTextColor: AppColors.primaryBlue,
             onChanged: (subcategory) {
               setState(() {
                 _selectedSubcategoryId = subcategory?.id;
@@ -738,18 +806,20 @@ class _PartnerEstablishmentFormPageState
         _buildDropdown<String>(
           value: _selectedPriceRange,
           items: const ['\$', '\$\$', '\$\$\$', '\$\$\$\$'],
-          label: 'Gamme de prix',
+          label: context.l10n.priceRange,
           icon: Iconsax.dollar_circle,
+          itemTextColor: AppColors.white,
+          selectedTextColor: AppColors.primaryBlue,
           itemBuilder: (price) {
             switch (price) {
               case '\$':
-                return 'Économique (\$)';
+                return context.l10n.priceEconomy;
               case '\$\$':
-                return 'Modéré (\$\$)';
+                return context.l10n.priceModerate;
               case '\$\$\$':
-                return 'Élevé (\$\$\$)';
+                return context.l10n.priceHigh;
               case '\$\$\$\$':
-                return 'Luxe (\$\$\$\$)';
+                return context.l10n.priceLuxury;
               default:
                 return price;
             }
@@ -770,9 +840,11 @@ class _PartnerEstablishmentFormPageState
         _buildDropdown<Wilaya>(
           value: _wilayas.where((w) => w.id == _selectedWilayaId).firstOrNull,
           items: _wilayas,
-          label: 'Wilaya *',
+          label: context.l10n.wilayaRequired,
           icon: Iconsax.location,
           itemBuilder: (wilaya) => '${wilaya.code} - ${wilaya.name}',
+          itemTextColor: AppColors.white,
+          selectedTextColor: AppColors.primaryBlue,
           onChanged: (wilaya) {
             setState(() {
               _selectedWilayaId = wilaya?.id;
@@ -790,9 +862,11 @@ class _PartnerEstablishmentFormPageState
             value:
                 _communes.where((c) => c.id == _selectedCommuneId).firstOrNull,
             items: _communes,
-            label: 'Commune',
+            label: context.l10n.communeLabel,
             icon: Iconsax.building_3,
             itemBuilder: (commune) => commune.name,
+            itemTextColor: AppColors.white,
+            selectedTextColor: AppColors.primaryBlue,
             onChanged: (commune) {
               setState(() {
                 _selectedCommuneId = commune?.id;
@@ -803,11 +877,11 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _addressController,
-          label: 'Adresse *',
+          label: context.l10n.addressLabel,
           icon: Iconsax.location,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'L\'adresse est requise';
+              return context.l10n.addressRequired;
             }
             return null;
           },
@@ -815,7 +889,7 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _addressArController,
-          label: 'Adresse en arabe',
+          label: context.l10n.addressAr,
           icon: Iconsax.translate,
         ),
         const SizedBox(height: AppDimens.paddingM),
@@ -824,7 +898,7 @@ class _PartnerEstablishmentFormPageState
             Expanded(
               child: _buildTextField(
                 controller: _latitudeController,
-                label: 'Latitude',
+                label: context.l10n.latitudeLabel,
                 icon: Iconsax.global,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
@@ -834,7 +908,7 @@ class _PartnerEstablishmentFormPageState
             Expanded(
               child: _buildTextField(
                 controller: _longitudeController,
-                label: 'Longitude',
+                label: context.l10n.longitudeLabel,
                 icon: Iconsax.global,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
@@ -851,17 +925,17 @@ class _PartnerEstablishmentFormPageState
       children: [
         _buildTextField(
           controller: _phoneController,
-          label: 'Téléphone *',
+          label: '${context.l10n.phone} *',
           icon: Iconsax.call,
           keyboardType: TextInputType.phone,
           hintText: 'Ex: 0555123456 ou +213555123456',
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Le téléphone est requis';
+              return context.l10n.phoneRequired;
             }
             final cleaned = value.replaceAll(RegExp(r'[\s\-().+]'), '');
             if (cleaned.length < 6) {
-              return 'Numéro trop court';
+              return context.l10n.phoneTooShort;
             }
             return null;
           },
@@ -869,7 +943,7 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _phoneSecondaryController,
-          label: 'Téléphone secondaire',
+          label: context.l10n.secondaryPhone,
           icon: Iconsax.call,
           keyboardType: TextInputType.phone,
           hintText: 'Ex: 0770123456',
@@ -892,15 +966,15 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _websiteController,
-          label: 'Site web',
+          label: context.l10n.websiteLabel,
           icon: Iconsax.global,
           keyboardType: TextInputType.url,
         ),
         const SizedBox(height: AppDimens.paddingL),
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Réseaux sociaux',
+            context.l10n.socialNetworks,
             style: TextStyle(
               fontWeight: FontWeight.w600,
               color: AppColors.grey700,
@@ -937,40 +1011,40 @@ class _PartnerEstablishmentFormPageState
           hintText: 'Ex: mon.username',
         ),
         const SizedBox(height: AppDimens.paddingL),
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Interlocuteur (optionnel)',
-            style: TextStyle(
+            context.l10n.interlocutorOptional,
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: AppColors.grey700,
             ),
           ),
         ),
         const SizedBox(height: AppDimens.paddingXS),
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'Personne de contact au sein de l\'établissement',
-            style: TextStyle(fontSize: 12, color: AppColors.grey500),
+            context.l10n.contactPersonDesc,
+            style: const TextStyle(fontSize: 12, color: AppColors.grey500),
           ),
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _contactFirstNameController,
-          label: 'Prénom',
+          label: context.l10n.firstName,
           icon: Iconsax.user,
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _contactLastNameController,
-          label: 'Nom',
+          label: context.l10n.lastName,
           icon: Iconsax.user,
         ),
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _contactPhoneController,
-          label: 'Téléphone',
+          label: context.l10n.phone,
           icon: Iconsax.call,
           keyboardType: TextInputType.phone,
         ),
@@ -984,7 +1058,7 @@ class _PartnerEstablishmentFormPageState
         const SizedBox(height: AppDimens.paddingM),
         _buildTextField(
           controller: _contactPositionController,
-          label: 'Poste / Fonction',
+          label: context.l10n.positionFunctionLabel,
           icon: Iconsax.briefcase,
           hintText: 'Ex: Directeur, Responsable commercial...',
         ),
@@ -1025,10 +1099,9 @@ class _PartnerEstablishmentFormPageState
           isSquare: true,
         ),
         const SizedBox(height: AppDimens.paddingL),
-        const Text(
-          'Image de couverture',
-          style:
-              TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
+        Text(
+          context.l10n.coverImageLabel,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.grey700),
         ),
         const SizedBox(height: AppDimens.paddingS),
         _buildImagePicker(
@@ -1049,9 +1122,9 @@ class _PartnerEstablishmentFormPageState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Galerie d\'images',
-              style: TextStyle(
+            Text(
+              context.l10n.imageGallery,
+              style: const TextStyle(
                   fontWeight: FontWeight.w600, color: AppColors.grey700),
             ),
             TextButton.icon(
@@ -1071,15 +1144,15 @@ class _PartnerEstablishmentFormPageState
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
               border: Border.all(color: AppColors.grey300),
             ),
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Iconsax.gallery, color: AppColors.grey400, size: 32),
-                  SizedBox(height: AppDimens.paddingXS),
+                  const Icon(Iconsax.gallery, color: AppColors.grey400, size: 32),
+                  const SizedBox(height: AppDimens.paddingXS),
                   Text(
-                    'Aucune image',
-                    style: TextStyle(color: AppColors.grey500, fontSize: 12),
+                    context.l10n.noImage,
+                    style: const TextStyle(color: AppColors.grey500, fontSize: 12),
                   ),
                 ],
               ),
@@ -1112,12 +1185,12 @@ class _PartnerEstablishmentFormPageState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer l\'image ?'),
-        content: const Text('Cette action est irréversible.'),
+        title: Text(context.l10n.deleteImageTitle),
+        content: Text(context.l10n.irreversibleAction),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -1125,7 +1198,7 @@ class _PartnerEstablishmentFormPageState
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -1143,8 +1216,8 @@ class _PartnerEstablishmentFormPageState
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Image supprimée'),
+            SnackBar(
+              content: Text(context.l10n.imageDeleted),
               backgroundColor: AppColors.success,
             ),
           );
@@ -1160,6 +1233,255 @@ class _PartnerEstablishmentFormPageState
         }
       }
     }
+  }
+
+  Map<String, Map<String, String>> _buildOpeningHours() {
+    final result = <String, Map<String, String>>{};
+    for (final day in _days) {
+      if (!_dayClosed[day]! && _openCtrl[day]!.text.isNotEmpty) {
+        result[day] = {
+          'open': _openCtrl[day]!.text,
+          'close': _closeCtrl[day]!.text,
+        };
+      }
+    }
+    return result;
+  }
+
+  Widget _buildDetailsStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle(context.l10n.servicesOptional),
+        const SizedBox(height: AppDimens.paddingXS),
+        Text(
+          'Ex : WiFi, Parking, Livraison, Réservation...',
+          style: TextStyle(fontSize: 12, color: AppColors.grey500),
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTagInput(
+          controller: _newServiceCtrl,
+          items: _services,
+          hint: context.l10n.addService,
+          onAdd: (v) => setState(() => _services.add(v)),
+          onRemove: (v) => setState(() => _services.remove(v)),
+        ),
+        const SizedBox(height: AppDimens.paddingL),
+        _sectionTitle(context.l10n.amenitiesOptional),
+        const SizedBox(height: AppDimens.paddingXS),
+        Text(
+          'Ex : Climatisation, Terrasse, Bar, Salle de prière...',
+          style: TextStyle(fontSize: 12, color: AppColors.grey500),
+        ),
+        const SizedBox(height: AppDimens.paddingM),
+        _buildTagInput(
+          controller: _newAmenityCtrl,
+          items: _amenities,
+          hint: context.l10n.addAmenity,
+          onAdd: (v) => setState(() => _amenities.add(v)),
+          onRemove: (v) => setState(() => _amenities.remove(v)),
+        ),
+        const SizedBox(height: AppDimens.paddingL),
+        _sectionTitle(context.l10n.openingHoursOptional),
+        const SizedBox(height: AppDimens.paddingM),
+        ..._days.map((day) => _buildDayRow(day)),
+        const SizedBox(height: AppDimens.paddingL),
+      ],
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 14,
+        color: AppColors.primaryGreen,
+      ),
+    );
+  }
+
+  Widget _buildTagInput({
+    required TextEditingController controller,
+    required List<String> items,
+    required String hint,
+    required void Function(String) onAdd,
+    required void Function(String) onRemove,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                style: const TextStyle(color: AppColors.scaffoldBackground),
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: const TextStyle(
+                      color: AppColors.grey500, fontSize: 13),
+                  filled: true,
+                  fillColor: AppColors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    borderSide: const BorderSide(
+                        color: AppColors.primaryGreen, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.paddingM,
+                    vertical: AppDimens.paddingS,
+                  ),
+                ),
+                onSubmitted: (v) {
+                  final val = v.trim();
+                  if (val.isNotEmpty && !items.contains(val)) {
+                    onAdd(val);
+                    controller.clear();
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: AppDimens.paddingS),
+            IconButton(
+              icon: const Icon(Iconsax.add_square,
+                  color: AppColors.primaryGreen),
+              onPressed: () {
+                final val = controller.text.trim();
+                if (val.isNotEmpty && !items.contains(val)) {
+                  onAdd(val);
+                  controller.clear();
+                }
+              },
+            ),
+          ],
+        ),
+        if (items.isNotEmpty) ...[
+          const SizedBox(height: AppDimens.paddingS),
+          Wrap(
+            spacing: AppDimens.paddingS,
+            runSpacing: AppDimens.paddingXS,
+            children: items
+                .map((item) => Chip(
+                      label: Text(item,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.scaffoldBackground)),
+                      deleteIcon:
+                          const Icon(Iconsax.close_circle, size: 14),
+                      onDeleted: () => onRemove(item),
+                      backgroundColor:
+                          AppColors.primaryGreen.withValues(alpha: 0.08),
+                      side: BorderSide(
+                          color:
+                              AppColors.primaryGreen.withValues(alpha: 0.3)),
+                    ))
+                .toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDayRow(String day) {
+    final isClosed = _dayClosed[day]!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDimens.paddingM,
+          vertical: AppDimens.paddingS,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+          border: Border.all(color: AppColors.grey300),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 78,
+              child: Text(
+                _getDayLabels(context)[day]!,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                  color: AppColors.grey800,
+                ),
+              ),
+            ),
+            Switch(
+              value: !isClosed,
+              onChanged: (v) => setState(() => _dayClosed[day] = !v),
+              activeTrackColor: AppColors.primaryGreen,
+            ),
+            if (!isClosed) ...[
+              Expanded(
+                child: TextField(
+                  controller: _openCtrl[day],
+                  style: const TextStyle(
+                      color: AppColors.scaffoldBackground, fontSize: 13),
+                  decoration: _hoursDecoration(context.l10n.openAbbrev),
+                  keyboardType: TextInputType.datetime,
+                ),
+              ),
+              const SizedBox(width: AppDimens.paddingXS),
+              Expanded(
+                child: TextField(
+                  controller: _closeCtrl[day],
+                  style: const TextStyle(
+                      color: AppColors.scaffoldBackground, fontSize: 13),
+                  decoration: _hoursDecoration(context.l10n.closeAbbrev),
+                  keyboardType: TextInputType.datetime,
+                ),
+              ),
+            ] else
+              Expanded(
+                child: Text(
+                  context.l10n.closed,
+                  style: const TextStyle(
+                      color: AppColors.grey400, fontSize: 13),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _hoursDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      hintText: '08:00',
+      filled: true,
+      fillColor: AppColors.grey50,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        borderSide: const BorderSide(color: AppColors.grey300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        borderSide: const BorderSide(color: AppColors.grey300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        borderSide:
+            const BorderSide(color: AppColors.primaryGreen, width: 1.5),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.paddingS,
+        vertical: AppDimens.paddingS,
+      ),
+      isDense: true,
+    );
   }
 
   Widget _buildTextField({
@@ -1210,10 +1532,12 @@ class _PartnerEstablishmentFormPageState
     required IconData icon,
     required String Function(T) itemBuilder,
     required void Function(T?) onChanged,
+    Color itemTextColor = AppColors.scaffoldBackground,
+    Color selectedTextColor = AppColors.scaffoldBackground,
   }) {
     return DropdownButtonFormField<T>(
       initialValue: value,
-      style: const TextStyle(color: AppColors.scaffoldBackground),
+      style: TextStyle(color: selectedTextColor),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
@@ -1234,10 +1558,19 @@ class _PartnerEstablishmentFormPageState
         filled: true,
         fillColor: AppColors.white,
       ),
+      selectedItemBuilder: (_) => items.map((item) {
+        return Text(
+          itemBuilder(item),
+          style: TextStyle(color: selectedTextColor),
+        );
+      }).toList(),
       items: items.map((item) {
         return DropdownMenuItem<T>(
           value: item,
-          child: Text(itemBuilder(item)),
+          child: Text(
+            itemBuilder(item),
+            style: TextStyle(color: itemTextColor),
+          ),
         );
       }).toList(),
       onChanged: onChanged,
@@ -1286,7 +1619,7 @@ class _PartnerEstablishmentFormPageState
                       ),
                       const SizedBox(height: AppDimens.paddingS),
                       Text(
-                        'Ajouter une image',
+                        context.l10n.addImage,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.grey500,
                             ),
@@ -1368,7 +1701,7 @@ class _PartnerEstablishmentFormPageState
             children: [
               ListTile(
                 leading: const Icon(Iconsax.camera),
-                title: const Text('Prendre une photo'),
+                title: Text(context.l10n.takePhoto),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera, type);
@@ -1376,7 +1709,7 @@ class _PartnerEstablishmentFormPageState
               ),
               ListTile(
                 leading: const Icon(Iconsax.gallery),
-                title: const Text('Choisir de la galerie'),
+                title: Text(context.l10n.chooseFromGallery),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery, type);

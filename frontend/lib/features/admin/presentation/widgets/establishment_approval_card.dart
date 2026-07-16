@@ -225,7 +225,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
         _buildInfoRow(
           context,
           icon: Iconsax.location,
-          text: establishment.address ?? 'Adresse non spécifiée',
+          text: establishment.address ?? context.l10n.notProvided,
         ),
         if (establishment.wilayaName != null) ...[
           const SizedBox(height: AppDimens.paddingXS),
@@ -299,7 +299,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Partenaire',
+                  context.l10n.partnerSection,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.grey500,
                         fontSize: 10,
@@ -367,7 +367,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
             ),
             icon: const Icon(Iconsax.close_circle, size: 16),
-            label: const Text('Rejeter'),
+            label: Text(context.l10n.reject),
           ),
         ),
         const SizedBox(width: AppDimens.paddingS),
@@ -380,7 +380,7 @@ class EstablishmentApprovalCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
             ),
             icon: const Icon(Iconsax.tick_circle, size: 16),
-            label: const Text('Approuver'),
+            label: Text(context.l10n.approve),
           ),
         ),
       ],

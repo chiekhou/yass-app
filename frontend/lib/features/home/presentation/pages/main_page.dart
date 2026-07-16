@@ -80,7 +80,7 @@ class MainPage extends StatelessWidget {
                 _NavItem(
                   icon: Iconsax.shop_add,
                   activeIcon: Iconsax.shop_add,
-                  label: 'Suggestions',
+                  label: context.l10n.suggestions,
                   isSelected: selectedIndex == 2,
                   onTap: () => _onItemTapped(context, 2),
                 ),

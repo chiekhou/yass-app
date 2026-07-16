@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -222,7 +223,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
     return Scaffold(
       backgroundColor: AppColors.kleinBlue,
       appBar: AppBar(
-        title: const Text('Suggestions de la communauté'),
+        title: Text(context.l10n.communitySuggestions),
         backgroundColor: AppColors.kleinBlue,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -234,7 +235,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
           if (context.read<AuthBloc>().state is AuthAuthenticated)
             IconButton(
               icon: const Icon(Iconsax.add_circle),
-              tooltip: 'Suggérer un établissement',
+              tooltip: context.l10n.suggestEstablishment,
               onPressed: () => context.push('/suggestions/new'),
             ),
         ],
@@ -268,9 +269,9 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               ),
             ),
             const SizedBox(height: AppDimens.paddingL),
-            const Text(
-              'Connexion requise',
-              style: TextStyle(
+            Text(
+              context.l10n.connect,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.white,
@@ -278,9 +279,9 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimens.paddingS),
-            const Text(
-              'Connectez-vous pour accéder aux suggestions de la communauté et voter pour vos établissements préférés.',
-              style: TextStyle(
+            Text(
+              context.l10n.loginToSeeSuggestions,
+              style: const TextStyle(
                 fontSize: 14,
                 color: Colors.white70,
                 height: 1.5,
@@ -301,9 +302,9 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   ),
                 ),
-                child: const Text(
-                  'Se connecter',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                child: Text(
+                  context.l10n.signIn,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -321,9 +322,9 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   ),
                 ),
-                child: const Text(
-                  'Créer un compte',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                child: Text(
+                  context.l10n.createAccount,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -350,7 +351,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
             const SizedBox(height: AppDimens.paddingM),
             Text(_error!, style: const TextStyle(color: AppColors.white)),
             const SizedBox(height: AppDimens.paddingM),
-            ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
+            ElevatedButton(onPressed: _load, child: Text(context.l10n.retry)),
           ],
         ),
       );
@@ -362,15 +363,15 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
           children: [
             const Icon(Iconsax.shop_add, size: 64, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
-            const Text(
-              'Aucune suggestion pour le moment',
-              style: TextStyle(
+            Text(
+              context.l10n.noSuggestionsYet,
+              style: const TextStyle(
                   fontWeight: FontWeight.w600, color: AppColors.white),
             ),
             const SizedBox(height: AppDimens.paddingS),
-            const Text(
-              'Soyez le premier à suggérer un établissement !',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+            Text(
+              context.l10n.beFirstToSuggest,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             if (context.read<AuthBloc>().state is AuthAuthenticated) ...[
@@ -379,7 +380,7 @@ class _SuggestionsListPageState extends State<SuggestionsListPage> {
               ElevatedButton.icon(
                 onPressed: () => context.push('/suggestions/new'),
                 icon: const Icon(Iconsax.add),
-                label: const Text('Faire une suggestion'),
+                label: Text(context.l10n.makeSuggestion),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accentGreen,
                   foregroundColor: AppColors.black,

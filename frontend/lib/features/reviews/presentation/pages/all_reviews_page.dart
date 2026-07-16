@@ -614,7 +614,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
         ),
-        title: const Text('Signaler cet avis'),
+        title: Text(context.l10n.reportReviewTitle),
         content: TextField(
           controller: controller,
           maxLines: 3,
@@ -626,7 +626,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -637,8 +637,8 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
                     ));
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Signalement envoyé'),
+                  SnackBar(
+                    content: Text(context.l10n.reportSent),
                     backgroundColor: AppColors.success,
                   ),
                 );
@@ -647,7 +647,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
-            child: const Text('Signaler'),
+            child: Text(context.l10n.report),
           ),
         ],
       ),
@@ -661,11 +661,11 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Iconsax.lock, color: AppColors.primaryGreen),
-            SizedBox(width: AppDimens.paddingS),
-            Text('Connexion requise'),
+            const Icon(Iconsax.lock, color: AppColors.primaryGreen),
+            const SizedBox(width: AppDimens.paddingS),
+            Text(context.l10n.connect),
           ],
         ),
         content: const Text(
@@ -674,7 +674,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -684,7 +684,7 @@ class _AllReviewsPageState extends State<AllReviewsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
             ),
-            child: const Text('Se connecter'),
+            child: Text(context.l10n.signIn),
           ),
         ],
       ),

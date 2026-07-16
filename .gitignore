@@ -13,6 +13,9 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
+20241201000006-test-partners.js
+20241201000007-test-establishments.js
+scripts/
 
 # Logs
 logs/

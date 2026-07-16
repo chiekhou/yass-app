@@ -241,6 +241,7 @@ router.get("/payments/pending", adminController.getPendingPayments);
  * @access  Admin
  */
 router.post("/payments/:invoiceId/validate", adminController.validatePayment);
+router.post("/payments/:invoiceId/cancel", adminController.cancelPayment);
 
 // ==================== REVIEW ROUTES ====================
 
@@ -290,6 +291,16 @@ router.post(
  */
 router.post("/reviews/:id/dismiss-report", reviewController.dismissReport);
 router.post("/reviews/:id/revoke", reviewController.revokeReview);
+
+// ==================== WILAYA AVAILABILITY ====================
+
+router.get("/wilayas", adminController.getAdminWilayas);
+router.patch("/wilayas/:id/toggle", adminController.toggleWilayaAvailability);
+
+// ==================== CATEGORY AVAILABILITY ====================
+
+router.get("/categories", adminController.getAdminCategories);
+router.patch("/categories/:id/toggle", adminController.toggleCategoryAvailability);
 
 // ==================== SUGGESTION ROUTES ====================
 

@@ -282,51 +282,9 @@ module.exports = {
         order: 7,
       },
 
-      // ==================== HÉBERGEMENT ====================
+      // ==================== ACTIVITÉS & SERVICES (fusion Activités & Loisirs + Maison & Services) ====================
       {
-        category: "hebergement",
-        name: "Hôtel",
-        name_ar: "فندق",
-        slug: "hotel",
-        icon: "hotel",
-        order: 1,
-      },
-      {
-        category: "hebergement",
-        name: "Appart-hôtel",
-        name_ar: "شقة فندقية",
-        slug: "appart-hotel",
-        icon: "apartment",
-        order: 2,
-      },
-      {
-        category: "hebergement",
-        name: "Maison d'hôtes",
-        name_ar: "دار ضيافة",
-        slug: "maison-hotes",
-        icon: "cottage",
-        order: 3,
-      },
-      {
-        category: "hebergement",
-        name: "Location vacances",
-        name_ar: "إيجار عطلة",
-        slug: "location-vacances",
-        icon: "holiday_village",
-        order: 4,
-      },
-      {
-        category: "hebergement",
-        name: "Auberge",
-        name_ar: "نزل",
-        slug: "auberge",
-        icon: "night_shelter",
-        order: 5,
-      },
-
-      // ==================== ACTIVITÉS & LOISIRS ====================
-      {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Salle de sport",
         name_ar: "قاعة رياضة",
         slug: "salle-sport",
@@ -334,7 +292,7 @@ module.exports = {
         order: 1,
       },
       {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Piscine",
         name_ar: "مسبح",
         slug: "piscine",
@@ -342,7 +300,7 @@ module.exports = {
         order: 2,
       },
       {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Club de football",
         name_ar: "نادي كرة قدم",
         slug: "club-football",
@@ -350,7 +308,7 @@ module.exports = {
         order: 3,
       },
       {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Salle de jeux",
         name_ar: "قاعة ألعاب",
         slug: "salle-jeux",
@@ -358,7 +316,7 @@ module.exports = {
         order: 4,
       },
       {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Cinéma",
         name_ar: "سينما",
         slug: "cinema",
@@ -366,7 +324,7 @@ module.exports = {
         order: 5,
       },
       {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Parc d'attractions",
         name_ar: "مدينة ملاهي",
         slug: "parc-attractions",
@@ -374,7 +332,7 @@ module.exports = {
         order: 6,
       },
       {
-        category: "activites-loisirs",
+        category: "activites-services",
         name: "Plage privée",
         name_ar: "شاطئ خاص",
         slug: "plage-privee",
@@ -382,9 +340,9 @@ module.exports = {
         order: 7,
       },
 
-      // ==================== MAISON & SERVICES ====================
+      // (suite Activités & Services)
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Plombier",
         name_ar: "سباك",
         slug: "plombier",
@@ -392,7 +350,7 @@ module.exports = {
         order: 1,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Électricien",
         name_ar: "كهربائي",
         slug: "electricien",
@@ -400,7 +358,7 @@ module.exports = {
         order: 2,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Menuisier",
         name_ar: "نجار",
         slug: "menuisier",
@@ -408,7 +366,7 @@ module.exports = {
         order: 3,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Peintre",
         name_ar: "دهان",
         slug: "peintre",
@@ -416,7 +374,7 @@ module.exports = {
         order: 4,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Service de ménage",
         name_ar: "خدمة تنظيف",
         slug: "service-menage",
@@ -424,7 +382,7 @@ module.exports = {
         order: 5,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Déménagement",
         name_ar: "نقل",
         slug: "demenagement",
@@ -432,7 +390,7 @@ module.exports = {
         order: 6,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Climatisation",
         name_ar: "تكييف",
         slug: "climatisation",
@@ -440,7 +398,7 @@ module.exports = {
         order: 7,
       },
       {
-        category: "maison-services",
+        category: "activites-services",
         name: "Jardinage",
         name_ar: "بستنة",
         slug: "jardinage",

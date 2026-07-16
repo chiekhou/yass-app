@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -212,8 +213,8 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
           }
         } else if (state is AuthOtpSent) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Code renvoyé avec succès'),
+            SnackBar(
+              content: Text(context.l10n.codeSentSuccess),
               backgroundColor: AppColors.primaryGreen,
             ),
           );

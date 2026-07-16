@@ -323,6 +323,37 @@ class AdminRepository {
     return response.data['data'] as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> cancelPayment(String invoiceId) async {
+    final response = await _apiClient.post(
+      ApiConfig.adminCancelPayment(invoiceId),
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  // ==================== WILAYA AVAILABILITY ====================
+
+  Future<List<Map<String, dynamic>>> getAdminWilayas() async {
+    final response = await _apiClient.get(ApiConfig.adminWilayas);
+    return (response.data['data'] as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, dynamic>> toggleWilaya(String id) async {
+    final response = await _apiClient.patch(ApiConfig.adminToggleWilaya(id));
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  // ==================== CATEGORY AVAILABILITY ====================
+
+  Future<List<Map<String, dynamic>>> getAdminCategories() async {
+    final response = await _apiClient.get(ApiConfig.adminCategories);
+    return (response.data['data'] as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, dynamic>> toggleCategory(String id) async {
+    final response = await _apiClient.patch(ApiConfig.adminToggleCategory(id));
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
   // ==================== SUGGESTIONS ====================
 
   Future<int> getPendingSuggestionsCount() async {

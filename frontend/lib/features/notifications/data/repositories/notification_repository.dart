@@ -43,6 +43,11 @@ class NotificationRepository {
     await _api.delete(ApiConfig.notificationDelete(id));
   }
 
+  /// Delete all notifications.
+  Future<void> deleteAllNotifications() async {
+    await _api.delete(ApiConfig.notificationsDeleteAll);
+  }
+
   /// Register the FCM token with the backend.
   Future<void> updateFcmToken(String token) async {
     await _api.put(ApiConfig.updateFcmToken, data: {'fcm_token': token});

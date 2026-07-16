@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -95,7 +96,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
       child: Scaffold(
         backgroundColor: AppColors.grey50,
         appBar: AppBar(
-          title: const Text('Gestion des établissements'),
+          title: Text(context.l10n.managementEstablishments),
           backgroundColor: AppColors.scaffoldBackground,
           foregroundColor: AppColors.white,
           elevation: 0,
@@ -139,7 +140,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
         style: TextStyle(color: AppColors.scaffoldBackground),
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Rechercher par nom ou adresse...',
+          hintText: context.l10n.searchByNameAddress,
           prefixIcon: const Icon(Iconsax.search_normal, size: 20),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
@@ -185,7 +186,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
           children: [
             _buildFilterChip(
               context,
-              label: 'Tous',
+              label: context.l10n.filterAll,
               isSelected: _statusFilter == null,
               onTap: () => context
                   .read<AdminEstablishmentsBloc>()
@@ -194,7 +195,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             const SizedBox(width: AppDimens.paddingS),
             _buildFilterChip(
               context,
-              label: 'Actifs',
+              label: context.l10n.filterActive,
               isSelected: _statusFilter == 'active',
               color: AppColors.success,
               onTap: () => context.read<AdminEstablishmentsBloc>().add(
@@ -203,7 +204,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             const SizedBox(width: AppDimens.paddingS),
             _buildFilterChip(
               context,
-              label: 'En attente',
+              label: context.l10n.filterPending,
               isSelected: _statusFilter == 'pending',
               color: AppColors.warning,
               onTap: () => context.read<AdminEstablishmentsBloc>().add(
@@ -212,7 +213,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             const SizedBox(width: AppDimens.paddingS),
             _buildFilterChip(
               context,
-              label: 'Rejetés',
+              label: context.l10n.filterRejected,
               isSelected: _statusFilter == 'rejected',
               color: AppColors.error,
               onTap: () => context.read<AdminEstablishmentsBloc>().add(
@@ -221,7 +222,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             const SizedBox(width: AppDimens.paddingS),
             _buildFilterChip(
               context,
-              label: 'Suspendus',
+              label: context.l10n.filterSuspended,
               isSelected: _statusFilter == 'suspended',
               color: AppColors.grey500,
               onTap: () => context.read<AdminEstablishmentsBloc>().add(
@@ -376,7 +377,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppDimens.paddingS),
@@ -394,7 +395,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                   .read<AdminEstablishmentsBloc>()
                   .add(const AdminEstablishmentsLoad()),
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text(context.l10n.retry),
             ),
           ],
         ),
@@ -412,7 +413,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             Icon(Iconsax.building, size: 64, color: AppColors.grey400),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Aucun établissement trouvé',
+              context.l10n.noEstablishmentFound,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -420,7 +421,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Essayez de modifier vos filtres de recherche',
+              context.l10n.modifySearchFilters,
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
@@ -451,13 +452,12 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Approuver l\'établissement'),
-        content:
-            Text('Approuver « ${e.name} » ? Il sera visible sur l\'annuaire.'),
+        title: Text(context.l10n.approveEstablishment),
+        content: Text(context.l10n.approveEstablishmentQuestion(e.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -470,7 +470,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
               backgroundColor: AppColors.primaryGreen,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Approuver'),
+            child: Text(context.l10n.approve),
           ),
         ],
       ),
@@ -482,19 +482,19 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Rejeter l\'établissement'),
+        title: Text(context.l10n.rejectEstablishment),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Rejeter « ${e.name} » ?'),
+            Text(context.l10n.rejectQuestion(e.name)),
             const SizedBox(height: AppDimens.paddingM),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Raison du rejet *',
-                hintText: 'Entrez la raison...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.rejectReasonLabel,
+                hintText: context.l10n.enterReason,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -503,14 +503,14 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               if (reasonController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Veuillez entrer une raison'),
+                  SnackBar(
+                    content: Text(context.l10n.pleaseEnterReason),
                     backgroundColor: AppColors.error,
                   ),
                 );
@@ -528,7 +528,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Rejeter'),
+            child: Text(context.l10n.reject),
           ),
         ],
       ),
@@ -541,17 +541,17 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title:
-            Text(isCurrentlyFeatured ? 'Retirer de la une' : 'Mettre à la une'),
+            Text(isCurrentlyFeatured ? context.l10n.removeFeatured : context.l10n.setAsFeatured),
         content: isCurrentlyFeatured
-            ? Text('Retirer « ${e.name} » de la mise en avant ?')
+            ? Text(context.l10n.removeFromFeaturedQuestion(e.name))
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Mettre « ${e.name} » à la une.'),
+                  Text(context.l10n.setAsFeaturedQuestion(e.name)),
                   const SizedBox(height: AppDimens.paddingM),
-                  const Text('Durée :',
-                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text(context.l10n.featuredDuration,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: AppDimens.paddingS),
                   Wrap(
                     spacing: AppDimens.paddingS,
@@ -617,7 +617,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                 backgroundColor: AppColors.warning,
                 foregroundColor: AppColors.white,
               ),
-              child: const Text('Retirer'),
+              child: Text(context.l10n.remove),
             ),
         ],
       ),
@@ -925,7 +925,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                       },
                       icon: const Icon(Iconsax.edit_2,
                           color: AppColors.primaryGreen, size: 20),
-                      tooltip: 'Modifier',
+                      tooltip: context.l10n.editTooltip,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -940,35 +940,35 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                       AppDimens.paddingM, 8, AppDimens.paddingM, 32),
                   children: [
                     // ── Statut & catégorie ──
-                    _detailSection(context, 'Informations générales', [
+                    _detailSection(context, context.l10n.generalInformation, [
                       if (e.categoryName != null)
-                        _detailRow(context, Iconsax.category, 'Catégorie',
+                        _detailRow(context, Iconsax.category, context.l10n.category,
                             e.categoryName!),
                       if (e.subcategoryName != null)
                         _detailRow(context, Iconsax.category_2,
-                            'Sous-catégorie', e.subcategoryName!),
-                      _detailRow(context, Iconsax.info_circle, 'Statut',
+                            context.l10n.subcategoryLabel, e.subcategoryName!),
+                      _detailRow(context, Iconsax.info_circle, context.l10n.statusLabel,
                           e.statusLabel),
                       if (e.isFeatured)
                         _detailRow(
-                            context, Icons.star_rounded, 'À la une', 'Oui',
+                            context, Icons.star_rounded, context.l10n.featured, context.l10n.yesLabel,
                             valueColor: const Color(0xFFF59E0B)),
                     ]),
                     const SizedBox(height: AppDimens.paddingM),
 
                     // ── Localisation ──
-                    _detailSection(context, 'Localisation', [
+                    _detailSection(context, context.l10n.location, [
                       if (e.address != null)
                         _detailRow(
-                            context, Iconsax.location, 'Adresse', e.address!),
+                            context, Iconsax.location, context.l10n.address, e.address!),
                       if (e.communeName != null)
-                        _detailRow(context, Iconsax.building_3, 'Commune',
+                        _detailRow(context, Iconsax.building_3, context.l10n.commune,
                             e.communeName!),
                       if (e.wilayaName != null)
                         _detailRow(
-                            context, Iconsax.map, 'Wilaya', e.wilayaName!),
+                            context, Iconsax.map, context.l10n.wilaya, e.wilayaName!),
                       if (e.latitude != null && e.longitude != null)
-                        _detailRow(context, Iconsax.gps, 'Coordonnées',
+                        _detailRow(context, Iconsax.gps, context.l10n.coordinates,
                             '${e.latitude!.toStringAsFixed(5)}, ${e.longitude!.toStringAsFixed(5)}'),
                     ]),
                     const SizedBox(height: AppDimens.paddingM),
@@ -981,7 +981,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                       _detailSection(context, 'Contact', [
                         if (e.phone != null)
                           _detailRow(
-                              context, Iconsax.call, 'Téléphone', e.phone!,
+                              context, Iconsax.call, context.l10n.phone, e.phone!,
                               onTap: () async {
                             final uri = Uri.parse('tel:${e.phone}');
                             if (await canLaunchUrl(uri)) launchUrl(uri);
@@ -990,14 +990,14 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                           _detailRow(context, Iconsax.call_calling, 'WhatsApp',
                               e.whatsapp!),
                         if (e.email != null)
-                          _detailRow(context, Iconsax.sms, 'Email', e.email!,
+                          _detailRow(context, Iconsax.sms, context.l10n.email, e.email!,
                               onTap: () async {
                             final uri = Uri.parse('mailto:${e.email}');
                             if (await canLaunchUrl(uri)) launchUrl(uri);
                           }),
                         if (e.website != null)
                           _detailRow(
-                              context, Iconsax.global, 'Site web', e.website!),
+                              context, Iconsax.global, context.l10n.websiteLabel, e.website!),
                       ]),
                     if (e.phone != null ||
                         e.whatsapp != null ||
@@ -1006,15 +1006,15 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                       const SizedBox(height: AppDimens.paddingM),
 
                     // ── Interlocuteur ──
-                    _detailSection(context, 'Interlocuteur', [
-                      _detailRow(context, Iconsax.user, 'Prénom',
-                          e.contactFirstName ?? 'Non renseigné'),
-                      _detailRow(context, Iconsax.user, 'Nom',
-                          e.contactLastName ?? 'Non renseigné'),
-                      _detailRow(context, Iconsax.briefcase, 'Poste',
-                          e.contactPosition ?? 'Non renseigné'),
-                      _detailRow(context, Iconsax.call, 'Téléphone',
-                          e.contactPhone ?? 'Non renseigné',
+                    _detailSection(context, context.l10n.interlocutor, [
+                      _detailRow(context, Iconsax.user, context.l10n.firstName,
+                          e.contactFirstName ?? context.l10n.notProvided),
+                      _detailRow(context, Iconsax.user, context.l10n.lastName,
+                          e.contactLastName ?? context.l10n.notProvided),
+                      _detailRow(context, Iconsax.briefcase, context.l10n.positionLabel,
+                          e.contactPosition ?? context.l10n.notProvided),
+                      _detailRow(context, Iconsax.call, context.l10n.phone,
+                          e.contactPhone ?? context.l10n.notProvided,
                           onTap: e.contactPhone != null
                               ? () async {
                                   final uri =
@@ -1022,8 +1022,8 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                                   if (await canLaunchUrl(uri)) launchUrl(uri);
                                 }
                               : null),
-                      _detailRow(context, Iconsax.sms, 'Email',
-                          e.contactEmail ?? 'Non renseigné',
+                      _detailRow(context, Iconsax.sms, context.l10n.email,
+                          e.contactEmail ?? context.l10n.notProvided,
                           onTap: e.contactEmail != null
                               ? () async {
                                   final uri =
@@ -1036,16 +1036,16 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
 
                     // ── Partenaire ──
                     if (e.partner != null)
-                      _detailSection(context, 'Partenaire', [
-                        _detailRow(context, Iconsax.briefcase, 'Société',
+                      _detailSection(context, context.l10n.partnerSection, [
+                        _detailRow(context, Iconsax.briefcase, context.l10n.company,
                             e.partner!.companyName),
                         if (e.partner!.user?.email != null)
-                          _detailRow(context, Iconsax.sms, 'Email',
+                          _detailRow(context, Iconsax.sms, context.l10n.email,
                               e.partner!.user!.email),
                         if (e.partner!.user?.phone != null)
-                          _detailRow(context, Iconsax.call, 'Téléphone',
+                          _detailRow(context, Iconsax.call, context.l10n.phone,
                               e.partner!.user!.phone!),
-                        _detailRow(context, Iconsax.crown_1, 'Abonnement',
+                        _detailRow(context, Iconsax.crown_1, context.l10n.subscription,
                             e.partner!.subscriptionPlan.toUpperCase()),
                       ]),
                     if (e.partner != null)
@@ -1053,7 +1053,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
 
                     // ── Description ──
                     if (e.description != null && e.description!.isNotEmpty)
-                      _detailSection(context, 'Description', [
+                      _detailSection(context, context.l10n.description, [
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: AppDimens.paddingS),
@@ -1071,12 +1071,12 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
                       const SizedBox(height: AppDimens.paddingM),
 
                     // ── Statistiques ──
-                    _detailSection(context, 'Statistiques', [
-                      _detailRow(context, Iconsax.star1, 'Note',
+                    _detailSection(context, context.l10n.statistics, [
+                      _detailRow(context, Iconsax.star1, context.l10n.rating,
                           '${e.averageRating.toStringAsFixed(1)} · ${e.reviewsCount} avis'),
-                      _detailRow(context, Iconsax.calendar_1, 'Créé le',
+                      _detailRow(context, Iconsax.calendar_1, context.l10n.createdOn,
                           '${e.createdAt.day.toString().padLeft(2, '0')}/${e.createdAt.month.toString().padLeft(2, '0')}/${e.createdAt.year}'),
-                      _detailRow(context, Iconsax.edit, 'Mis à jour',
+                      _detailRow(context, Iconsax.edit, context.l10n.updatedOn,
                           '${e.updatedAt.day.toString().padLeft(2, '0')}/${e.updatedAt.month.toString().padLeft(2, '0')}/${e.updatedAt.year}'),
                     ]),
                   ],
@@ -1169,14 +1169,12 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer l\'établissement'),
-        content: Text(
-          'Supprimer « ${e.name} » ?\n\nCette action est irréversible.',
-        ),
+        title: Text(context.l10n.deleteEstablishmentTitle),
+        content: Text(context.l10n.deleteEstablishmentConfirm(e.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1189,7 +1187,7 @@ class _AdminEstablishmentsPageState extends State<AdminEstablishmentsPage> {
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -1214,7 +1212,7 @@ class _FilterBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Filtres',
+                context.l10n.filters,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1226,13 +1224,13 @@ class _FilterBottomSheet extends StatelessWidget {
                       .add(const AdminEstablishmentsLoad());
                   Navigator.pop(context);
                 },
-                child: const Text('Réinitialiser'),
+                child: Text(context.l10n.resetFilters),
               ),
             ],
           ),
           const SizedBox(height: AppDimens.paddingL),
           Text(
-            'Statut',
+            context.l10n.statusLabel,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -1243,7 +1241,7 @@ class _FilterBottomSheet extends StatelessWidget {
             runSpacing: AppDimens.paddingS,
             children: [
               FilterChip(
-                label: const Text('Tous'),
+                label: Text(context.l10n.filterAll),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminEstablishmentsBloc>().add(
@@ -1252,7 +1250,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('En attente'),
+                label: Text(context.l10n.filterPending),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminEstablishmentsBloc>().add(
@@ -1262,7 +1260,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Actifs'),
+                label: Text(context.l10n.filterActive),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminEstablishmentsBloc>().add(
@@ -1272,7 +1270,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Rejetés'),
+                label: Text(context.l10n.filterRejected),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminEstablishmentsBloc>().add(
@@ -1282,7 +1280,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Suspendus'),
+                label: Text(context.l10n.filterSuspended),
                 selected: false,
                 onSelected: (_) {
                   context.read<AdminEstablishmentsBloc>().add(
@@ -1551,8 +1549,8 @@ class _EstablishmentCard extends StatelessWidget {
                                   padding: EdgeInsets.zero,
                                 ),
                                 tooltip: establishment.partner != null
-                                    ? 'Changer de partenaire'
-                                    : 'Associer un partenaire',
+                                    ? context.l10n.changePartner
+                                    : context.l10n.assignPartner,
                               ),
                             ],
                             if (onToggleFeatured != null) ...[
@@ -1576,8 +1574,8 @@ class _EstablishmentCard extends StatelessWidget {
                                   padding: EdgeInsets.zero,
                                 ),
                                 tooltip: establishment.isFeatured
-                                    ? 'Retirer de la une'
-                                    : 'Mettre à la une',
+                                    ? context.l10n.removeFeatured
+                                    : context.l10n.setAsFeatured,
                               ),
                             ],
                             if (onFeaturedPayment != null) ...[
@@ -1615,12 +1613,12 @@ class _EstablishmentCard extends StatelessWidget {
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Iconsax.close_circle, size: 15),
-                                    SizedBox(width: 4),
-                                    Text('Rejeter'),
+                                    const Icon(Iconsax.close_circle, size: 15),
+                                    const SizedBox(width: 4),
+                                    Text(context.l10n.reject),
                                   ],
                                 ),
                               ),
@@ -1640,12 +1638,12 @@ class _EstablishmentCard extends StatelessWidget {
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Iconsax.tick_circle, size: 15),
-                                    SizedBox(width: 4),
-                                    Text('Approuver'),
+                                    const Icon(Iconsax.tick_circle, size: 15),
+                                    const SizedBox(width: 4),
+                                    Text(context.l10n.approve),
                                   ],
                                 ),
                               ),
@@ -1740,7 +1738,7 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Associer un partenaire',
+                  context.l10n.assignPartner,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -1755,7 +1753,7 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Rechercher un partenaire...',
+                    hintText: context.l10n.searchPartner,
                     prefixIcon: const Icon(Iconsax.search_normal, size: 18),
                     filled: true,
                     fillColor: AppColors.grey100,
@@ -1775,7 +1773,7 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
           if (widget.establishment.partner != null)
             ListTile(
               leading: const Icon(Icons.link_off, color: AppColors.error),
-              title: const Text('Détacher le partenaire actuel'),
+              title: Text(context.l10n.detachCurrentPartner),
               textColor: AppColors.error,
               onTap: () {
                 Navigator.pop(context);
@@ -1789,7 +1787,7 @@ class _AssignPartnerSheetState extends State<_AssignPartnerSheet> {
                     child: CircularProgressIndicator(
                         color: AppColors.primaryGreen))
                 : _partners.isEmpty
-                    ? const Center(child: Text('Aucun partenaire trouvé'))
+                    ? Center(child: Text(context.l10n.noPartnerFound))
                     : ListView.builder(
                         controller: controller,
                         itemCount: _partners.length,

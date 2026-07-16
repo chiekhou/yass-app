@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -46,6 +47,8 @@ class CategoryFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final activeCategories = categories.where((c) => c.isActive).toList();
     return Column(
       children: [
         // Handle
@@ -66,15 +69,15 @@ class CategoryFilterSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Catégorie',
+                context.l10n.categoryFilter,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.scaffoldBackground),
               ),
               if (selectedCategoryId != null)
                 TextButton(
                   onPressed: () => onSelected(null),
-                  child: const Text('Effacer'),
+                  child: Text(context.l10n.clearFilters),
                 ),
             ],
           ),
@@ -82,13 +85,13 @@ class CategoryFilterSheet extends StatelessWidget {
 
         const Divider(),
 
-        // Categories list
+        // Categories list (inactive categories hidden)
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: AppDimens.paddingS),
-            itemCount: categories.length,
+            itemCount: activeCategories.length,
             itemBuilder: (context, index) {
-              final category = categories[index];
+              final category = activeCategories[index];
               final isSelected = category.id == selectedCategoryId;
 
               return ListTile(
@@ -122,10 +125,13 @@ class CategoryFilterSheet extends StatelessWidget {
                         ),
                 ),
                 title: Text(
-                  category.name,
+                  category.localizedName(lang),
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected ? AppColors.primaryGreen : null,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected
+                        ? AppColors.primaryGreen
+                        : AppColors.scaffoldBackground,
                   ),
                 ),
                 trailing: isSelected
@@ -182,6 +188,7 @@ class CommuneFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
     return Column(
       children: [
         Container(
@@ -199,15 +206,15 @@ class CommuneFilterSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Commune',
+                context.l10n.commune,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.scaffoldBackground),
               ),
               if (selectedCommuneId != null)
                 TextButton(
                   onPressed: () => onSelected(null),
-                  child: const Text('Effacer'),
+                  child: Text(context.l10n.clearFilters),
                 ),
             ],
           ),
@@ -233,21 +240,29 @@ class CommuneFilterSheet extends StatelessWidget {
                   ),
                   child: Icon(
                     Iconsax.location,
-                    color: isSelected ? AppColors.primaryGreen : AppColors.grey500,
+                    color:
+                        isSelected ? AppColors.primaryGreen : AppColors.grey500,
                   ),
                 ),
                 title: Text(
-                  commune.name,
+                  commune.localizedName(lang),
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected ? AppColors.primaryGreen : null,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected
+                        ? AppColors.primaryGreen
+                        : AppColors.scaffoldBackground,
                   ),
                 ),
                 subtitle: commune.postalCode != null
-                    ? Text(commune.postalCode!, style: const TextStyle(fontSize: 12))
+                    ? Text(
+                        commune.postalCode!,
+                        style: const TextStyle(fontSize: 12, color: AppColors.scaffoldBackground),
+                      )
                     : null,
                 trailing: isSelected
-                    ? const Icon(Iconsax.tick_circle5, color: AppColors.primaryGreen)
+                    ? const Icon(Iconsax.tick_circle5,
+                        color: AppColors.primaryGreen)
                     : null,
               );
             },
@@ -299,6 +314,7 @@ class SubcategoryFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
     return Column(
       children: [
         Container(
@@ -316,15 +332,15 @@ class SubcategoryFilterSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Sous-catégorie',
+                context.l10n.subcategoryLabel,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.scaffoldBackground),
               ),
               if (selectedSubcategoryId != null)
                 TextButton(
                   onPressed: () => onSelected(null),
-                  child: const Text('Effacer'),
+                  child: Text(context.l10n.clearFilters),
                 ),
             ],
           ),
@@ -350,17 +366,18 @@ class SubcategoryFilterSheet extends StatelessWidget {
                   ),
                   child: Icon(
                     Iconsax.category_2,
-                    color: isSelected
-                        ? AppColors.primaryGreen
-                        : AppColors.grey500,
+                    color:
+                        isSelected ? AppColors.primaryGreen : AppColors.grey500,
                   ),
                 ),
                 title: Text(
-                  sub.name,
+                  sub.localizedName(lang),
                   style: TextStyle(
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected ? AppColors.primaryGreen : null,
+                    color: isSelected
+                        ? AppColors.primaryGreen
+                        : AppColors.scaffoldBackground,
                   ),
                 ),
                 trailing: isSelected
@@ -423,10 +440,13 @@ class _WilayaFilterSheetState extends State<WilayaFilterSheet> {
   final _searchController = TextEditingController();
   List<Wilaya> _filteredWilayas = [];
 
+  late final List<Wilaya> _activeWilayas;
+
   @override
   void initState() {
     super.initState();
-    _filteredWilayas = widget.wilayas;
+    _activeWilayas = widget.wilayas.where((w) => w.isActive).toList();
+    _filteredWilayas = _activeWilayas;
   }
 
   @override
@@ -438,9 +458,9 @@ class _WilayaFilterSheetState extends State<WilayaFilterSheet> {
   void _filterWilayas(String query) {
     setState(() {
       if (query.isEmpty) {
-        _filteredWilayas = widget.wilayas;
+        _filteredWilayas = _activeWilayas;
       } else {
-        _filteredWilayas = widget.wilayas
+        _filteredWilayas = _activeWilayas
             .where((w) =>
                 w.name.toLowerCase().contains(query.toLowerCase()) ||
                 w.code.contains(query))
@@ -451,6 +471,7 @@ class _WilayaFilterSheetState extends State<WilayaFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
     return Column(
       children: [
         // Handle
@@ -471,15 +492,15 @@ class _WilayaFilterSheetState extends State<WilayaFilterSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Wilaya',
+                context.l10n.wilaya,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.scaffoldBackground),
               ),
               if (widget.selectedWilayaId != null)
                 TextButton(
                   onPressed: () => widget.onSelected(null),
-                  child: const Text('Effacer'),
+                  child: Text(context.l10n.clearFilters),
                 ),
             ],
           ),
@@ -492,7 +513,7 @@ class _WilayaFilterSheetState extends State<WilayaFilterSheet> {
             controller: _searchController,
             onChanged: _filterWilayas,
             decoration: InputDecoration(
-              hintText: 'Rechercher une wilaya...',
+              hintText: context.l10n.searchWilayaHint,
               prefixIcon: const Icon(Iconsax.search_normal, size: 20),
               filled: true,
               fillColor: AppColors.grey100,
@@ -537,15 +558,18 @@ class _WilayaFilterSheetState extends State<WilayaFilterSheet> {
                       fontWeight: FontWeight.bold,
                       color: isSelected
                           ? AppColors.primaryGreen
-                          : AppColors.grey600,
+                          : AppColors.scaffoldBackground,
                     ),
                   ),
                 ),
                 title: Text(
-                  wilaya.name,
+                  wilaya.localizedName(lang),
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected ? AppColors.primaryGreen : null,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected
+                        ? AppColors.primaryGreen
+                        : AppColors.scaffoldBackground,
                   ),
                 ),
                 trailing: isSelected
@@ -614,15 +638,15 @@ class RatingFilterSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Note minimum',
+                context.l10n.filterMinRating,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.scaffoldBackground),
               ),
               if (selectedRating != null)
                 TextButton(
                   onPressed: () => onSelected(null),
-                  child: const Text('Effacer'),
+                  child: Text(context.l10n.clearFilters),
                 ),
             ],
           ),
@@ -650,10 +674,12 @@ class RatingFilterSheet extends StatelessWidget {
                 }),
               ),
               title: Text(
-                '$rating et plus',
+                context.l10n.ratingAndAbove(rating.toString()),
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? AppColors.primaryGreen : null,
+                  color: isSelected
+                      ? AppColors.primaryGreen
+                      : AppColors.scaffoldBackground,
                 ),
               ),
               trailing: isSelected
@@ -706,10 +732,10 @@ class SortFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final options = [
-      (sortBy: null, sortOrder: null, label: 'Pertinence', icon: Iconsax.flash),
-      (sortBy: 'average_rating', sortOrder: 'desc', label: 'Mieux noté', icon: Iconsax.star),
-      (sortBy: 'name', sortOrder: 'asc', label: 'A → Z', icon: Iconsax.text_block),
-      (sortBy: 'created_at', sortOrder: 'desc', label: 'Plus récent', icon: Iconsax.clock),
+      (sortBy: null, sortOrder: null, label: context.l10n.sortRelevance, icon: Iconsax.flash),
+      (sortBy: 'average_rating', sortOrder: 'desc', label: context.l10n.sortBestRated, icon: Iconsax.star),
+      (sortBy: 'name', sortOrder: 'asc', label: context.l10n.sortAlphabetical, icon: Iconsax.text_block),
+      (sortBy: 'created_at', sortOrder: 'desc', label: context.l10n.sortRecentLabel, icon: Iconsax.clock),
     ];
 
     return Padding(
@@ -732,10 +758,10 @@ class SortFilterSheet extends StatelessWidget {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Trier par',
+              context.l10n.sortBy,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.scaffoldBackground),
             ),
           ),
 
@@ -759,14 +785,17 @@ class SortFilterSheet extends StatelessWidget {
                 child: Icon(
                   opt.icon,
                   size: 20,
-                  color: isSelected ? AppColors.primaryGreen : AppColors.grey500,
+                  color:
+                      isSelected ? AppColors.primaryGreen : AppColors.grey500,
                 ),
               ),
               title: Text(
                 opt.label,
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? AppColors.primaryGreen : null,
+                  color: isSelected
+                      ? AppColors.primaryGreen
+                      : AppColors.scaffoldBackground,
                 ),
               ),
               trailing: isSelected
@@ -814,10 +843,10 @@ class PriceFilterSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final priceRanges = [
-      ('\$', 'Économique'),
-      ('\$\$', 'Modéré'),
-      ('\$\$\$', 'Élevé'),
-      ('\$\$\$\$', 'Luxe'),
+      ('\$', context.l10n.priceEconomicalLabel),
+      ('\$\$', context.l10n.priceModerateLabel),
+      ('\$\$\$', context.l10n.priceHighLabel),
+      ('\$\$\$\$', context.l10n.priceLuxuryLabel),
     ];
 
     return Padding(
@@ -841,15 +870,15 @@ class PriceFilterSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Gamme de prix',
+                context.l10n.priceRange,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.scaffoldBackground),
               ),
               if (selectedPriceRange != null)
                 TextButton(
                   onPressed: () => onSelected(null),
-                  child: const Text('Effacer'),
+                  child: Text(context.l10n.clearFilters),
                 ),
             ],
           ),
@@ -884,7 +913,9 @@ class PriceFilterSheet extends StatelessWidget {
                 price.$2,
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? AppColors.primaryGreen : null,
+                  color: isSelected
+                      ? AppColors.primaryGreen
+                      : AppColors.scaffoldBackground,
                 ),
               ),
               trailing: isSelected

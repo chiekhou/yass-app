@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../app_router.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -45,12 +46,12 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
           child: Padding(
             padding: const EdgeInsets.all(AppDimens.paddingXL),
             child: switch (_status) {
-              _Status.loading => const Column(
+              _Status.loading => Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: AppColors.primaryGreen),
-                    SizedBox(height: AppDimens.paddingL),
-                    Text('Vérification en cours...'),
+                    const CircularProgressIndicator(color: AppColors.primaryGreen),
+                    const SizedBox(height: AppDimens.paddingL),
+                    Text(context.l10n.verifying),
                   ],
                 ),
               _Status.success => Column(
@@ -139,7 +140,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                               BorderRadius.circular(AppDimens.radiusM),
                         ),
                       ),
-                      child: const Text('Retour à la connexion'),
+                      child: Text(context.l10n.backToLogin),
                     ),
                   ],
                 ),

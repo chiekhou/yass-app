@@ -29,6 +29,22 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING(100),
         allowNull: true,
       },
+      name_de: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      name_es: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      name_it: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+      name_nl: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
       slug: {
         type: DataTypes.STRING(120),
         allowNull: false,

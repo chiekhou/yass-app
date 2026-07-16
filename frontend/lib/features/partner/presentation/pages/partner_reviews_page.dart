@@ -3,6 +3,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/l10n_extensions.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/api_config.dart';
 import '../../../../core/network/api_client.dart';
@@ -108,20 +109,20 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Répondre à l\'avis'),
+        title: Text(context.l10n.replyToReview),
         content: TextField(
           controller: controller,
           maxLines: 4,
-          decoration: const InputDecoration(
-            hintText: 'Votre réponse...',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: context.l10n.replyHint,
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
@@ -129,7 +130,7 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
               backgroundColor: AppColors.primaryGreen,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Publier'),
+            child: Text(context.l10n.publishReply),
           ),
         ],
       ),
@@ -148,8 +149,8 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réponse publiée'),
+          SnackBar(
+            content: Text(context.l10n.replyPublished),
             backgroundColor: AppColors.success,
           ),
         );
@@ -175,7 +176,7 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
-        title: const Text('Mes avis'),
+        title: Text(context.l10n.myReviews),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu),
@@ -210,7 +211,7 @@ class _PartnerReviewsPageState extends State<PartnerReviewsPage> {
             const SizedBox(height: AppDimens.paddingM),
             ElevatedButton(
               onPressed: _load,
-              child: const Text('Réessayer'),
+              child: Text(context.l10n.retry),
             ),
           ],
         ),

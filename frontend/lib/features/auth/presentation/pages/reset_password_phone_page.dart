@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -124,8 +125,8 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
       listener: (context, state) {
         if (state is AuthResetPasswordByPhoneSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Mot de passe réinitialisé avec succès !'),
+            SnackBar(
+              content: Text(context.l10n.passwordResetSuccess),
               backgroundColor: AppColors.success,
             ),
           );
@@ -249,8 +250,8 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
               borderRadius: BorderRadius.circular(AppDimens.radiusM),
             ),
           ),
-          child: const Text('Vérifier le code',
-              style: TextStyle(
+          child: Text(context.l10n.verifyCode,
+              style: const TextStyle(
                   fontSize: AppDimens.fontL,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFFE0E0E0))),
@@ -263,8 +264,8 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
                   onPressed: _onResend,
                   icon: const Icon(Iconsax.refresh,
                       size: 18, color: AppColors.primaryGreen),
-                  label: const Text('Renvoyer le code',
-                      style: TextStyle(
+                  label: Text(context.l10n.resendCode,
+                      style: const TextStyle(
                           color: AppColors.primaryGreen,
                           fontWeight: FontWeight.w600)),
                 )
@@ -433,8 +434,8 @@ class _ResetPasswordPhonePageState extends State<ResetPasswordPhonePage> {
                 borderRadius: BorderRadius.circular(AppDimens.radiusM),
               ),
             ),
-            child: const Text('Réinitialiser le mot de passe',
-                style: TextStyle(
+            child: Text(context.l10n.resetPassword,
+                style: const TextStyle(
                     fontSize: AppDimens.fontL, fontWeight: FontWeight.w600)),
           ),
         ],

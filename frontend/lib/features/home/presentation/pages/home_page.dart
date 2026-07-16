@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.white),
             const SizedBox(height: AppDimens.paddingM),
-            Text('Erreur de chargement',
+            Text(context.l10n.loadingError,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: AppColors.white,
                     )),

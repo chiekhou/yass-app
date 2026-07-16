@@ -228,7 +228,7 @@ class _RegisterPartnerPageState extends State<RegisterPartnerPage> {
                   color: AppColors.greenDark,
                   onPressed: _currentStep > 0 ? _onBack : () => context.pop(),
                 ),
-                title: const Text('Devenir partenaire'),
+                title: Text(context.l10n.becomePartner),
               ),
               body: SafeArea(
                 child: Column(

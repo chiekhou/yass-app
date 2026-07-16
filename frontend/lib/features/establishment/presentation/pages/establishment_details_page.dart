@@ -8,10 +8,10 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/constants/api_config.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -51,9 +51,6 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
   bool _descriptionExpanded = false;
 
   // Map state
-  final MapController _mapController = MapController();
-  LatLng? _userLocation;
-  List<LatLng> _routePoints = [];
   double? _routeDistanceKm;
   int? _routeDrivingMin;
   bool _routeLoaded = false;
@@ -88,7 +85,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
       final destLatLng =
           LatLng(establishment.latitude!, establishment.longitude!);
 
-      // Affiche immédiatement le point utilisateur + ligne droite en fallback
+      // Distance à vol d'oiseau en fallback immédiat
       final straightDistanceM = const Distance().as(
         LengthUnit.Meter,
         userLatLng,
@@ -96,64 +93,45 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
       );
       if (mounted) {
         setState(() {
-          _userLocation = userLatLng;
-          _routePoints = [userLatLng, destLatLng];
           _routeDistanceKm = straightDistanceM / 1000;
-          _routeDrivingMin =
-              (straightDistanceM / 600).round(); // ~36 km/h ville
+          _routeDrivingMin = (straightDistanceM / 600).round();
         });
-        _fitMapBounds(userLatLng, destLatLng);
       }
 
-      // Tente OSRM pour un vrai tracé routier
+      // Tente OSRM pour distance/durée réelles
       try {
         final url = 'https://router.project-osrm.org/route/v1/driving/'
             '${pos.longitude},${pos.latitude};'
             '${establishment.longitude},${establishment.latitude}'
-            '?overview=full&geometries=geojson';
+            '?overview=false';
 
         final response = await Dio().get(url,
             options: Options(receiveTimeout: const Duration(seconds: 8)));
         final route = response.data['routes'][0];
         final distanceM = (route['distance'] as num).toDouble();
         final durationS = (route['duration'] as num).toDouble();
-        final coords = route['geometry']['coordinates'] as List;
-
-        final points = coords
-            .map((c) =>
-                LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()))
-            .toList();
 
         if (mounted) {
           setState(() {
-            _routePoints = points;
             _routeDistanceKm = distanceM / 1000;
             _routeDrivingMin = (durationS / 60).round();
           });
-          _fitMapBounds(userLatLng, destLatLng);
         }
       } catch (_) {
-        // OSRM indisponible — on garde la ligne droite
+        // OSRM indisponible — on garde la distance à vol d'oiseau
       }
     } catch (_) {
       // GPS indisponible
     }
   }
 
-  void _fitMapBounds(LatLng user, LatLng dest) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      try {
-        _mapController.fitCamera(
-          CameraFit.bounds(
-            bounds: LatLngBounds.fromPoints([user, dest]),
-            padding: const EdgeInsets.all(48),
-          ),
-        );
-      } catch (_) {
-        // Map not rendered (Infos tab inactive) — ignore
-      }
-    });
+  String _mapboxStaticUrl(double lat, double lng,
+      {int width = 600, int height = 220}) {
+    const token =
+        String.fromEnvironment('MAPBOX_PUBLIC_TOKEN', defaultValue: '');
+    final marker = 'pin-l+FF4444($lng,$lat)';
+    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/'
+        '$marker/$lng,$lat,15,0/${width}x${height}@2x?access_token=$token';
   }
 
   void _loadEstablishment() {
@@ -285,11 +263,11 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     fontWeight: FontWeight.w400,
                     fontSize: 14,
                   ),
-                  tabs: const [
-                    Tab(text: 'Aperçu'),
-                    Tab(text: 'Infos'),
-                    Tab(text: 'Avis'),
-                    Tab(text: 'Similaires'),
+                  tabs: [
+                    Tab(text: context.l10n.tabOverview),
+                    Tab(text: context.l10n.tabInfos),
+                    Tab(text: context.l10n.reviews),
+                    Tab(text: context.l10n.tabSimilar),
                   ],
                 ),
               ),
@@ -482,7 +460,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${establishment.displayRating} (${establishment.totalReviews} avis)',
+                            '${establishment.displayRating} ${context.l10n.reviewsCount(establishment.totalReviews)}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
@@ -519,7 +497,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                                   color: Colors.white, size: 14),
                               const SizedBox(width: 6),
                               Text(
-                                'Voir toutes les photos (${allPhotoItems.length})',
+                                context.l10n.seeAllPhotos(allPhotoItems.length),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -572,6 +550,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
   Widget _buildHeader(Establishment establishment) {
     final isOpen = OpeningHoursHelper.isOpenNow(establishment.openingHours);
+    final lang = Localizations.localeOf(context).languageCode;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -590,7 +569,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   borderRadius: BorderRadius.circular(AppDimens.radiusS),
                 ),
                 child: Text(
-                  establishment.category!.name,
+                  establishment.category!.localizedName(lang),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.primaryGreen,
                         fontWeight: FontWeight.w600,
@@ -707,7 +686,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             onTap: () {
               Clipboard.setData(ClipboardData(text: fullAddress));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Adresse copiée')),
+                SnackBar(content: Text(context.l10n.addressCopied)),
               );
             },
             trailingIcon: Icons.copy_rounded,
@@ -801,7 +780,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             color: AppColors.white,
             onTap: _isPremiumOrAbove(establishment)
                 ? () => _launchPhone(establishment.phone)
-                : () => _showLockedDialog(context, 'Appel téléphonique'),
+                : () => _showLockedDialog(context, context.l10n.call),
           ),
         ),
         const SizedBox(width: AppDimens.paddingM),
@@ -831,7 +810,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           Expanded(
             child: _ActionButton(
               icon: Iconsax.location_tick,
-              label: 'Position',
+              label: context.l10n.location,
               color: AppColors.primaryGreen,
               onTap: () => _shareLocation(establishment),
             ),
@@ -842,23 +821,44 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
   }
 
   Widget _buildContactButton(Establishment establishment) {
+    final isPremium = _isPremiumOrAbove(establishment);
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _showContactForm(establishment),
-        icon: const Icon(Iconsax.message_edit, color: AppColors.white),
-        label: const Text(
-          'Prise de contact',
-          style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w600),
-        ),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          side: const BorderSide(color: AppColors.white, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          ),
-        ),
-      ),
+      child: isPremium
+          ? OutlinedButton.icon(
+              onPressed: () => _showContactForm(establishment),
+              icon: const Icon(Iconsax.message_edit, color: AppColors.white),
+              label: Text(
+                context.l10n.contactRequest,
+                style: const TextStyle(
+                    color: AppColors.white, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppColors.white, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                ),
+              ),
+            )
+          : OutlinedButton.icon(
+              onPressed: () =>
+                  _showLockedDialog(context, context.l10n.contactRequest),
+              icon: const Icon(Icons.lock_rounded,
+                  color: AppColors.textHint, size: 18),
+              label: Text(
+                context.l10n.contactRequest,
+                style: const TextStyle(
+                    color: AppColors.textHint, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppColors.textHint, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                ),
+              ),
+            ),
     );
   }
 
@@ -910,7 +910,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'Prise de contact',
+                        context.l10n.contactRequest,
                         style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -924,29 +924,30 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                       const SizedBox(height: 20),
                       TextFormField(
                         controller: nameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Votre nom',
-                          prefixIcon: Icon(Iconsax.user),
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.yourName,
+                          prefixIcon: const Icon(Iconsax.user),
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Champ requis'
+                            ? context.l10n.fieldRequired
                             : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: emailCtrl,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Votre email',
-                          prefixIcon: Icon(Iconsax.sms),
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.yourEmail,
+                          prefixIcon: const Icon(Iconsax.sms),
+                          border: const OutlineInputBorder(),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Champ requis';
+                            return context.l10n.fieldRequired;
                           }
-                          if (!v.contains('@')) return 'Email invalide';
+                          if (!v.contains('@'))
+                            return context.l10n.invalidEmail;
                           return null;
                         },
                       ),
@@ -954,14 +955,14 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                       TextFormField(
                         controller: messageCtrl,
                         maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Votre message',
-                          prefixIcon: Icon(Iconsax.message_text),
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.yourMessage,
+                          prefixIcon: const Icon(Iconsax.message_text),
+                          border: const OutlineInputBorder(),
                           alignLabelWithHint: true,
                         ),
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Champ requis'
+                            ? context.l10n.fieldRequired
                             : null,
                       ),
                       const SizedBox(height: 20),
@@ -988,9 +989,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                                     if (mounted) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text(
-                                              'Votre demande a bien été envoyée !'),
+                                              context.l10n.contactRequestSent),
                                           backgroundColor:
                                               AppColors.accentGreen,
                                         ),
@@ -1001,9 +1002,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                                     if (mounted) {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text(
-                                              'Une erreur est survenue, réessayez.'),
+                                              context.l10n.contactRequestError),
                                           backgroundColor: AppColors.primaryRed,
                                         ),
                                       );
@@ -1027,9 +1028,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
-                                  'Envoyer',
-                                  style: TextStyle(
+                              : Text(
+                                  context.l10n.send,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -1188,7 +1189,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 hours,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: hours == 'Fermé' ? AppColors.error : null,
+                      color:
+                          hours == context.l10n.closed ? AppColors.error : null,
                     ),
               ),
             ],
@@ -1200,14 +1202,11 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
   }
 
   Widget _buildMapSection(Establishment establishment) {
-    final destLatLng =
-        LatLng(establishment.latitude!, establishment.longitude!);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Localisation',
+          context.l10n.location,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: AppDimens.paddingS),
@@ -1218,60 +1217,22 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           ),
           child: SizedBox(
             height: 220,
-            child: FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: destLatLng,
-                initialZoom: 14,
+            width: double.infinity,
+            child: Image.network(
+              _mapboxStaticUrl(
+                establishment.latitude!,
+                establishment.longitude!,
+                width: 600,
+                height: 220,
               ),
-              children: [
-                TileLayer(
-                  urlTemplate:
-                      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                  subdomains: const ['a', 'b', 'c', 'd'],
-                  userAgentPackageName: 'com.dz.win.app',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: const Color(0xFFE8E8E8),
+                child: const Center(
+                  child: Icon(Icons.map_outlined,
+                      size: 48, color: Color(0xFFAAAAAA)),
                 ),
-                if (_routePoints.isNotEmpty)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: _routePoints,
-                        strokeWidth: 4,
-                        color: Colors.blue,
-                      ),
-                    ],
-                  ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: destLatLng,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.location_pin,
-                        color: Colors.red,
-                        size: 40,
-                      ),
-                    ),
-                    if (_userLocation != null)
-                      Marker(
-                        point: _userLocation!,
-                        width: 20,
-                        height: 20,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black26, blurRadius: 4),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -1329,7 +1290,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     child: ElevatedButton.icon(
                       onPressed: () => _showDirectionsOptions(establishment),
                       icon: const Icon(Icons.navigation, size: 18),
-                      label: const Text('Itinéraire'),
+                      label: Text(context.l10n.directions),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accentGreen,
                         foregroundColor: Colors.white,
@@ -1344,11 +1305,11 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                           ClipboardData(text: establishment.address),
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Adresse copiée')),
+                          SnackBar(content: Text(context.l10n.addressCopied)),
                         );
                       },
                       icon: const Icon(Icons.copy, size: 18),
-                      label: const Text("Copier l'adresse"),
+                      label: Text(context.l10n.copyAddress),
                     ),
                   ),
                 ],
@@ -1387,8 +1348,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 )
               : _buildLockedContactRow(
                   Iconsax.global,
-                  'Site web',
-                  onTap: () => _showLockedDialog(context, 'Site web'),
+                  context.l10n.websiteLabel,
+                  onTap: () =>
+                      _showLockedDialog(context, context.l10n.websiteLabel),
                 ),
         if (establishment.facebook != null)
           _isPremiumOrAbove(establishment)
@@ -1495,7 +1457,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
   Widget _buildLockedReviewsSection() {
     return GestureDetector(
-      onTap: () => _showLockedDialog(context, 'Les avis clients'),
+      onTap: () => _showLockedDialog(context, context.l10n.customerReviews),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(AppDimens.paddingL),
@@ -1509,7 +1471,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             const Icon(Icons.lock_rounded, color: Colors.white24, size: 28),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Avis clients',
+              context.l10n.customerReviews,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white38,
                     fontWeight: FontWeight.w600,
@@ -1517,7 +1479,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             ),
             const SizedBox(height: 4),
             Text(
-              'Non disponible pour cet établissement',
+              context.l10n.notAvailableForEstab,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.white24,
                   ),
@@ -1529,14 +1491,18 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
   }
 
   String get _sortLabel {
-    if (_sortBy == 'rating' && _sortOrder == 'DESC') return 'Mieux notés';
-    if (_sortBy == 'rating' && _sortOrder == 'ASC') return 'Moins bien notés';
-    if (_sortBy == 'created_at' && _sortOrder == 'ASC') return 'Plus anciens';
-    return 'Plus récents';
+    if (_sortBy == 'rating' && _sortOrder == 'DESC')
+      return context.l10n.sortHighestRated;
+    if (_sortBy == 'rating' && _sortOrder == 'ASC')
+      return context.l10n.sortLowestRated;
+    if (_sortBy == 'created_at' && _sortOrder == 'ASC')
+      return context.l10n.sortOldest;
+    return context.l10n.sortMostRecent;
   }
 
-  String get _ratingLabel =>
-      _ratingFilter != null ? '$_ratingFilter étoiles' : 'Note';
+  String get _ratingLabel => _ratingFilter != null
+      ? context.l10n.nStars(_ratingFilter!)
+      : context.l10n.rating;
 
   void _reloadReviews() {
     _bloc.add(EstablishmentLoadReviews(
@@ -1592,10 +1558,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
   void _showSortSheet() {
     final options = [
-      ('Plus récents', 'created_at', 'DESC'),
-      ('Plus anciens', 'created_at', 'ASC'),
-      ('Mieux notés', 'rating', 'DESC'),
-      ('Moins bien notés', 'rating', 'ASC'),
+      (context.l10n.sortMostRecent, 'created_at', 'DESC'),
+      (context.l10n.sortOldest, 'created_at', 'ASC'),
+      (context.l10n.sortHighestRated, 'rating', 'DESC'),
+      (context.l10n.sortLowestRated, 'rating', 'ASC'),
     ];
     showModalBottomSheet(
       backgroundColor: AppColors.scaffoldBackground,
@@ -1639,10 +1605,11 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             );
           }),
           ListTile(
-            title: const Text(
-              'Avis d\'Élites',
+            title: Text(
+              context.l10n.eliteReviews,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.primaryGreen, fontSize: 16),
+              style:
+                  const TextStyle(color: AppColors.primaryGreen, fontSize: 16),
             ),
             trailing: _eliteOnly
                 ? const Icon(Icons.check, color: AppColors.primaryGreen)
@@ -1666,7 +1633,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Annuler'),
+                child: Text(context.l10n.cancel),
               ),
             ),
           ),
@@ -1697,7 +1664,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           const SizedBox(height: 8),
           ...[5, 4, 3, 2, 1].map((r) => ListTile(
                 title: Text(
-                  '$r étoiles',
+                  context.l10n.nStars(r),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                       color: AppColors.primaryGreen, fontSize: 16),
@@ -1712,10 +1679,11 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 },
               )),
           ListTile(
-            title: const Text(
-              'Tous les avis',
+            title: Text(
+              context.l10n.allReviews,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.primaryGreen, fontSize: 16),
+              style:
+                  const TextStyle(color: AppColors.primaryGreen, fontSize: 16),
             ),
             trailing: _ratingFilter == null
                 ? const Icon(Icons.check, color: AppColors.primaryGreen)
@@ -1739,7 +1707,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Annuler'),
+                child: Text(context.l10n.cancel),
               ),
             ),
           ),
@@ -1791,7 +1759,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
               ),
               const SizedBox(width: 8),
               _filterPill(
-                label: 'Avis d\'Élites',
+                label: context.l10n.eliteReviews,
                 hasChevron: false,
                 isActive: _eliteOnly,
                 onTap: () {
@@ -1816,10 +1784,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             children: [
               Text(
                 _eliteOnly && _ratingFilter != null
-                    ? 'Avis d\'Élites · $_ratingFilter étoiles'
+                    ? '${context.l10n.eliteReviews} · ${context.l10n.nStars(_ratingFilter!)}'
                     : _eliteOnly
-                        ? 'Avis d\'Élites'
-                        : '$_ratingFilter étoiles',
+                        ? context.l10n.eliteReviews
+                        : context.l10n.nStars(_ratingFilter!),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -1840,9 +1808,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text(
-                    'Effacer',
-                    style: TextStyle(
+                  child: Text(
+                    context.l10n.clearFilters,
+                    style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white,
                         fontWeight: FontWeight.w500),
@@ -2038,7 +2006,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     size: 13, color: AppColors.grey400),
                 const SizedBox(width: 4),
                 Text(
-                  'Visité le ${_formatDate(review.visitDate!)}',
+                  context.l10n.visitedOn(_formatDate(review.visitDate!)),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.grey500,
                       ),
@@ -2103,7 +2071,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             const Divider(height: 1, color: AppColors.grey200),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Notes détaillées',
+              context.l10n.detailedRatings,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.grey500,
                     fontWeight: FontWeight.w600,
@@ -2114,14 +2082,14 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             ...review.subRatings!.entries
                 .where((e) => e.value != null)
                 .map((e) {
-              const labels = {
-                'quality': 'Qualité',
-                'welcome': 'Accueil',
-                'information': 'Information',
-                'value': 'Qualité/prix',
-                'availability': 'Disponibilité',
-                'reliability': 'Fiabilité',
-                'comfort': 'Confort',
+              final labels = {
+                'quality': context.l10n.subRatingQuality,
+                'welcome': context.l10n.subRatingWelcome,
+                'information': context.l10n.subRatingInformation,
+                'value': context.l10n.subRatingValue,
+                'availability': context.l10n.subRatingAvailability,
+                'reliability': context.l10n.subRatingReliability,
+                'comfort': context.l10n.subRatingComfort,
               };
               final label = labels[e.key] ?? e.key;
               final val = (e.value as num).toInt();
@@ -2257,7 +2225,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         size: 14, color: AppColors.grey400),
                     const SizedBox(width: 4),
                     Text(
-                      'Signaler',
+                      context.l10n.report,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.grey400,
                           ),
@@ -2347,34 +2315,21 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
     final difference = now.difference(date);
 
     if (difference.inDays > 365) {
-      return 'il y a ${difference.inDays ~/ 365} an${difference.inDays ~/ 365 > 1 ? 's' : ''}';
+      return context.l10n.timeAgoYears(difference.inDays ~/ 365);
     } else if (difference.inDays > 30) {
-      return 'il y a ${difference.inDays ~/ 30} mois';
+      return context.l10n.timeAgoMonths(difference.inDays ~/ 30);
     } else if (difference.inDays > 0) {
-      return 'il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}';
+      return context.l10n.timeAgoDays(difference.inDays);
     } else if (difference.inHours > 0) {
-      return 'il y a ${difference.inHours}h';
+      return context.l10n.timeAgoHours(difference.inHours);
     } else {
-      return 'à l\'instant';
+      return context.l10n.timeAgoJustNow;
     }
   }
 
   String _formatDate(DateTime date) {
-    const months = [
-      'jan',
-      'fév',
-      'mar',
-      'avr',
-      'mai',
-      'juin',
-      'juil',
-      'août',
-      'sep',
-      'oct',
-      'nov',
-      'déc'
-    ];
-    return '${date.day} ${months[date.month - 1]}. ${date.year}';
+    final locale = Localizations.localeOf(context).languageCode;
+    return DateFormat('d MMM. yyyy', locale).format(date);
   }
 
   // ==================== HEADER CONTENT ====================
@@ -2396,7 +2351,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           Row(
             children: [
               Text(
-                isOpen ? 'Ouvert' : 'Fermé',
+                isOpen ? context.l10n.open : context.l10n.closed,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -2405,9 +2360,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
               ),
               if (establishment.openingHours != null) ...[
                 const SizedBox(width: 4),
-                const Text(
-                  '· Voir les horaires',
-                  style: TextStyle(fontSize: 14, color: AppColors.primaryGreen),
+                Text(
+                  context.l10n.seeHours,
+                  style: const TextStyle(
+                      fontSize: 14, color: AppColors.primaryGreen),
                 ),
               ],
             ],
@@ -2419,11 +2375,11 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
               children: [
                 _buildHeaderActionButton(
                   icon: Iconsax.star,
-                  label: 'Ajouter un avis',
+                  label: context.l10n.addReview,
                   filled: true,
                   onTap: () {
                     if (!_isPremiumOrAbove(establishment)) {
-                      _showLockedDialog(context, 'Les avis clients');
+                      _showLockedDialog(context, context.l10n.customerReviews);
                       return;
                     }
                     final authState = context.read<AuthBloc>().state;
@@ -2450,7 +2406,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 if (establishment.hasWebsite) ...[
                   _buildHeaderActionButton(
                     icon: Iconsax.global,
-                    label: 'Site internet',
+                    label: context.l10n.website,
                     filled: false,
                     onTap: () => _launchUrl(establishment.website!),
                   ),
@@ -2459,25 +2415,24 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 if (establishment.phone.isNotEmpty) ...[
                   _buildHeaderActionButton(
                     icon: Iconsax.call,
-                    label: 'Appeler',
+                    label: context.l10n.call,
                     filled: false,
                     onTap: _isPremiumOrAbove(establishment)
                         ? () => _launchPhone(establishment.phone)
-                        : () =>
-                            _showLockedDialog(context, 'Appel téléphonique'),
+                        : () => _showLockedDialog(context, context.l10n.call),
                   ),
                   const SizedBox(width: 8),
                 ],
                 _buildHeaderActionButton(
                   icon: Iconsax.routing,
-                  label: 'Itinéraire',
+                  label: context.l10n.directions,
                   filled: false,
                   onTap: () => _showDirectionsOptions(establishment),
                 ),
                 const SizedBox(width: 8),
                 _buildHeaderActionButton(
                   icon: Iconsax.share,
-                  label: 'Partager',
+                  label: context.l10n.share,
                   filled: false,
                   onTap: () => _shareEstablishment(establishment),
                 ),
@@ -2519,7 +2474,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          isFavorited ? 'Favori ✓' : 'Favoris',
+                          isFavorited
+                              ? context.l10n.favorited
+                              : context.l10n.favorites,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -2585,9 +2542,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Recommander cet établissement ?',
-          style: TextStyle(
+        Text(
+          context.l10n.recommendQuestion,
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: Colors.black87,
@@ -2597,19 +2554,19 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
         Row(
           children: [
             _buildRecommendButton(
-              label: 'Oui',
+              label: context.l10n.yes,
               icon: Icons.thumb_up_outlined,
               onTap: () => _onRecommend(establishment, rating: null),
             ),
             const SizedBox(width: 8),
             _buildRecommendButton(
-              label: 'Non',
+              label: context.l10n.no,
               icon: Icons.thumb_down_outlined,
               onTap: () => _onRecommend(establishment, rating: 1),
             ),
             const SizedBox(width: 8),
             _buildRecommendButton(
-              label: 'Peut-être',
+              label: context.l10n.maybe,
               icon: isFavorited ? Icons.bookmark : Icons.bookmark_border,
               activeColor: isFavorited ? AppColors.primaryGreen : null,
               onTap: () => _onMaybe(establishment, isFavorited),
@@ -2642,8 +2599,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
       SnackBar(
         content: Text(
           isFavorited
-              ? 'Retiré de vos favoris'
-              : 'Ajouté à vos favoris ! Revenez quand vous voulez 😊',
+              ? context.l10n.removedFromFavorites
+              : context.l10n.addedToFavorites,
         ),
         backgroundColor:
             isFavorited ? AppColors.grey700 : AppColors.primaryGreen,
@@ -2706,7 +2663,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
         children: [
           // ── Informations rapides ──
           _buildApercuSection(
-            title: 'Informations',
+            title: context.l10n.informationSection,
             child: Column(
               children: [
                 if (establishment.phone.isNotEmpty)
@@ -2715,8 +2672,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     label: establishment.formattedPhone ?? establishment.phone,
                     onTap: isPremium
                         ? () => _launchPhone(establishment.phone)
-                        : () =>
-                            _showLockedDialog(context, 'Appel téléphonique'),
+                        : () => _showLockedDialog(context, context.l10n.call),
                     locked: !isPremium,
                     isFirst: true,
                     isLast:
@@ -2729,7 +2685,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     label: establishment.website!,
                     onTap: isPremium
                         ? () => _launchUrl(establishment.website!)
-                        : () => _showLockedDialog(context, 'Site web'),
+                        : () => _showLockedDialog(
+                            context, context.l10n.websiteLabel),
                     locked: !isPremium,
                     isFirst: establishment.phone.isEmpty,
                     isLast: !establishment.hasEmail,
@@ -2796,7 +2753,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           // ── Carte miniature + adresse ──
           if (establishment.hasCoordinates)
             _buildApercuSection(
-              title: 'Localisation',
+              title: context.l10n.location,
               child: Column(
                 children: [
                   ClipRRect(
@@ -2804,36 +2761,22 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         const BorderRadius.vertical(top: Radius.circular(12)),
                     child: SizedBox(
                       height: 160,
-                      child: FlutterMap(
-                        mapController: _mapController,
-                        options: MapOptions(
-                          initialCenter: LatLng(establishment.latitude!,
-                              establishment.longitude!),
-                          initialZoom: 14,
-                          interactionOptions: const InteractionOptions(
-                            flags: InteractiveFlag.none,
+                      width: double.infinity,
+                      child: Image.network(
+                        _mapboxStaticUrl(
+                          establishment.latitude!,
+                          establishment.longitude!,
+                          width: 600,
+                          height: 160,
+                        ),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFFE8E8E8),
+                          child: const Center(
+                            child: Icon(Icons.map_outlined,
+                                size: 40, color: Color(0xFFAAAAAA)),
                           ),
                         ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                            subdomains: const ['a', 'b', 'c', 'd'],
-                            userAgentPackageName: 'com.dz.win.app',
-                          ),
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: LatLng(establishment.latitude!,
-                                    establishment.longitude!),
-                                width: 40,
-                                height: 40,
-                                child: const Icon(Icons.location_pin,
-                                    color: Colors.red, size: 40),
-                              ),
-                            ],
-                          ),
-                        ],
                       ),
                     ),
                   ),
@@ -2855,7 +2798,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                                     size: 16, color: Colors.black54),
                                 const SizedBox(width: 6),
                                 Text(
-                                  '$_routeDrivingMin min en voiture',
+                                  context.l10n
+                                      .drivingMinutes(_routeDrivingMin!),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
@@ -2878,7 +2822,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                           onTap: () {
                             Clipboard.setData(ClipboardData(text: fullAddress));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Adresse copiée')),
+                              SnackBar(
+                                  content: Text(context.l10n.addressCopied)),
                             );
                           },
                           locked: false,
@@ -2888,7 +2833,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         const Divider(height: 1, indent: 48),
                         _buildApercuRow(
                           icon: Iconsax.routing,
-                          label: 'Voir l\'itinéraire',
+                          label: context.l10n.seeDirections,
                           onTap: () => _showDirectionsOptions(establishment),
                           locked: false,
                           isFirst: false,
@@ -2904,31 +2849,55 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
           const SizedBox(height: 16),
 
-          // ── Prise de contact ──
+          // ── Prise de contact (premium & gold uniquement) ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showContactForm(establishment),
-                icon: const Icon(Iconsax.message_edit,
-                    color: AppColors.primaryGreen),
-                label: const Text(
-                  'Prise de contact',
-                  style: TextStyle(
-                    color: AppColors.primaryGreen,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(
-                      color: AppColors.primaryGreen, width: 1.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                  ),
-                ),
-              ),
+              child: isPremium
+                  ? OutlinedButton.icon(
+                      onPressed: () => _showContactForm(establishment),
+                      icon: const Icon(Iconsax.message_edit,
+                          color: AppColors.primaryGreen),
+                      label: Text(
+                        context.l10n.contactRequest,
+                        style: const TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(
+                            color: AppColors.primaryGreen, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusM),
+                        ),
+                      ),
+                    )
+                  : OutlinedButton.icon(
+                      onPressed: () => _showLockedDialog(
+                          context, context.l10n.contactRequest),
+                      icon: const Icon(Icons.lock_rounded,
+                          color: AppColors.textHint, size: 18),
+                      label: Text(
+                        context.l10n.contactRequest,
+                        style: const TextStyle(
+                          color: AppColors.textHint,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(
+                            color: AppColors.textHint, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppDimens.radiusM),
+                        ),
+                      ),
+                    ),
             ),
           ),
 
@@ -2951,22 +2920,22 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                       builder: (ctx) => AlertDialog(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16)),
-                        title: const Row(
+                        title: Row(
                           children: [
-                            Icon(Iconsax.profile_circle, size: 20),
-                            SizedBox(width: 8),
-                            Text('Connexion requise',
-                                style: TextStyle(fontSize: 16)),
+                            const Icon(Iconsax.profile_circle, size: 20),
+                            const SizedBox(width: 8),
+                            Text(context.l10n.connect,
+                                style: const TextStyle(fontSize: 16)),
                           ],
                         ),
-                        content: const Text(
-                          'Connectez-vous pour revendiquer cet établissement et accéder aux offres partenaires.',
-                          style: TextStyle(height: 1.5),
+                        content: Text(
+                          context.l10n.loginToClaimBusiness,
+                          style: const TextStyle(height: 1.5),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx),
-                            child: const Text('Annuler'),
+                            child: Text(context.l10n.cancel),
                           ),
                           ElevatedButton(
                             onPressed: () {
@@ -2975,8 +2944,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                             },
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primaryGreen),
-                            child: const Text('Se connecter',
-                                style: TextStyle(color: AppColors.white)),
+                            child: Text(context.l10n.signIn,
+                                style: const TextStyle(color: AppColors.white)),
                           ),
                         ],
                       ),
@@ -3006,9 +2975,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Vous possédez cet établissement ?',
-                              style: TextStyle(
+                            Text(
+                              context.l10n.ownThisPlace,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -3016,7 +2985,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Revendiquez-le dès maintenant',
+                              context.l10n.claimNow,
                               style: TextStyle(
                                   fontSize: 13, color: AppColors.grey600),
                             ),
@@ -3123,8 +3092,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
   Widget _buildInfosTab(Establishment establishment) {
     final fullAddress = _buildFullAddress(establishment);
     final authState = context.read<AuthBloc>().state;
-    final userName =
-        authState is AuthAuthenticated ? authState.user.fullName : 'Vous';
+    final userName = authState is AuthAuthenticated
+        ? authState.user.fullName
+        : context.l10n.youLabel;
 
     return SingleChildScrollView(
       key: const PageStorageKey('tab-infos'),
@@ -3137,61 +3107,22 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             ClipRRect(
               child: SizedBox(
                 height: 270,
-                child: FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: LatLng(
-                        establishment.latitude!, establishment.longitude!),
-                    initialZoom: 14,
+                width: double.infinity,
+                child: Image.network(
+                  _mapboxStaticUrl(
+                    establishment.latitude!,
+                    establishment.longitude!,
+                    width: 600,
+                    height: 270,
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                      subdomains: const ['a', 'b', 'c', 'd'],
-                      userAgentPackageName: 'com.dz.win.app',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFFE8E8E8),
+                    child: const Center(
+                      child: Icon(Icons.map_outlined,
+                          size: 48, color: Color(0xFFAAAAAA)),
                     ),
-                    if (_routePoints.isNotEmpty)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: _routePoints,
-                            strokeWidth: 4,
-                            color: Colors.blue,
-                          ),
-                        ],
-                      ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: LatLng(establishment.latitude!,
-                              establishment.longitude!),
-                          width: 40,
-                          height: 40,
-                          child: const Icon(Icons.location_pin,
-                              color: Colors.red, size: 40),
-                        ),
-                        if (_userLocation != null)
-                          Marker(
-                            point: _userLocation!,
-                            width: 20,
-                            height: 20,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.white, width: 3),
-                                boxShadow: const [
-                                  BoxShadow(
-                                      color: Colors.black26, blurRadius: 4),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -3208,7 +3139,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                               size: 18, color: Colors.black87),
                           const SizedBox(width: 6),
                           Text(
-                            '$_routeDrivingMin min en voiture',
+                            context.l10n.drivingMinutes(_routeDrivingMin!),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -3230,14 +3161,14 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: fullAddress));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Adresse copiée')),
+                        SnackBar(content: Text(context.l10n.addressCopied)),
                       );
                     },
                   ),
                   const Divider(height: 1, indent: 16),
                   _buildInfosRow(
                     icon: Iconsax.routing,
-                    label: 'Voir l\'itinéraire',
+                    label: context.l10n.seeDirections,
                     labelColor: AppColors.primaryGreen,
                     trailing: Iconsax.arrow_right_3,
                     onTap: () => _showDirectionsOptions(establishment),
@@ -3255,7 +3186,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   establishment.services!.isNotEmpty) ||
               (establishment.amenities != null &&
                   establishment.amenities!.isNotEmpty)) ...[
-            _buildInfosBlockTitle('Fonctionnalités'),
+            _buildInfosBlockTitle(context.l10n.features),
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -3263,11 +3194,13 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 children: [
                   if (establishment.services != null)
                     ...establishment.services!.map(
-                      (s) => _buildFeatureRow(Iconsax.tick_circle, s),
+                      (s) => _buildFeatureRow(
+                          Iconsax.tick_circle, _localizedFeatureLabel(s)),
                     ),
                   if (establishment.amenities != null)
                     ...establishment.amenities!.map(
-                      (a) => _buildFeatureRow(Iconsax.star, a),
+                      (a) => _buildFeatureRow(
+                          Iconsax.star, _localizedFeatureLabel(a)),
                     ),
                 ],
               ),
@@ -3279,7 +3212,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
           // ── Horaires d'ouverture ──
           if (establishment.openingHours != null) ...[
-            _buildInfosBlockTitle('Horaires d\'ouverture'),
+            _buildInfosBlockTitle(context.l10n.openingHours),
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -3319,7 +3252,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           // ── À propos ──
           if (establishment.description != null &&
               establishment.description!.isNotEmpty) ...[
-            _buildInfosBlockTitle('À propos de cet établissement'),
+            _buildInfosBlockTitle(context.l10n.aboutThisPlace),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -3347,7 +3280,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          _descriptionExpanded ? 'Réduire' : 'Continuer à lire',
+                          _descriptionExpanded
+                              ? context.l10n.showLess
+                              : context.l10n.readMore,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -3366,7 +3301,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           ],
 
           // ── Laisser un avis (inline) ──
-          _buildInfosBlockTitle('Laisser un avis'),
+          _buildInfosBlockTitle(context.l10n.writeAReview),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
@@ -3409,7 +3344,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                       return GestureDetector(
                         onTap: () {
                           if (!_isPremiumOrAbove(establishment)) {
-                            _showLockedDialog(context, 'Les avis clients');
+                            _showLockedDialog(
+                                context, context.l10n.customerReviews);
                             return;
                           }
                           if (authState is! AuthAuthenticated) {
@@ -3445,7 +3381,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   GestureDetector(
                     onTap: () {
                       if (!_isPremiumOrAbove(establishment)) {
-                        _showLockedDialog(context, 'Les avis clients');
+                        _showLockedDialog(
+                            context, context.l10n.customerReviews);
                         return;
                       }
                       if (authState is! AuthAuthenticated) {
@@ -3474,10 +3411,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         color: const Color(0xFFF5F5F5),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Tapez pour écrire un avis...',
-                        style:
-                            TextStyle(fontSize: 14, color: AppColors.grey400),
+                      child: Text(
+                        context.l10n.writeReviewHint,
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.grey400),
                       ),
                     ),
                   ),
@@ -3488,7 +3425,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         child: GestureDetector(
                           onTap: () {
                             if (!_isPremiumOrAbove(establishment)) {
-                              _showLockedDialog(context, 'Les avis clients');
+                              _showLockedDialog(
+                                  context, context.l10n.customerReviews);
                               return;
                             }
                             if (authState is! AuthAuthenticated) {
@@ -3516,15 +3454,15 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                               color: const Color(0xFFF0F0F0),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Iconsax.camera,
+                                const Icon(Iconsax.camera,
                                     size: 18, color: Colors.black54),
-                                SizedBox(width: 6),
+                                const SizedBox(width: 6),
                                 Text(
-                                  'Ajouter une photo',
-                                  style: TextStyle(
+                                  context.l10n.addPhoto,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.black54,
@@ -3540,9 +3478,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         child: GestureDetector(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                   content:
-                                      Text('Check-In — bientôt disponible')),
+                                      Text(context.l10n.checkInComingSoon)),
                             );
                           },
                           child: Container(
@@ -3628,6 +3566,125 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
     );
   }
 
+  String _localizedFeatureLabel(String raw) {
+    final key = raw.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    final l = context.l10n;
+    return <String, String Function()>{
+      // ── Connectivité ──
+      'wifi': () => l.featureWifi,
+      'wi-fi': () => l.featureWifi,
+      'wifi gratuit': () => l.featureFreeWifi,
+      'wi-fi gratuit': () => l.featureFreeWifi,
+      // ── Parking ──
+      'parking': () => l.featureParking,
+      'parking couvert': () => l.featureCoveredParking,
+      'parking à proximité': () => l.featureNearbyParking,
+      'parking a proximite': () => l.featureNearbyParking,
+      // ── Restauration ──
+      'bar': () => l.featureBar,
+      'livraison': () => l.featureDelivery,
+      'livraison à domicile': () => l.featureDelivery,
+      'traiteur': () => l.featureCatering,
+      'commande en ligne': () => l.featureOnlineOrder,
+      'sur place': () => l.featureDineIn,
+      'à emporter': () => l.featureTakeaway,
+      'a emporter': () => l.featureTakeaway,
+      'drive': () => l.featureDrive,
+      // ── Paiement ──
+      'paiement en ligne': () => l.featureOnlinePayment,
+      'carte bancaire': () => l.featureCardPayment,
+      // ── Accessibilité ──
+      'accès pmr': () => l.featureDisabledAccess,
+      'acces pmr': () => l.featureDisabledAccess,
+      'accès handicapé': () => l.featureDisabledAccess,
+      'pmr': () => l.featureDisabledAccess,
+      // ── Réservation & services ──
+      'réservation': () => l.featureReservation,
+      'reservation': () => l.featureReservation,
+      'conseil': () => l.featureConsultation,
+      'assurance': () => l.featureInsurance,
+      'service voiturier': () => l.featureValet,
+      'voiturier': () => l.featureValet,
+      'blanchisserie': () => l.featureLaundry,
+      'pressing': () => l.featureLaundry,
+      'réception 24h/24': () => l.feature24hReception,
+      'reception 24h/24': () => l.feature24hReception,
+      'coffre-fort': () => l.featureSafe,
+      // ── Confort ──
+      'climatisation': () => l.featureAirConditioning,
+      'clim': () => l.featureAirConditioning,
+      'chauffage': () => l.featureHeating,
+      // ── Espaces ──
+      'terrasse': () => l.featureTerrace,
+      'jardin': () => l.featureGarden,
+      'piscine': () => l.featurePool,
+      'salle de sport': () => l.featureGym,
+      'gym': () => l.featureGym,
+      'fitness': () => l.featureFitness,
+      'tennis': () => l.featureTennis,
+      'espace enfants': () => l.featureKidsArea,
+      'jeux enfants': () => l.featureKidsArea,
+      'espace vip': () => l.featureVipArea,
+      'salle de prière': () => l.featurePrayerRoom,
+      'salle de priere': () => l.featurePrayerRoom,
+      'salle de conférence': () => l.featureConferenceRoom,
+      'salle de conference': () => l.featureConferenceRoom,
+      'vestiaires': () => l.featureChangingRooms,
+      'cuisine équipée': () => l.featureEquippedKitchen,
+      'cuisine equipee': () => l.featureEquippedKitchen,
+      // ── Fumeurs ──
+      'non-fumeur': () => l.featureNonSmoking,
+      'non fumeur': () => l.featureNonSmoking,
+      'espace fumeur': () => l.featureSmokingArea,
+      'zone fumeur': () => l.featureSmokingArea,
+      // ── Animaux ──
+      'animaux acceptés': () => l.featurePetsWelcome,
+      'animaux bienvenus': () => l.featurePetsWelcome,
+      // ── Vue ──
+      'vue mer': () => l.featureSeaView,
+      // ── Chambre / Hôtel ──
+      'service en chambre': () => l.featureRoomService,
+      // ── Événementiel ──
+      'location salle': () => l.featureHallRental,
+      'décoration': () => l.featureDecoration,
+      'decoration': () => l.featureDecoration,
+      'dj': () => l.featureDj,
+      'photographe': () => l.featurePhotographer,
+      'sonorisation': () => l.featureSoundSystem,
+      'sono': () => l.featureSoundSystem,
+      'vidéoprojecteur': () => l.featureProjector,
+      'videoprojecteur': () => l.featureProjector,
+      'animation': () => l.featureAnimation,
+      'spectacle': () => l.featureEntertainment,
+      // ── Bien-être ──
+      'spa': () => l.featureSpa,
+      'hammam': () => l.featureHammam,
+      'sauna': () => l.featureSauna,
+      'jacuzzi': () => l.featureJacuzzi,
+      'gommage': () => l.featureScrub,
+      'massage': () => l.featureMassage,
+      'soin visage': () => l.featureFacialTreatment,
+      'soins corps': () => l.featureBodyTreatment,
+      'manucure': () => l.featureManicure,
+      'pédicure': () => l.featurePedicure,
+      'pedicure': () => l.featurePedicure,
+      'épilation': () => l.featureWaxing,
+      'epilation': () => l.featureWaxing,
+      'maquillage': () => l.featureMakeup,
+      // ── Location ──
+      'location courte durée': () => l.featureShortTermRental,
+      'location courte duree': () => l.featureShortTermRental,
+      'location longue durée': () => l.featureLongTermRental,
+      'location longue duree': () => l.featureLongTermRental,
+      // ── Mobilité ──
+      'vélos disponibles': () => l.featureBicycles,
+      'velos disponibles': () => l.featureBicycles,
+      'borne de recharge': () => l.featureEVCharging,
+    }[key]
+        ?.call() ??
+        raw;
+  }
+
   Widget _buildFeatureRow(IconData icon, String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -3666,9 +3723,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Avis recommandés',
-                  style: TextStyle(
+                Text(
+                  context.l10n.recommendedReviews,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -3699,7 +3756,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                           ),
                         ),
                         Text(
-                          '$total avis',
+                          context.l10n.reviewsCount(total),
                           style: const TextStyle(
                               fontSize: 13, color: AppColors.white),
                         ),
@@ -3779,7 +3836,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   ),
                   const SizedBox(width: 8),
                   _filterPill(
-                    label: 'Avis d\'Élites',
+                    label: context.l10n.eliteReviews,
                     hasChevron: false,
                     isActive: _eliteOnly,
                     onTap: () {
@@ -3809,10 +3866,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                 children: [
                   Text(
                     _eliteOnly && _ratingFilter != null
-                        ? 'Avis d\'Élites · $_ratingFilter drapeaux'
+                        ? '${context.l10n.eliteReviews} · ${context.l10n.nStars(_ratingFilter!)}'
                         : _eliteOnly
-                            ? 'Avis d\'Élites'
-                            : '$_ratingFilter drapeaux',
+                            ? context.l10n.eliteReviews
+                            : context.l10n.nStars(_ratingFilter!),
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
@@ -3834,9 +3891,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                         color: const Color(0xFFEEEEEE),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'Effacer',
-                        style: TextStyle(
+                      child: Text(
+                        context.l10n.clearFilters,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.black54,
                           fontWeight: FontWeight.w500,
@@ -3910,12 +3967,12 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
   Widget _buildSimilairesTab(Establishment establishment) {
     if (establishment.category == null) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32),
+          padding: const EdgeInsets.all(32),
           child: Text(
-            'Aucun établissement similaire trouvé.',
-            style: TextStyle(color: AppColors.grey500, fontSize: 14),
+            context.l10n.noSimilarEstablishments,
+            style: const TextStyle(color: AppColors.grey500, fontSize: 14),
           ),
         ),
       );
@@ -3923,7 +3980,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
 
     // Initialise la future une seule fois par établissement pour éviter
     // de re-souscrire à chaque rebuild du BlocBuilder (cause des erreurs "unmounted")
-    if (_similarsFuture == null || _similarsEstablishmentId != establishment.id) {
+    if (_similarsFuture == null ||
+        _similarsEstablishmentId != establishment.id) {
       _similarsEstablishmentId = establishment.id;
       _similarsFuture = EstablishmentRepository()
           .getByCategory(establishment.category!.id, limit: 10)
@@ -3953,9 +4011,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                   const Icon(Iconsax.building_3,
                       size: 48, color: AppColors.grey300),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Aucun établissement similaire trouvé.',
-                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  Text(
+                    context.l10n.noSimilarEstablishments,
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -4093,7 +4151,7 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        isOpen ? 'Ouvert' : 'Fermé',
+                        isOpen ? context.l10n.open : context.l10n.closed,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -4257,17 +4315,18 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           children: [
             const Icon(Icons.lock_rounded, color: AppColors.grey500, size: 20),
             const SizedBox(width: 8),
-            const Text('Non disponible', style: TextStyle(fontSize: 16)),
+            Text(context.l10n.notAvailable,
+                style: const TextStyle(fontSize: 16)),
           ],
         ),
         content: Text(
-          '$featureName n\'est pas disponible pour cet établissement pour le moment.',
+          context.l10n.featureNotAvailable(featureName),
           style: const TextStyle(height: 1.5),
         ),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+            child: Text(context.l10n.ok),
           ),
         ],
       ),
@@ -4279,8 +4338,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
   void _showDirectionsOptions(Establishment establishment) {
     if (!establishment.hasCoordinates) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Coordonnées non disponibles pour cet établissement'),
+        SnackBar(
+          content: Text(context.l10n.coordinatesNotAvailable),
           backgroundColor: AppColors.error,
         ),
       );
@@ -4383,12 +4442,12 @@ class _DirectionsBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Ouvrir avec',
+              context.l10n.openWith,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Choisissez une application de navigation',
+              context.l10n.chooseNavApp,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.grey600,
                   ),
@@ -4398,7 +4457,7 @@ class _DirectionsBottomSheet extends StatelessWidget {
               context,
               icon: Icons.map,
               title: 'Google Maps',
-              subtitle: 'Navigation GPS',
+              subtitle: context.l10n.gpsNavigation,
               color: const Color(0xFF4285F4),
               onTap: () => _openGoogleMaps(context),
             ),
@@ -4407,7 +4466,7 @@ class _DirectionsBottomSheet extends StatelessWidget {
               context,
               icon: Icons.navigation,
               title: 'Waze',
-              subtitle: 'Navigation sociale',
+              subtitle: context.l10n.socialNavigation,
               color: const Color(0xFF33CCFF),
               onTap: () => _openWaze(context),
             ),
@@ -4416,7 +4475,7 @@ class _DirectionsBottomSheet extends StatelessWidget {
               context,
               icon: Icons.directions,
               title: 'Apple Plans',
-              subtitle: 'Navigation Apple',
+              subtitle: context.l10n.appleNavigation,
               color: const Color(0xFF000000),
               onTap: () => _openAppleMaps(context),
             ),
@@ -4424,8 +4483,8 @@ class _DirectionsBottomSheet extends StatelessWidget {
             _buildNavigationOption(
               context,
               icon: Iconsax.map,
-              title: 'Autres applications',
-              subtitle: 'Ouvrir avec le système',
+              title: context.l10n.otherApps,
+              subtitle: context.l10n.openWithSystem,
               color: AppColors.primaryGreen,
               onTap: () => _openDefaultMaps(context),
             ),

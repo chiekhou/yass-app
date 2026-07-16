@@ -72,8 +72,8 @@ module.exports = {
     mode: process.env.CHARGILY_MODE || "test", // 'test' | 'live'
     trialDays: 14,
     plans: {
-      monthly: { amount: 2000, days: 30, label: "Mensuel" },
-      yearly: { amount: 18000, days: 365, label: "Annuel" },
+      monthly: { amount: 5000, days: 30, label: "Mensuel" },
+      yearly: { amount: 50000, days: 365, label: "Annuel" },
     },
     featuredPlans: {
       featured_7:  { amount: 500,  days: 7,  label: "7 jours" },

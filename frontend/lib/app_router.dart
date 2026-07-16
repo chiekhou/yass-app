@@ -77,6 +77,11 @@ import 'features/suggestions/presentation/pages/suggestions_list_page.dart';
 import 'features/suggestions/presentation/pages/suggest_establishment_page.dart';
 import 'features/suggestions/presentation/pages/my_suggestions_page.dart';
 import 'features/admin/presentation/pages/admin_suggestions_page.dart';
+import 'features/admin/presentation/pages/admin_wilayas_page.dart';
+import 'features/admin/presentation/pages/admin_categories_availability_page.dart';
+import 'features/profile/presentation/pages/privacy_policy_page.dart';
+import 'features/profile/presentation/pages/terms_of_service_page.dart';
+import 'features/profile/presentation/pages/about_page.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -134,6 +139,8 @@ class AppRoutes {
   static const String adminReportedReviews = '/admin/reviews/reported';
   static const String adminPendingPayments = '/admin/payments/pending';
   static const String adminSuggestions = '/admin/suggestions';
+  static const String adminWilayas = '/admin/wilayas';
+  static const String adminCategoriesAvailability = '/admin/categories';
 
   // Notifications
   static const String notifications = '/notifications';
@@ -142,6 +149,11 @@ class AppRoutes {
   static const String verifyEmail = '/verify-email';
   static const String resetPassword = '/reset-password';
   static const String resetPasswordPhone = '/reset-password/phone';
+
+  // Legal / About
+  static const String about = '/about';
+  static const String privacyPolicy = '/privacy-policy';
+  static const String termsOfService = '/terms';
 
   // Suggestions
   static const String suggestions = '/suggestions';
@@ -673,6 +685,35 @@ class AppRouter {
         path: AppRoutes.adminSuggestions,
         name: 'adminSuggestions',
         builder: (context, state) => const AdminSuggestionsPage(),
+      ),
+
+      // Legal pages
+      GoRoute(
+        path: AppRoutes.about,
+        name: 'about',
+        builder: (context, state) => const AboutPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.privacyPolicy,
+        name: 'privacyPolicy',
+        builder: (context, state) => const PrivacyPolicyPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.termsOfService,
+        name: 'termsOfService',
+        builder: (context, state) => const TermsOfServicePage(),
+      ),
+
+      // Admin availability
+      GoRoute(
+        path: AppRoutes.adminWilayas,
+        name: 'adminWilayas',
+        builder: (context, state) => const AdminWilayasPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminCategoriesAvailability,
+        name: 'adminCategoriesAvailability',
+        builder: (context, state) => const AdminCategoriesAvailabilityPage(),
       ),
     ],
 

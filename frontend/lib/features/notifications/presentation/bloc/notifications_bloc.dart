@@ -100,7 +100,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     on<MarkNotificationRead>(_onMarkRead);
     on<MarkAllNotificationsRead>(_onMarkAllRead);
     on<DeleteNotification>(_onDelete);
-    on<ClearNotifications>((_, emit) => emit(NotificationsInitial()));
+    on<ClearNotifications>(_onClearAll);
   }
 
   Future<void> _onLoad(
@@ -186,6 +186,16 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           current.notifications.where((n) => n.id != event.id).toList();
       final newUnread = updated.where((n) => !n.isRead).length;
       emit(current.copyWith(notifications: updated, unreadCount: newUnread));
+    } catch (_) {}
+  }
+
+  Future<void> _onClearAll(
+    ClearNotifications event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    try {
+      await _repository.deleteAllNotifications();
+      emit(const NotificationsLoaded(notifications: [], unreadCount: 0));
     } catch (_) {}
   }
 }

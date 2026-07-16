@@ -172,7 +172,8 @@ class _AdminCreateEstablishmentPageState
     _selectedPriceRange = null;
 
     if (_selectedCategoryId != null) {
-      final subs = await _categoryRepository.getSubcategories(_selectedCategoryId!);
+      final subs =
+          await _categoryRepository.getSubcategories(_selectedCategoryId!);
       setState(() => _subcategories = subs);
     }
     if (_selectedWilayaId != null) {
@@ -231,25 +232,38 @@ class _AdminCreateEstablishmentPageState
         if (_selectedWilayaId != null) 'wilaya_id': _selectedWilayaId,
         if (_selectedCommuneId != null) 'commune_id': _selectedCommuneId,
         'name': _nameCtrl.text.trim(),
-        if (_nameArCtrl.text.trim().isNotEmpty) 'name_ar': _nameArCtrl.text.trim(),
+        if (_nameArCtrl.text.trim().isNotEmpty)
+          'name_ar': _nameArCtrl.text.trim(),
         'description': _descriptionCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
         if (_phoneCtrl.text.trim().isNotEmpty) 'phone': _phoneCtrl.text.trim(),
-        if (_whatsappCtrl.text.trim().isNotEmpty) 'whatsapp': _whatsappCtrl.text.trim(),
+        if (_whatsappCtrl.text.trim().isNotEmpty)
+          'whatsapp': _whatsappCtrl.text.trim(),
         if (_emailCtrl.text.trim().isNotEmpty) 'email': _emailCtrl.text.trim(),
         if (_selectedPriceRange != null) 'price_range': _selectedPriceRange,
-        'contact_first_name': _contactFirstNameCtrl.text.trim().isNotEmpty ? _contactFirstNameCtrl.text.trim() : null,
-        'contact_last_name': _contactLastNameCtrl.text.trim().isNotEmpty ? _contactLastNameCtrl.text.trim() : null,
-        'contact_phone': _contactPhoneCtrl.text.trim().isNotEmpty ? _contactPhoneCtrl.text.trim() : null,
-        'contact_email': _contactEmailCtrl.text.trim().isNotEmpty ? _contactEmailCtrl.text.trim() : null,
-        'contact_position': _contactPositionCtrl.text.trim().isNotEmpty ? _contactPositionCtrl.text.trim() : null,
+        'contact_first_name': _contactFirstNameCtrl.text.trim().isNotEmpty
+            ? _contactFirstNameCtrl.text.trim()
+            : null,
+        'contact_last_name': _contactLastNameCtrl.text.trim().isNotEmpty
+            ? _contactLastNameCtrl.text.trim()
+            : null,
+        'contact_phone': _contactPhoneCtrl.text.trim().isNotEmpty
+            ? _contactPhoneCtrl.text.trim()
+            : null,
+        'contact_email': _contactEmailCtrl.text.trim().isNotEmpty
+            ? _contactEmailCtrl.text.trim()
+            : null,
+        'contact_position': _contactPositionCtrl.text.trim().isNotEmpty
+            ? _contactPositionCtrl.text.trim()
+            : null,
         if (_services.isNotEmpty) 'services': _services,
         if (_amenities.isNotEmpty) 'amenities': _amenities,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
       };
 
       if (widget.isEditing) {
-        await _adminRepository.updateEstablishment(widget.establishmentId!, data);
+        await _adminRepository.updateEstablishment(
+            widget.establishmentId!, data);
       } else {
         data['partner_id'] = widget.partnerId;
         await _adminRepository.createEstablishment(data);
@@ -286,8 +300,10 @@ class _AdminCreateEstablishmentPageState
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: Text(widget.isEditing ? 'Modifier l\'établissement' : 'Créer un établissement'),
-        backgroundColor: AppColors.primaryGreen,
+        title: Text(widget.isEditing
+            ? 'Modifier l\'établissement'
+            : 'Créer un établissement'),
+        backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
@@ -315,7 +331,7 @@ class _AdminCreateEstablishmentPageState
             const SizedBox(height: AppDimens.paddingM),
             Text(_loadError!,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.grey600)),
+                style: TextStyle(color: AppColors.scaffoldBackground)),
             const SizedBox(height: AppDimens.paddingL),
             ElevatedButton.icon(
               onPressed: () {
@@ -344,22 +360,23 @@ class _AdminCreateEstablishmentPageState
               Container(
                 padding: const EdgeInsets.all(AppDimens.paddingM),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withValues(alpha: 0.08),
+                  color: AppColors.scaffoldBackground.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(AppDimens.radiusM),
                   border: Border.all(
-                      color: AppColors.primaryGreen.withValues(alpha: 0.3)),
+                      color:
+                          AppColors.scaffoldBackground.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
                     const Icon(Iconsax.briefcase,
-                        color: AppColors.primaryGreen, size: 20),
+                        color: AppColors.scaffoldBackground, size: 20),
                     const SizedBox(width: AppDimens.paddingS),
                     Expanded(
                       child: Text(
                         'Partenaire : ${widget.partnerName}',
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primaryGreen,
+                          color: AppColors.scaffoldBackground,
                         ),
                       ),
                     ),
@@ -376,9 +393,17 @@ class _AdminCreateEstablishmentPageState
             DropdownButtonFormField<String>(
               initialValue: _selectedWilayaId,
               decoration: _dropdownDecoration('Wilaya'),
+              style: const TextStyle(color: AppColors.scaffoldBackground),
+              selectedItemBuilder: (_) => _wilayas
+                  .map((w) => Text(w.name,
+                      style: const TextStyle(color: AppColors.scaffoldBackground)))
+                  .toList(),
               items: _wilayas
-                  .map(
-                      (w) => DropdownMenuItem(value: w.id, child: Text(w.name)))
+                  .map((w) => DropdownMenuItem(
+                        value: w.id,
+                        child: Text(w.name,
+                            style: const TextStyle(color: AppColors.white)),
+                      ))
                   .toList(),
               onChanged: _onWilayaChanged,
               validator: (v) => v == null ? 'Wilaya requise' : null,
@@ -389,9 +414,18 @@ class _AdminCreateEstablishmentPageState
             DropdownButtonFormField<String>(
               initialValue: _selectedCommuneId,
               decoration: _dropdownDecoration('Commune'),
+              style: const TextStyle(color: AppColors.scaffoldBackground),
+              selectedItemBuilder: (_) => _communes
+                  .map((c) => Text(c.name,
+                      style: const TextStyle(color: AppColors.scaffoldBackground)))
+                  .toList(),
               items: _communes
-                  .map(
-                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map((c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.name,
+                            style: const TextStyle(
+                                color: AppColors.white)),
+                      ))
                   .toList(),
               onChanged: (v) => setState(() => _selectedCommuneId = v),
             ),
@@ -404,9 +438,18 @@ class _AdminCreateEstablishmentPageState
             DropdownButtonFormField<String>(
               initialValue: _selectedCategoryId,
               decoration: _dropdownDecoration('Catégorie'),
+              style: const TextStyle(color: AppColors.scaffoldBackground),
+              selectedItemBuilder: (_) => _categories
+                  .map((c) => Text(c.name,
+                      style: const TextStyle(color: AppColors.scaffoldBackground)))
+                  .toList(),
               items: _categories
-                  .map(
-                      (c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
+                  .map((c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Text(c.name,
+                            style: const TextStyle(
+                                color: AppColors.white)),
+                      ))
                   .toList(),
               onChanged: _onCategoryChanged,
               validator: (v) => v == null ? 'Catégorie requise' : null,
@@ -417,9 +460,18 @@ class _AdminCreateEstablishmentPageState
             DropdownButtonFormField<String>(
               initialValue: _selectedSubcategoryId,
               decoration: _dropdownDecoration('Sous-catégorie'),
+              style: const TextStyle(color: AppColors.scaffoldBackground),
+              selectedItemBuilder: (_) => _subcategories
+                  .map((s) => Text(s.name,
+                      style: const TextStyle(color: AppColors.scaffoldBackground)))
+                  .toList(),
               items: _subcategories
-                  .map(
-                      (s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
+                  .map((s) => DropdownMenuItem(
+                        value: s.id,
+                        child: Text(s.name,
+                            style: const TextStyle(
+                                color: AppColors.white)),
+                      ))
                   .toList(),
               onChanged: (v) => setState(() => _selectedSubcategoryId = v),
               validator: (v) => v == null ? 'Sous-catégorie requise' : null,
@@ -430,6 +482,7 @@ class _AdminCreateEstablishmentPageState
             const SizedBox(height: AppDimens.paddingM),
 
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _nameCtrl,
               label: 'Nom de l\'établissement',
               hint: 'Restaurant El Djazair',
@@ -438,6 +491,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _nameArCtrl,
               label: 'Nom en arabe (optionnel)',
               hint: 'مطعم الجزائر',
@@ -445,6 +499,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _descriptionCtrl,
               label: 'Description',
               hint: 'Décrivez l\'établissement...',
@@ -455,6 +510,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _addressCtrl,
               label: 'Adresse',
               hint: '15 Rue Didouche Mourad, Alger',
@@ -468,6 +524,7 @@ class _AdminCreateEstablishmentPageState
             const SizedBox(height: AppDimens.paddingM),
 
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _phoneCtrl,
               label: 'Téléphone (optionnel)',
               hint: '023456789',
@@ -476,6 +533,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _whatsappCtrl,
               label: 'WhatsApp (optionnel)',
               hint: '0551234567',
@@ -484,6 +542,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _emailCtrl,
               label: 'Email (optionnel)',
               hint: 'contact@etablissement.com',
@@ -502,6 +561,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _contactFirstNameCtrl,
               label: 'Prénom',
               hint: 'Mohamed',
@@ -509,6 +569,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _contactLastNameCtrl,
               label: 'Nom',
               hint: 'Benali',
@@ -516,6 +577,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _contactPhoneCtrl,
               label: 'Téléphone',
               hint: '0551234567',
@@ -524,6 +586,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _contactEmailCtrl,
               label: 'Email',
               hint: 'contact@exemple.com',
@@ -532,6 +595,7 @@ class _AdminCreateEstablishmentPageState
             ),
             const SizedBox(height: AppDimens.paddingM),
             CustomTextField(
+              textColor: AppColors.scaffoldBackground,
               controller: _contactPositionCtrl,
               label: 'Poste / Fonction',
               hint: 'Ex: Directeur, Responsable...',
@@ -545,11 +609,35 @@ class _AdminCreateEstablishmentPageState
             DropdownButtonFormField<String>(
               initialValue: _selectedPriceRange,
               decoration: _dropdownDecoration('Gamme de prix (optionnel)'),
+              style: const TextStyle(color: AppColors.scaffoldBackground),
+              selectedItemBuilder: (_) => [
+                r'$ — Économique', r'$$ — Modéré',
+                r'$$$ — Élevé', r'$$$$ — Luxe',
+              ]
+                  .map((label) => Text(label,
+                      style: const TextStyle(color: AppColors.scaffoldBackground)))
+                  .toList(),
               items: const [
-                DropdownMenuItem(value: r'$', child: Text(r'$ — Économique')),
-                DropdownMenuItem(value: r'$$', child: Text(r'$$ — Modéré')),
-                DropdownMenuItem(value: r'$$$', child: Text(r'$$$ — Élevé')),
-                DropdownMenuItem(value: r'$$$$', child: Text(r'$$$$ — Luxe')),
+                DropdownMenuItem(
+                  value: r'$',
+                  child: Text(r'$ — Économique',
+                      style: TextStyle(color: AppColors.white)),
+                ),
+                DropdownMenuItem(
+                  value: r'$$',
+                  child: Text(r'$$ — Modéré',
+                      style: TextStyle(color: AppColors.white)),
+                ),
+                DropdownMenuItem(
+                  value: r'$$$',
+                  child: Text(r'$$$ — Élevé',
+                      style: TextStyle(color: AppColors.white)),
+                ),
+                DropdownMenuItem(
+                  value: r'$$$$',
+                  child: Text(r'$$$$ — Luxe',
+                      style: TextStyle(color: AppColors.white)),
+                ),
               ],
               onChanged: (v) => setState(() => _selectedPriceRange = v),
             ),
@@ -582,7 +670,7 @@ class _AdminCreateEstablishmentPageState
             ElevatedButton(
               onPressed: _isSubmitting ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGreen,
+                backgroundColor: AppColors.scaffoldBackground,
                 foregroundColor: AppColors.white,
                 padding:
                     const EdgeInsets.symmetric(vertical: AppDimens.paddingM),
@@ -598,8 +686,11 @@ class _AdminCreateEstablishmentPageState
                           color: AppColors.white, strokeWidth: 2),
                     )
                   : Text(
-                      widget.isEditing ? 'Enregistrer les modifications' : 'Créer l\'établissement',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      widget.isEditing
+                          ? 'Enregistrer les modifications'
+                          : 'Créer l\'établissement',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w600),
                     ),
             ),
             const SizedBox(height: AppDimens.paddingXL),
@@ -730,7 +821,7 @@ class _AdminCreateEstablishmentPageState
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
-                    ?.copyWith(color: AppColors.grey500),
+                    ?.copyWith(color: AppColors.scaffoldBackground),
               ),
             ),
         ],
@@ -773,6 +864,9 @@ class _AdminCreateEstablishmentPageState
   InputDecoration _dropdownDecoration(String label) {
     return InputDecoration(
       labelText: label,
+      labelStyle: TextStyle(
+        color: AppColors.scaffoldBackground.withValues(alpha: 0.75),
+      ),
       filled: true,
       fillColor: AppColors.white,
       border: OutlineInputBorder(

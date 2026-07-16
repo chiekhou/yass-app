@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/models/admin_user_model.dart';
@@ -185,7 +186,7 @@ class UserListItem extends StatelessWidget {
             children: [
               const Icon(Iconsax.eye, size: 18),
               const SizedBox(width: AppDimens.paddingS),
-              const Text('Voir détails'),
+              Text(context.l10n.seeDetails),
             ],
           ),
         ),
@@ -195,7 +196,7 @@ class UserListItem extends StatelessWidget {
             children: [
               const Icon(Iconsax.edit, size: 18),
               const SizedBox(width: AppDimens.paddingS),
-              const Text('Modifier statut'),
+              Text(context.l10n.changeStatus),
             ],
           ),
         ),
@@ -206,7 +207,7 @@ class UserListItem extends StatelessWidget {
             children: [
               Icon(Iconsax.trash, size: 18, color: AppColors.error),
               const SizedBox(width: AppDimens.paddingS),
-              Text('Supprimer', style: TextStyle(color: AppColors.error)),
+              Text(context.l10n.delete, style: const TextStyle(color: AppColors.error)),
             ],
           ),
         ),

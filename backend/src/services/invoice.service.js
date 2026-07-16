@@ -186,6 +186,43 @@ class InvoiceService {
 
   // ─── Factures en attente de validation (admin) ───────────────────────────
 
+  async cancelManualPayment(invoiceId, adminId) {
+    const { Partner } = require("../models");
+
+    const invoice = await Invoice.findByPk(invoiceId, {
+      include: [{ model: Partner, as: "partner" }],
+    });
+    if (!invoice) throw ApiError.notFound("Facture introuvable");
+
+    if (!["manual", "cash"].includes(invoice.payment_method)) {
+      throw ApiError.badRequest("Cette facture n'est pas un paiement manuel ou espèces");
+    }
+
+    if (invoice.status === "cancelled") {
+      throw ApiError.badRequest("Cette facture est déjà annulée");
+    }
+
+    await invoice.update({
+      status: "cancelled",
+      validated_by: adminId,
+      validated_at: new Date(),
+    });
+
+    // Si la facture était déjà payée et liée à un abonnement, révoquer l'abonnement
+    if (invoice.status === "paid" && invoice.type === "subscription" && invoice.partner) {
+      const subscriptionService = require("./subscription.service");
+      const isActive =
+        invoice.partner.subscription_plan !== "free" &&
+        invoice.partner.subscription_expires_at != null &&
+        new Date(invoice.partner.subscription_expires_at) > new Date();
+      if (isActive) {
+        await subscriptionService.cancelSubscription(invoice.partner);
+      }
+    }
+
+    return invoice.reload();
+  }
+
   async getPendingManualPayments({ page = 1, limit = 20 } = {}) {
     const offset = (page - 1) * limit;
     const { Op } = require("sequelize");

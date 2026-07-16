@@ -25,6 +25,7 @@ class AdminDrawer extends StatefulWidget {
 class _AdminDrawerState extends State<AdminDrawer> {
   int _pendingPartners = 0;
   int _pendingEstablishments = 0;
+  int _pendingReviews = 0;
   int _reportedReviews = 0;
   int _pendingPayments = 0;
   int _pendingSuggestions = 0;
@@ -60,6 +61,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
       if (stats != null) {
         _pendingPartners = stats.pendingPartners;
         _pendingEstablishments = stats.pendingEstablishments;
+        _pendingReviews = stats.pendingReviews;
         _reportedReviews = stats.reportedReviews;
       }
       _pendingPayments = payments.length;
@@ -88,25 +90,25 @@ class _AdminDrawerState extends State<AdminDrawer> {
                     route: AppRoutes.adminDashboard,
                     isSelected: widget.currentRoute == AppRoutes.adminDashboard,
                   ),
-                  _buildSectionTitle(context, 'Gestion'),
+                  _buildSectionTitle(context, context.l10n.management),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.people,
-                    title: 'Gestion Utilisateurs',
+                    title: context.l10n.managementUsers,
                     route: AppRoutes.adminUsers,
                     isSelected: widget.currentRoute == AppRoutes.adminUsers,
                   ),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.briefcase,
-                    title: 'Gestion Partenaires',
+                    title: context.l10n.managementPartners,
                     route: AppRoutes.adminPartners,
                     isSelected: widget.currentRoute == AppRoutes.adminPartners,
                   ),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.user_add,
-                    title: 'Ajouter un partenaire',
+                    title: context.l10n.addPartner,
                     route: AppRoutes.adminCreatePartner,
                     isSelected:
                         widget.currentRoute == AppRoutes.adminCreatePartner,
@@ -114,7 +116,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
                   _buildMenuItem(
                     context,
                     icon: Iconsax.clock,
-                    title: 'Partenaires en attente',
+                    title: context.l10n.pendingPartners,
                     route: AppRoutes.adminPendingPartners,
                     isSelected:
                         widget.currentRoute == AppRoutes.adminPendingPartners,
@@ -123,56 +125,87 @@ class _AdminDrawerState extends State<AdminDrawer> {
                   _buildMenuItem(
                     context,
                     icon: Iconsax.buildings,
-                    title: 'Gestion Établissements',
+                    title: context.l10n.managementEstablishments,
                     route: AppRoutes.adminEstablishments,
                     isSelected:
                         widget.currentRoute == AppRoutes.adminEstablishments,
                   ),
                   _buildMenuItem(
                     context,
+                    icon: Iconsax.building_4,
+                    title: context.l10n.addEstablishment,
+                    route: AppRoutes.adminCreateEstablishment,
+                    isSelected:
+                        widget.currentRoute == AppRoutes.adminCreateEstablishment,
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.push(
+                        AppRoutes.adminCreateEstablishment,
+                        extra: {'partnerId': '', 'partnerName': ''},
+                      );
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
                     icon: Iconsax.building,
-                    title: 'Établissements en attente',
+                    title: context.l10n.pendingEstablishments,
                     route: AppRoutes.adminPendingEstablishments,
                     isSelected: widget.currentRoute ==
                         AppRoutes.adminPendingEstablishments,
                     badgeCount: _pendingEstablishments,
                   ),
-                  _buildSectionTitle(context, 'Modération'),
+                  _buildSectionTitle(context, context.l10n.moderation),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.star,
-                    title: 'Tous les avis',
+                    title: context.l10n.allReviews,
                     route: AppRoutes.adminReviews,
                     isSelected: widget.currentRoute == AppRoutes.adminReviews,
+                    badgeCount: _pendingReviews,
                   ),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.flag,
-                    title: 'Avis signalés',
+                    title: context.l10n.reportedReviews,
                     route: AppRoutes.adminReportedReviews,
                     isSelected:
                         widget.currentRoute == AppRoutes.adminReportedReviews,
                     badgeCount: _reportedReviews,
                   ),
-                  _buildSectionTitle(context, 'Paiements'),
+                  _buildSectionTitle(context, context.l10n.paymentsSection),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.money_recive,
-                    title: 'Paiements en attente',
+                    title: context.l10n.pendingPayments,
                     route: AppRoutes.adminPendingPayments,
                     isSelected:
                         widget.currentRoute == AppRoutes.adminPendingPayments,
                     badgeCount: _pendingPayments,
                   ),
-                  _buildSectionTitle(context, 'Communauté'),
+                  _buildSectionTitle(context, context.l10n.community),
                   _buildMenuItem(
                     context,
                     icon: Iconsax.shop_add,
-                    title: 'Suggestions',
+                    title: context.l10n.suggestionsMenu,
                     route: AppRoutes.adminSuggestions,
                     isSelected:
                         widget.currentRoute == AppRoutes.adminSuggestions,
                     badgeCount: _pendingSuggestions,
+                  ),
+                  _buildSectionTitle(context, context.l10n.deployment),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.location,
+                    title: context.l10n.wilayasAvailable,
+                    route: AppRoutes.adminWilayas,
+                    isSelected: widget.currentRoute == AppRoutes.adminWilayas,
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.category,
+                    title: context.l10n.categoriesAvailable,
+                    route: AppRoutes.adminCategoriesAvailability,
+                    isSelected: widget.currentRoute == AppRoutes.adminCategoriesAvailability,
                   ),
                 ],
               ),
@@ -214,7 +247,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Administration',
+                  context.l10n.administration,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.grey900,
@@ -260,6 +293,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
     required String route,
     required bool isSelected,
     int badgeCount = 0,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Container(
@@ -312,7 +346,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
         horizontal: AppDimens.paddingM,
         vertical: AppDimens.paddingXS,
       ),
-      onTap: () {
+      onTap: onTap ?? () {
         Navigator.pop(context);
         if (!isSelected) {
           context.go(route);
@@ -341,7 +375,7 @@ class _AdminDrawerState extends State<AdminDrawer> {
                 ),
               ),
               title: Text(
-                'Accueil',
+                context.l10n.home,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.grey800,
                     ),

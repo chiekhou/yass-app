@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/l10n_extensions.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/models/invoice_model.dart';
 import '../bloc/partner_invoices_bloc.dart';
@@ -33,8 +34,8 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
-        title: const Text('Reçu de paiement',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        title: Text(context.l10n.paymentReceipt,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
         elevation: 0,
       ),
       body: BlocBuilder<PartnerInvoicesBloc, PartnerInvoicesState>(
@@ -103,11 +104,11 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Reçu de paiement',
-                          style: TextStyle(
+                          context.l10n.paymentReceipt,
+                          style: const TextStyle(
                               color: Colors.white,
                               fontSize: 13,
                               fontWeight: FontWeight.w400),
@@ -124,7 +125,7 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                     children: [
                       // Numéro de facture + date
                       _buildReceiptRow(
-                        label: 'N° Facture',
+                        label: context.l10n.invoiceNumber,
                         value: invoice.invoiceNumber,
                         bold: true,
                       ),
@@ -136,24 +137,24 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                       if (invoice.paidAt != null) ...[
                         _buildDivider(),
                         _buildReceiptRow(
-                          label: 'Payé le',
+                          label: context.l10n.paidOn,
                           value: _formatDate(invoice.paidAt!),
                         ),
                       ],
                       _buildDivider(),
                       _buildReceiptRow(
-                        label: 'Plan',
+                        label: context.l10n.plan,
                         value: invoice.planLabel,
                       ),
                       _buildDivider(),
                       _buildReceiptRow(
-                        label: 'Méthode',
+                        label: context.l10n.paymentMethod,
                         value: invoice.paymentMethodLabel,
                       ),
                       if (invoice.transferReference != null) ...[
                         _buildDivider(),
                         _buildReceiptRow(
-                          label: 'Référence',
+                          label: context.l10n.reference,
                           value: invoice.transferReference!,
                         ),
                       ],
@@ -161,7 +162,7 @@ class _PartnerInvoiceDetailPageState extends State<PartnerInvoiceDetailPage> {
                           invoice.periodEnd != null) ...[
                         _buildDivider(),
                         _buildReceiptRow(
-                          label: 'Période',
+                          label: context.l10n.period,
                           value:
                               '${_formatDateShort(invoice.periodStart!)} → ${_formatDateShort(invoice.periodEnd!)}',
                         ),

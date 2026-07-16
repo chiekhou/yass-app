@@ -93,6 +93,11 @@ class NotificationService {
     await notification.destroy();
   }
 
+  async deleteAll(userId) {
+    const count = await Notification.destroy({ where: { user_id: userId } });
+    return { deleted: count };
+  }
+
   // ─── Event helpers ───────────────────────────────────────────────────────────
 
   async notifyPartnerApproved(partner, partnerUserId) {

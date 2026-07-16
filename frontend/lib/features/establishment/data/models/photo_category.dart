@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 class PhotoCategory {
   final String key;
@@ -34,7 +35,7 @@ const List<PhotoCategory> kPhotoCategories = [
   PhotoCategory(key: 'autres',     label: 'Autres',      icon: Iconsax.more_circle),
 ];
 
-/// Retrouve le label d'une clé (fallback = "Autres")
+/// Retrouve le label d'une clé (fallback = "Autres") — sans contexte, utilisé dans le modèle
 String photoCategoryLabel(String? key) {
   if (key == null) return 'Autres';
   return kPhotoCategories
@@ -42,4 +43,27 @@ String photoCategoryLabel(String? key) {
           orElse: () => const PhotoCategory(
               key: 'autres', label: 'Autres', icon: Iconsax.more_circle))
       .label;
+}
+
+/// Version traduite pour l'UI (nécessite un BuildContext)
+String photoCategoryL10nLabel(BuildContext context, String? key) {
+  switch (key) {
+    case 'plats':      return context.l10n.photoCategoryPlats;
+    case 'boissons':   return context.l10n.photoCategoryBoissons;
+    case 'desserts':   return context.l10n.photoCategoryDesserts;
+    case 'menu':       return context.l10n.photoCategoryMenu;
+    case 'interieur':  return context.l10n.photoCategoryInterieur;
+    case 'exterieur':  return context.l10n.photoCategoryExterieur;
+    case 'terrasse':   return context.l10n.photoCategoryTerrasse;
+    case 'ambiance':   return context.l10n.photoCategoryAmbiance;
+    case 'bar':        return context.l10n.photoCategoryBar;
+    case 'salle':      return context.l10n.photoCategorySalle;
+    case 'entree':     return context.l10n.photoCategoryEntree;
+    case 'cuisine':    return context.l10n.photoCategoryCuisine;
+    case 'parking':    return context.l10n.photoCategoryParking;
+    case 'evenements': return context.l10n.photoCategoryEvenements;
+    case 'promotions': return context.l10n.photoCategoryPromotions;
+    case 'produits':   return context.l10n.photoCategoryProduits;
+    default:           return context.l10n.photoCategoryOthers;
+  }
 }

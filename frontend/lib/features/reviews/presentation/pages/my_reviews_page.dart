@@ -38,8 +38,8 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
         listener: (context, state) {
           if (state is ReviewDeleteSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Avis supprimé'),
+              SnackBar(
+                content: Text(context.l10n.reviewDeleted),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -98,7 +98,7 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                     onPressed: () {
                       context.read<ReviewBloc>().add(const ReviewLoadMine());
                     },
-                    child: const Text('Réessayer'),
+                    child: Text(context.l10n.retry),
                   ),
                 ],
               ),
@@ -220,14 +220,14 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Iconsax.trash, size: 18, color: AppColors.error),
-                        SizedBox(width: 8),
-                        Text('Supprimer',
-                            style: TextStyle(color: AppColors.error)),
+                        const Icon(Iconsax.trash, size: 18, color: AppColors.error),
+                        const SizedBox(width: 8),
+                        Text(context.l10n.delete,
+                            style: const TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
@@ -401,14 +401,14 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusL),
         ),
-        title: const Text('Supprimer cet avis ?'),
+        title: Text(context.l10n.deleteReviewTitle),
         content: const Text(
           'Cette action est irréversible. Votre avis sera définitivement supprimé.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -418,7 +418,7 @@ class _MyReviewsPageState extends State<MyReviewsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
             ),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),

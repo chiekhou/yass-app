@@ -159,7 +159,7 @@ class ReviewService {
     });
 
     if (existingReview) {
-      throw ApiError.badRequest("You have already reviewed this establishment");
+      throw ApiError.badRequest("Vous avez déjà publié un avis pour cet établissement.");
     }
 
     // La note d'ensemble est fournie explicitement par l'utilisateur.
@@ -543,10 +543,24 @@ class ReviewService {
       include: [{ model: Partner, as: 'partner', attributes: ['user_id'] }],
     });
     if (establishment?.partner?.user_id) {
+      const partnerUserId = establishment.partner.user_id;
+
       const notificationService = require('./notification.service');
       notificationService
-        .notifyPartnerReviewApproved(review, establishment.name, establishment.partner.user_id)
+        .notifyPartnerReviewApproved(review, establishment.name, partnerUserId)
         .catch(() => {});
+
+      // Email au partenaire — récupère nom reviewer + email partenaire en parallèle
+      const [reviewerUser, partnerUser] = await Promise.all([
+        User.findByPk(review.user_id, { attributes: ['first_name', 'last_name'] }),
+        User.findByPk(partnerUserId, { attributes: ['first_name', 'last_name', 'email'] }),
+      ]);
+      if (partnerUser?.email) {
+        const emailService = require('./email.service');
+        emailService
+          .sendReviewApprovedEmail(partnerUser, establishment, review, reviewerUser)
+          .catch(() => {});
+      }
     }
 
     return review;

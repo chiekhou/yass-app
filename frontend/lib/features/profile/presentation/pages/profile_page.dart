@@ -3,6 +3,8 @@ import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:in_app_review/in_app_review.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -86,17 +88,17 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            _buildMenuItem(
+            _buildGuestMenuItem(
               context,
               icon: Iconsax.info_circle,
               title: context.l10n.about,
-              onTap: () {},
+              onTap: () => context.push(AppRoutes.about),
             ),
-            _buildMenuItem(
+            _buildGuestMenuItem(
               context,
               icon: Iconsax.message_question,
               title: context.l10n.contactUs,
-              onTap: () {},
+              onTap: _openContactEmail,
             ),
           ],
         ),
@@ -207,7 +209,7 @@ class ProfilePage extends StatelessWidget {
                     ),
                     _MenuItem(
                       icon: Iconsax.shop_add,
-                      title: 'Mes Suggestions',
+                      title: context.l10n.mySuggestions,
                       onTap: () => context.push(AppRoutes.mySuggestions),
                     ),
                   ],
@@ -326,17 +328,17 @@ class ProfilePage extends StatelessWidget {
                     _MenuItem(
                       icon: Iconsax.document,
                       title: context.l10n.privacyPolicy,
-                      onTap: () {},
+                      onTap: () => context.push(AppRoutes.privacyPolicy),
                     ),
                     _MenuItem(
                       icon: Iconsax.document_text,
                       title: context.l10n.termsOfService,
-                      onTap: () {},
+                      onTap: () => context.push(AppRoutes.termsOfService),
                     ),
                     _MenuItem(
                       icon: Iconsax.star,
                       title: context.l10n.rateApp,
-                      onTap: () {},
+                      onTap: () => _rateApp(),
                     ),
                   ],
                 ),
@@ -366,6 +368,52 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _rateApp() async {
+    final inAppReview = InAppReview.instance;
+    if (await inAppReview.isAvailable()) {
+      inAppReview.requestReview();
+    } else {
+      inAppReview.openStoreListing();
+    }
+  }
+
+  Future<void> _openContactEmail() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'Yassine-o@hotmail.fr',
+      queryParameters: {'subject': 'Contact Win App'},
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Widget _buildGuestMenuItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        ),
+        child: Icon(icon, color: AppColors.white, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(color: AppColors.white)),
+      trailing: Icon(
+        Iconsax.arrow_right_3,
+        size: 18,
+        color: AppColors.white.withValues(alpha: 0.6),
+      ),
+      onTap: onTap,
     );
   }
 
