@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../app_router.dart';
@@ -70,17 +71,24 @@ class CategoriesGrid extends StatelessWidget {
         runSpacing: 10,
         children: [
           if (realCats != null) ...[
-            ...realCats.asMap().entries.map((e) => _CategoryItem(
-                  name: e.value.name,
-                  slug: e.value.slug,
-                  color: AppColors
-                      .categoryColors[e.key % AppColors.categoryColors.length],
-                  onTap: () => context.push(
-                    '${AppRoutes.category.replaceFirst(':id', e.value.id)}?name=${Uri.encodeComponent(e.value.name)}',
-                  ),
-                )),
+            ...realCats.asMap().entries.map((e) {
+              final langCode = Localizations.localeOf(context).languageCode;
+              final displayName = e.value.localizedName(langCode);
+              return _CategoryItem(
+                name: displayName,
+                slug: e.value.slug,
+                isActive: e.value.isActive,
+                color: AppColors
+                    .categoryColors[e.key % AppColors.categoryColors.length],
+                onTap: e.value.isActive
+                    ? () => context.push(
+                          '${AppRoutes.category.replaceFirst(':id', e.value.id)}?name=${Uri.encodeComponent(displayName)}',
+                        )
+                    : null,
+              );
+            }),
             _CategoryItem(
-              name: 'Plus',
+              name: '',
               slug: '__more__',
               color: AppColors.grey600,
               onTap: () =>
@@ -99,7 +107,7 @@ class CategoriesGrid extends StatelessWidget {
               );
             }),
             _CategoryItem(
-              name: 'Plus',
+              name: '',
               slug: '__more__',
               color: AppColors.grey600,
               onTap: () => context.push(AppRoutes.allCategories),
@@ -115,13 +123,15 @@ class _CategoryItem extends StatelessWidget {
   final String name;
   final String slug;
   final Color color;
-  final VoidCallback onTap;
+  final bool isActive;
+  final VoidCallback? onTap;
 
   const _CategoryItem({
     required this.name,
     required this.slug,
     required this.color,
-    required this.onTap,
+    this.isActive = true,
+    this.onTap,
   });
 
   IconData _icon() {
@@ -184,55 +194,65 @@ class _CategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMore = slug == '__more__';
     final iconData = isMore ? Iconsax.more : _icon();
+    final effectiveColor = isActive ? color : Colors.grey.shade400;
 
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  Color.lerp(Colors.white, color, 0.75)!,
-                  color,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.55),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
+      child: Opacity(
+        opacity: isActive ? 1.0 : 0.55,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Color.lerp(Colors.white, effectiveColor, 0.75)!,
+                    effectiveColor,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  blurRadius: 4,
-                  offset: const Offset(-2, -2),
-                ),
-              ],
-            ),
-            child: Icon(iconData, color: Colors.white, size: 26),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 70,
-            child: Text(
-              name,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-                color: Colors.white,
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.55),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          blurRadius: 4,
+                          offset: const Offset(-2, -2),
+                        ),
+                      ]
+                    : [],
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
+              child: Icon(iconData, color: Colors.white, size: 26),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 70,
+              child: Text(
+                isMore
+                    ? context.l10n.moreButton
+                    : isActive
+                        ? name
+                        : context.l10n.comingSoon,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

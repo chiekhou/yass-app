@@ -978,6 +978,10 @@ class AdminService {
 
     return establishment.reload();
   }
+
+  async cancelManualPayment(invoiceId, adminId) {
+    return invoiceService.cancelManualPayment(invoiceId, adminId);
+  }
 }
 
 module.exports = new AdminService();

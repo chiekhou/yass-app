@@ -136,14 +136,14 @@ class PartnerEstablishmentCard extends StatelessWidget {
                         context,
                         icon: Iconsax.eye,
                         value: establishment.totalViews.toString(),
-                        label: 'Vues',
+                        label: context.l10n.views,
                       ),
                       const SizedBox(width: AppDimens.paddingL),
                       _buildStatItem(
                         context,
                         icon: Iconsax.heart,
                         value: establishment.totalFavorites.toString(),
-                        label: 'Favoris',
+                        label: context.l10n.favorites,
                       ),
                       const SizedBox(width: AppDimens.paddingL),
                       _buildStatItem(
@@ -199,7 +199,7 @@ class PartnerEstablishmentCard extends StatelessWidget {
         break;
       case 'inactive':
         color = AppColors.grey500;
-        label = 'Inactif';
+        label = context.l10n.statusInactive;
         break;
       default:
         color = AppColors.grey500;
@@ -262,23 +262,23 @@ class PartnerEstablishmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimens.radiusM),
       ),
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'edit',
           child: Row(
             children: [
-              Icon(Iconsax.edit, size: 18),
-              SizedBox(width: AppDimens.paddingS),
-              Text('Modifier'),
+              const Icon(Iconsax.edit, size: 18),
+              const SizedBox(width: AppDimens.paddingS),
+              Text(context.l10n.edit),
             ],
           ),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'status',
           child: Row(
             children: [
-              Icon(Iconsax.toggle_on_circle, size: 18),
-              SizedBox(width: AppDimens.paddingS),
-              Text('Changer statut'),
+              const Icon(Iconsax.toggle_on_circle, size: 18),
+              const SizedBox(width: AppDimens.paddingS),
+              Text(context.l10n.changeStatus),
             ],
           ),
         ),
@@ -287,9 +287,9 @@ class PartnerEstablishmentCard extends StatelessWidget {
           value: 'delete',
           child: Row(
             children: [
-              Icon(Iconsax.trash, size: 18, color: AppColors.error),
+              const Icon(Iconsax.trash, size: 18, color: AppColors.error),
               const SizedBox(width: AppDimens.paddingS),
-              Text('Supprimer', style: TextStyle(color: AppColors.error)),
+              Text(context.l10n.delete, style: const TextStyle(color: AppColors.error)),
             ],
           ),
         ),

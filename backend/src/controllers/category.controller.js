@@ -16,7 +16,7 @@ class CategoryController {
 
       const categories = await categoryService.getAllCategories({
         includeSubcategories,
-        activeOnly: true,
+        activeOnly: false,
         withCount,
       });
 

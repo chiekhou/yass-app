@@ -33,8 +33,8 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
-        title: const Text('Mes factures',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        title: Text(context.l10n.myInvoices,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
         elevation: 0,
       ),
       body: BlocBuilder<PartnerInvoicesBloc, PartnerInvoicesState>(
@@ -61,8 +61,8 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
                     onPressed: () => context
                         .read<PartnerInvoicesBloc>()
                         .add(const LoadInvoices()),
-                    child: const Text('Réessayer',
-                        style: TextStyle(color: AppColors.primaryGreen)),
+                    child: Text(context.l10n.retry,
+                        style: const TextStyle(color: AppColors.primaryGreen)),
                   ),
                 ],
               ),
@@ -102,13 +102,13 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
         children: [
           const Icon(Iconsax.receipt_item, color: Colors.white, size: 64),
           const SizedBox(height: AppDimens.paddingL),
-          Text('Aucune facture',
+          Text(context.l10n.noInvoices,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   )),
           const SizedBox(height: AppDimens.paddingS),
-          Text('Vos factures apparaîtront ici après votre premier paiement.',
+          Text(context.l10n.invoicesWillAppear,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.white,
                   ),
@@ -117,7 +117,7 @@ class _PartnerInvoicesPageState extends State<PartnerInvoicesPage> {
           ElevatedButton.icon(
             onPressed: () => context.push(AppRoutes.partnerSubscription),
             icon: const Icon(Iconsax.star, size: 16),
-            label: const Text('S\'abonner'),
+            label: Text(context.l10n.subscribe),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.white,
               foregroundColor: AppColors.primaryGreen,

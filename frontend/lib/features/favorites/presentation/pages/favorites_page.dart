@@ -110,7 +110,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                         .read<FavoriteBloc>()
                         .add(const FavoriteLoadList(refresh: true)),
                     icon: const Icon(Iconsax.refresh),
-                    label: const Text('Réessayer'),
+                    label: Text(context.l10n.retry),
                   ),
                 ],
               ),
@@ -200,7 +200,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 foregroundColor: AppColors.primaryGreen,
               ),
               icon: const Icon(Iconsax.search_normal_1),
-              label: const Text('Explorer'),
+              label: Text(context.l10n.explore),
             ),
           ],
         ),
@@ -209,139 +209,161 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 
   Widget _buildCard(BuildContext context, Establishment e) {
+    final imageUrl = e.coverImage ?? e.logo;
+    final lang = Localizations.localeOf(context).languageCode;
+
     return GestureDetector(
       onTap: () =>
           context.push(AppRoutes.establishment.replaceFirst(':id', e.id)),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppDimens.radiusL),
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover image
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(AppDimens.radiusL),
-              ),
-              child: e.coverImage != null
-                  ? Image.network(
-                      e.coverImage!,
-                      width: 110,
-                      height: 110,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                    )
-                  : _imagePlaceholder(),
+            // ── Grande image + bouton supprimer ──
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppDimens.radiusM),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 180,
+                    child: imageUrl != null
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                          )
+                        : _imagePlaceholder(),
+                  ),
+                ),
+                // Bouton retirer (overlay top-right)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => context
+                        .read<FavoriteBloc>()
+                        .add(FavoriteRemove(establishmentId: e.id)),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Iconsax.heart5,
+                          color: AppColors.primaryRed, size: 17),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
-            // Info
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppDimens.paddingM,
-                  AppDimens.paddingM,
-                  AppDimens.paddingS,
-                  AppDimens.paddingM,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+            // ── Infos ──
+            Padding(
+              padding: const EdgeInsets.all(AppDimens.paddingM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nom + vérifié
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          e.name,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (e.isVerified)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(Iconsax.verify5,
+                              color: AppColors.primaryGreen, size: 15),
+                        ),
+                    ],
+                  ),
+                  // Catégorie
+                  if (e.category != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      e.category!.localizedName(lang),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primaryGreen,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 6),
+                  // Étoiles + note + avis
+                  Row(
+                    children: [
+                      _starRating(rating: e.averageRating),
+                      const SizedBox(width: 6),
+                      Text(
+                        e.displayRating,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${e.totalReviews})',
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF8A8A8A)),
+                      ),
+                    ],
+                  ),
+                  // Wilaya
+                  if (e.wilaya != null) ...[
+                    const SizedBox(height: 6),
                     Row(
                       children: [
+                        const Icon(Icons.location_on_rounded,
+                            size: 13, color: AppColors.grey400),
+                        const SizedBox(width: 3),
                         Expanded(
                           child: Text(
-                            e.name,
-                            style: Theme.of(context).textTheme.titleSmall,
+                            e.wilaya!.name,
+                            style: const TextStyle(
+                                fontSize: 12, color: Color(0xFF8A8A8A)),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (e.isVerified)
-                          const Padding(
-                            padding: EdgeInsets.only(left: 4),
-                            child: Icon(Iconsax.verify5,
-                                color: AppColors.primaryGreen, size: 15),
-                          ),
-                      ],
-                    ),
-                    if (e.category != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        e.category!.name,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.primaryGreen,
-                              fontWeight: FontWeight.w500,
-                            ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    const SizedBox(height: AppDimens.paddingXS),
-                    if (e.wilaya != null)
-                      Row(
-                        children: [
-                          const Icon(Iconsax.location,
-                              color: AppColors.grey500, size: 13),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            child: Text(
-                              e.wilaya!.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: AppColors.grey600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: AppDimens.paddingXS),
-                    Row(
-                      children: [
-                        const Text('🇩🇿', style: TextStyle(fontSize: 12)),
-                        const SizedBox(width: 2),
-                        Text(
-                          e.displayRating,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                        const SizedBox(width: AppDimens.paddingXS),
-                        Text(
-                          '(${e.totalReviews})',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: AppColors.grey500),
-                        ),
                       ],
                     ),
                   ],
-                ),
-              ),
-            ),
-
-            // Remove from favorites
-            Padding(
-              padding: const EdgeInsets.only(right: AppDimens.paddingXS),
-              child: IconButton(
-                icon: const Icon(Iconsax.heart5,
-                    color: AppColors.primaryRed, size: 22),
-                tooltip: 'Retirer des favoris',
-                onPressed: () => context
-                    .read<FavoriteBloc>()
-                    .add(FavoriteRemove(establishmentId: e.id)),
+                ],
               ),
             ),
           ],
@@ -352,10 +374,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   Widget _imagePlaceholder() {
     return Container(
-      width: 110,
-      height: 110,
       color: AppColors.grey200,
-      child: const Icon(Iconsax.image, color: AppColors.grey400, size: 32),
+      child: const Center(
+        child: Icon(Iconsax.image, color: AppColors.grey400, size: 40),
+      ),
     );
   }
 
@@ -411,17 +433,36 @@ class _FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
+  Widget _starRating({required double rating}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final full = i < rating.floor();
+        final half = !full && i < rating && (rating - i) >= 0.5;
+        return Icon(
+          full
+              ? Icons.star_rounded
+              : half
+                  ? Icons.star_half_rounded
+                  : Icons.star_outline_rounded,
+          size: 14,
+          color: const Color(0xFFFF8C00),
+        );
+      }),
+    );
+  }
+
   void _confirmClearAll(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Vider les favoris'),
+        title: Text(context.l10n.clearFavorites),
         content: const Text(
             'Voulez-vous supprimer tous vos favoris ? Cette action est irréversible.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -429,7 +470,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               context.read<FavoriteBloc>().add(FavoriteClearAll());
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Vider'),
+            child: Text(context.l10n.clear),
           ),
         ],
       ),

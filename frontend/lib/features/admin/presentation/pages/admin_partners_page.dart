@@ -69,8 +69,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
         title: Text(widget.pendingOnly
-            ? 'Partenaires en attente'
-            : 'Gestion des partenaires'),
+            ? context.l10n.pendingPartners
+            : context.l10n.managementPartners),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -106,7 +106,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
         style: TextStyle(color: AppColors.grey700),
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Rechercher un partenaire...',
+          hintText: context.l10n.searchPartner,
           prefixIcon: const Icon(Iconsax.search_normal, size: 20),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
@@ -164,7 +164,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
               children: [
                 _buildFilterChip(
                   context,
-                  label: 'Tous',
+                  label: context.l10n.filterAll,
                   isSelected: statusFilter == null,
                   onTap: () => context
                       .read<AdminPartnersBloc>()
@@ -173,7 +173,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Approuvés',
+                  label: context.l10n.filterApproved,
                   isSelected: statusFilter == 'approved',
                   color: AppColors.success,
                   onTap: () => context.read<AdminPartnersBloc>().add(
@@ -191,7 +191,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Rejetés',
+                  label: context.l10n.filterRejected,
                   isSelected: statusFilter == 'rejected',
                   color: AppColors.error,
                   onTap: () => context.read<AdminPartnersBloc>().add(
@@ -200,7 +200,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Suspendus',
+                  label: context.l10n.filterSuspended,
                   isSelected: statusFilter == 'suspended',
                   color: AppColors.grey600,
                   onTap: () => context.read<AdminPartnersBloc>().add(
@@ -370,7 +370,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                       ),
                 ),
                 Text(
-                  'Vérifiez et approuvez les nouveaux partenaires',
+                  context.l10n.verifyApprovePartners,
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
@@ -402,7 +402,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -455,7 +455,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              isPending ? 'Tout est à jour !' : 'Aucun partenaire trouvé',
+              isPending ? context.l10n.allUpToDate : context.l10n.noPartnerFound,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.grey900,
@@ -464,8 +464,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
             const SizedBox(height: AppDimens.paddingS),
             Text(
               isPending
-                  ? 'Aucun partenaire en attente d\'approbation'
-                  : 'Essayez de modifier vos filtres de recherche',
+                  ? context.l10n.noPartnerPending
+                  : context.l10n.modifySearchFilters,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.grey600,
                   ),
@@ -478,7 +478,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
                       AdminPartnersLoad(pendingOnly: true),
                     ),
                 icon: const Icon(Iconsax.refresh),
-                label: const Text('Actualiser'),
+                label: Text(context.l10n.refresh),
               ),
             ],
           ],
@@ -508,7 +508,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
         );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${partner.companyName} a été approuvé'),
+        content: Text(context.l10n.partnerApprovedMsg(partner.companyName)),
         backgroundColor: AppColors.success,
       ),
     );
@@ -519,19 +519,19 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Rejeter le partenaire'),
+        title: Text(context.l10n.rejectPartner),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Êtes-vous sûr de vouloir rejeter ${partner.companyName} ?'),
+            Text(context.l10n.rejectPartnerQuestion(partner.companyName)),
             const SizedBox(height: AppDimens.paddingM),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Raison du rejet',
-                hintText: 'Entrez la raison du rejet...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.rejectReasonLabel,
+                hintText: context.l10n.enterRejectReason,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -546,8 +546,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
             onPressed: () {
               if (reasonController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Veuillez entrer une raison'),
+                  SnackBar(
+                    content: Text(context.l10n.pleaseEnterReason),
                     backgroundColor: AppColors.error,
                   ),
                 );
@@ -565,7 +565,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Rejeter'),
+            child: Text(context.l10n.reject),
           ),
         ],
       ),
@@ -577,19 +577,19 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Suspendre le partenaire'),
+        title: Text(context.l10n.suspendPartner),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Êtes-vous sûr de vouloir suspendre ${partner.companyName} ?'),
+            Text(context.l10n.suspendPartnerQuestion(partner.companyName)),
             const SizedBox(height: AppDimens.paddingM),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Raison de la suspension',
-                hintText: 'Entrez la raison...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.suspensionReasonLabel,
+                hintText: context.l10n.enterReason,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -605,8 +605,8 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
               final reason = reasonController.text.trim();
               if (reason.length < 10) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('La raison doit faire au moins 10 caractères'),
+                  SnackBar(
+                    content: Text(context.l10n.reasonMinChars),
                     backgroundColor: AppColors.error,
                     behavior: SnackBarBehavior.floating,
                   ),
@@ -625,7 +625,7 @@ class _AdminPartnersPageState extends State<AdminPartnersPage> {
               backgroundColor: AppColors.warning,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Suspendre'),
+            child: Text(context.l10n.suspend),
           ),
         ],
       ),
@@ -646,7 +646,7 @@ class _FilterBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Filtres',
+                context.l10n.filters,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -658,13 +658,13 @@ class _FilterBottomSheet extends StatelessWidget {
                       .add(const AdminPartnersLoad());
                   Navigator.pop(context);
                 },
-                child: const Text('Réinitialiser'),
+                child: Text(context.l10n.resetFilters),
               ),
             ],
           ),
           const SizedBox(height: AppDimens.paddingL),
           Text(
-            'Statut',
+            context.l10n.statusLabel,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -674,7 +674,7 @@ class _FilterBottomSheet extends StatelessWidget {
             spacing: AppDimens.paddingS,
             children: [
               FilterChip(
-                label: const Text('Tous'),
+                label: Text(context.l10n.filterAll),
                 selected: false,
                 onSelected: (_) {
                   context

@@ -14,7 +14,7 @@ class WilayaController {
 
       const wilayas = await wilayaService.getAllWilayas({
         includeCommunes,
-        activeOnly: true,
+        activeOnly: false,
       });
 
       if (!wilayas || wilayas.length === 0) {

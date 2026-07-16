@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -73,19 +74,19 @@ class _MapPageState extends State<MapPage> {
   Timer? _mapMoveTimer;
   final List<String> _recentSearches = [];
 
-  static const _popularKeywords = [
-    'Restaurant',
-    'Café',
-    'Hôpital',
-    'Pharmacie',
-    'Banque',
-    'Hôtel',
-    'Coiffeur',
-    'Supermarché',
-    'École',
-    'Boulangerie',
-    'Médecin',
-    'Dentiste',
+  List<({String query, String label})> get _popularKeywords => [
+    (query: 'Restaurant',  label: context.l10n.kwRestaurant),
+    (query: 'Café',        label: context.l10n.kwCafe),
+    (query: 'Hôpital',    label: context.l10n.kwHospital),
+    (query: 'Pharmacie',  label: context.l10n.kwPharmacy),
+    (query: 'Banque',     label: context.l10n.kwBank),
+    (query: 'Hôtel',      label: context.l10n.kwHotel),
+    (query: 'Coiffeur',   label: context.l10n.kwHairdresser),
+    (query: 'Supermarché',label: context.l10n.kwSupermarket),
+    (query: 'École',      label: context.l10n.kwSchool),
+    (query: 'Boulangerie',label: context.l10n.kwBakery),
+    (query: 'Médecin',    label: context.l10n.kwDoctor),
+    (query: 'Dentiste',   label: context.l10n.kwDentist),
   ];
 
   // ── Filtres ───────────────────────────────────────────────────────────────
@@ -772,8 +773,8 @@ class _MapPageState extends State<MapPage> {
       if (pos == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Impossible de récupérer votre position')),
+            SnackBar(
+                content: Text(context.l10n.locationError)),
           );
         }
         return;
@@ -800,7 +801,7 @@ class _MapPageState extends State<MapPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Ouvrir avec',
+              Text(context.l10n.openWith,
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -936,8 +937,8 @@ class _MapPageState extends State<MapPage> {
                                     style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w500),
-                                    decoration: const InputDecoration(
-                                      hintText: 'Restaurant, hôtel...',
+                                    decoration: InputDecoration(
+                                      hintText: context.l10n.mapSearchHint,
                                       hintStyle: TextStyle(
                                           color: AppColors.grey400,
                                           fontSize: 15),
@@ -951,8 +952,8 @@ class _MapPageState extends State<MapPage> {
                                     _currentQuery?.isNotEmpty == true
                                         ? _currentQuery!
                                         : hasQuery
-                                            ? 'Résultats filtrés'
-                                            : 'Rechercher sur la carte...',
+                                            ? context.l10n.filteredResults
+                                            : context.l10n.searchOnMap,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14,
@@ -981,7 +982,7 @@ class _MapPageState extends State<MapPage> {
                           ] else if (!_loading) ...[
                             const SizedBox(width: 4),
                             Text(
-                              '${_establishments.length} lieu${_establishments.length > 1 ? 'x' : ''}',
+                              context.l10n.placesCount(_establishments.length),
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.grey500),
                             ),
@@ -995,9 +996,9 @@ class _MapPageState extends State<MapPage> {
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _cancelSearch,
-                    child: const Text(
-                      'Annuler',
-                      style: TextStyle(
+                    child: Text(
+                      context.l10n.cancel,
+                      style: const TextStyle(
                         color: AppColors.grey700,
                         fontWeight: FontWeight.w500,
                         fontSize: 14,
@@ -1072,7 +1073,7 @@ class _MapPageState extends State<MapPage> {
                   children: [
                     _QuickChip(
                       icon: Icons.star_rounded,
-                      label: 'Recommandés',
+                      label: context.l10n.recommended,
                       active: _sortBy == 'average_rating',
                       onTap: () {
                         setState(() => _sortBy = _sortBy == 'average_rating'
@@ -1084,7 +1085,7 @@ class _MapPageState extends State<MapPage> {
                     const SizedBox(width: 8),
                     _QuickChip(
                       icon: Iconsax.clock,
-                      label: 'Ouverts maintenant',
+                      label: context.l10n.openedNow,
                       active: _openNow,
                       onTap: () {
                         setState(() => _openNow = !_openNow);
@@ -1095,7 +1096,7 @@ class _MapPageState extends State<MapPage> {
                       const SizedBox(width: 8),
                       _QuickChip(
                         icon: Iconsax.location,
-                        label: 'Près de moi',
+                        label: context.l10n.nearMe,
                         active: _maxDistanceKm != null,
                         onTap: () {
                           setState(() => _maxDistanceKm =
@@ -1132,15 +1133,15 @@ class _MapPageState extends State<MapPage> {
                             offset: Offset(0, 2))
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Iconsax.search_normal,
+                        const Icon(Iconsax.search_normal,
                             size: 15, color: AppColors.primaryGreen),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Text(
-                          'Rechercher dans cette zone',
-                          style: TextStyle(
+                          context.l10n.searchInArea,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                             color: AppColors.grey800,
@@ -1262,15 +1263,15 @@ class _MapPageState extends State<MapPage> {
                         offset: Offset(0, 2))
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Iconsax.search_status,
+                    const Icon(Iconsax.search_status,
                         size: 20, color: AppColors.grey400),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      'Aucun établissement trouvé dans cette zone',
-                      style: TextStyle(color: AppColors.grey600, fontSize: 13),
+                      context.l10n.noEstablishmentsInArea,
+                      style: const TextStyle(color: AppColors.grey600, fontSize: 13),
                     ),
                   ],
                 ),
@@ -1310,21 +1311,44 @@ class _MapPageState extends State<MapPage> {
         padding: EdgeInsets.zero,
         children: [
           if (_recentSearches.isNotEmpty) ...[
-            _overlaySection('Recherches récentes',
-                action: 'Effacer',
+            _overlaySection(context.l10n.recentSearches,
+                action: context.l10n.clear,
                 onAction: () => setState(() => _recentSearches.clear())),
-            ..._recentSearches.map((s) => ListTile(
-                  dense: true,
-                  leading: const Icon(Iconsax.clock,
-                      size: 18, color: AppColors.grey400),
-                  title: Text(s, style: const TextStyle(fontSize: 14)),
-                  trailing: const Icon(Iconsax.arrow_right_3,
-                      size: 16, color: AppColors.grey400),
-                  onTap: () => _performSearch(keyword: s),
-                )),
-            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _recentSearches.map((s) {
+                  return GestureDetector(
+                    onTap: () => _performSearch(keyword: s),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.scaffoldBackground,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Iconsax.clock,
+                              size: 14, color: Colors.white70),
+                          const SizedBox(width: 6),
+                          Text(s,
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ],
-          _overlaySection('Recherches populaires'),
+          _overlaySection(context.l10n.popularSearches),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             child: Wrap(
@@ -1332,7 +1356,7 @@ class _MapPageState extends State<MapPage> {
               runSpacing: 8,
               children: _popularKeywords.map((kw) {
                 return GestureDetector(
-                  onTap: () => _performSearch(keyword: kw),
+                  onTap: () => _performSearch(keyword: kw.query),
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -1341,7 +1365,7 @@ class _MapPageState extends State<MapPage> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppColors.grey200),
                     ),
-                    child: Text(kw,
+                    child: Text(kw.label,
                         style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.grey700,
@@ -1366,20 +1390,11 @@ class _MapPageState extends State<MapPage> {
             ListTile(
               leading: _overlayIcon(Icons.my_location, AppColors.primaryGreen,
                   AppColors.primaryGreen.withValues(alpha: 0.1)),
-              title: Text.rich(TextSpan(children: [
-                const TextSpan(
-                    text: 'Rechercher "',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-                TextSpan(
-                    text: query,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-                const TextSpan(
-                    text: '" près de moi',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              ])),
+              title: Text(
+                context.l10n.searchNearMeFor(query),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Color(0xFF002FA7)),
+              ),
               trailing: const Icon(Iconsax.arrow_right_3,
                   size: 16, color: AppColors.grey400),
               onTap: () => _performSearch(),
@@ -1387,20 +1402,11 @@ class _MapPageState extends State<MapPage> {
           ListTile(
             leading: _overlayIcon(
                 Iconsax.search_normal, AppColors.grey500, AppColors.grey100),
-            title: Text.rich(TextSpan(children: [
-              const TextSpan(
-                  text: 'Rechercher "',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              TextSpan(
-                  text: query,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              const TextSpan(
-                  text: '"',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-            ])),
+            title: Text(
+              context.l10n.searchFor(query),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Color(0xFF002FA7)),
+            ),
             trailing: const Icon(Iconsax.arrow_right_3,
                 size: 16, color: AppColors.grey400),
             onTap: () => _performSearch(),
@@ -1423,21 +1429,18 @@ class _MapPageState extends State<MapPage> {
                 : _overlayIcon(Iconsax.search_normal, AppColors.grey500,
                     AppColors.grey100),
             title: Text.rich(TextSpan(children: [
-              const TextSpan(
-                  text: 'Voir tous les résultats pour "',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
               TextSpan(
-                  text: query,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Color(0xFF002FA7))),
-              const TextSpan(text: '"'),
+                text: context.l10n.seeAllResultsFor(query),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Color(0xFF002FA7)),
+              ),
               if (_userLocation != null)
-                const TextSpan(
-                    text: ' près de moi',
-                    style: TextStyle(
-                        color: AppColors.primaryGreen,
-                        fontWeight: FontWeight.w500)),
+                TextSpan(
+                  text: ' ${context.l10n.nearMe}',
+                  style: const TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontWeight: FontWeight.w500),
+                ),
             ])),
             trailing: const Icon(Iconsax.arrow_right_3,
                 size: 16, color: AppColors.grey400),
@@ -1621,7 +1624,9 @@ class _SuggestionItem extends StatelessWidget {
       subtitle: Row(
         children: [
           if (e.category != null) ...[
-            Text(e.category!.name,
+            Text(
+                e.category!.localizedName(
+                    Localizations.localeOf(context).languageCode),
                 style: const TextStyle(fontSize: 12, color: AppColors.grey600)),
             const SizedBox(width: 4),
             Container(
@@ -1647,7 +1652,9 @@ class _SuggestionItem extends StatelessWidget {
           ],
           Expanded(
             child: Text(
-              e.wilaya?.name ?? e.address,
+              e.wilaya?.localizedName(
+                      Localizations.localeOf(context).languageCode) ??
+                  e.address,
               style: const TextStyle(fontSize: 12, color: AppColors.grey600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -1749,7 +1756,8 @@ class _EstablishmentMapCard extends StatelessWidget {
                           if (e.category != null)
                             Expanded(
                               child: Text(
-                                e.category!.name,
+                                e.category!.localizedName(
+                                    Localizations.localeOf(context).languageCode),
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.primaryGreen,
@@ -1821,8 +1829,8 @@ class _EstablishmentMapCard extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: onNavigate,
                           icon: const Icon(Icons.navigation, size: 14),
-                          label: const Text('Y aller',
-                              style: TextStyle(fontSize: 12)),
+                          label: Text(context.l10n.goHere,
+                              style: const TextStyle(fontSize: 12)),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.primaryGreen,
                             side:
@@ -1860,7 +1868,7 @@ class _OpenBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        isOpen ? 'Ouvert' : 'Fermé',
+        isOpen ? context.l10n.open : context.l10n.closed,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
@@ -1993,13 +2001,12 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
   final CategoryRepository _categoryRepository = CategoryRepository();
   final WilayaRepository _wilayaRepository = WilayaRepository();
 
+  final _subcategoryKey = GlobalKey();
+  final _communeKey = GlobalKey();
+  ScrollController? _scrollController;
+
   static const _ratings = [4.5, 4.0, 3.5, 3.0, 2.0];
-  static const _prices = [
-    ('\$', 'Économique'),
-    ('\$\$', 'Modéré'),
-    ('\$\$\$', 'Élevé'),
-    ('\$\$\$\$', 'Luxe'),
-  ];
+  static const _priceSymbols = ['\$', '\$\$', '\$\$\$', '\$\$\$\$'];
 
   @override
   void initState() {
@@ -2046,6 +2053,11 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
           _communes = communes;
           _loadingCommunes = false;
         });
+        if (communes.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToKey(_communeKey);
+          });
+        }
       }
     } catch (_) {
       if (mounted) setState(() => _loadingCommunes = false);
@@ -2068,10 +2080,30 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
           _subcategories = subs;
           _loadingSubcategories = false;
         });
+        if (subs.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToKey(_subcategoryKey);
+          });
+        }
       }
     } catch (_) {
       if (mounted) setState(() => _loadingSubcategories = false);
     }
+  }
+
+  void _scrollToKey(GlobalKey key) {
+    final ctx = key.currentContext;
+    if (ctx == null || _scrollController == null || !_scrollController!.hasClients) return;
+    final box = ctx.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final listBox = _scrollController!.position.context.storageContext.findRenderObject() as RenderBox?;
+    if (listBox == null) return;
+    final offset = box.localToGlobal(Offset.zero, ancestor: listBox).dy + _scrollController!.offset;
+    _scrollController!.animateTo(
+      offset.clamp(0.0, _scrollController!.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -2080,7 +2112,9 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
       initialChildSize: 0.75,
       maxChildSize: 0.95,
       minChildSize: 0.4,
-      builder: (ctx, scrollController) => Container(
+      builder: (ctx, scrollController) {
+        _scrollController = scrollController;
+        return Container(
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -2091,9 +2125,9 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Row(
                 children: [
-                  const Text('Filtres',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(context.l10n.filters,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
                   const Spacer(),
                   TextButton(
                     onPressed: () => setState(() {
@@ -2106,7 +2140,7 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
                       _openNow = false;
                       _maxDistanceKm = null;
                     }),
-                    child: const Text('Réinitialiser'),
+                    child: Text(context.l10n.reset),
                   ),
                 ],
               ),
@@ -2117,17 +2151,23 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
                 controller: scrollController,
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _filterSection('Catégorie', _buildCategoryFilter()),
+                  _filterSection(context.l10n.categoryFilter, _buildCategoryFilter()),
                   if (_subcategories.isNotEmpty)
-                    _filterSection('Sous-catégorie', _buildSubcategoryFilter()),
-                  _filterSection('Wilaya', _buildWilayaFilter()),
+                    KeyedSubtree(
+                      key: _subcategoryKey,
+                      child: _filterSection(context.l10n.subcategoryLabel, _buildSubcategoryFilter()),
+                    ),
+                  _filterSection(context.l10n.wilaya, _buildWilayaFilter()),
                   if (_communes.isNotEmpty)
-                    _filterSection('Commune', _buildCommuneFilter()),
-                  _filterSection('Note minimale', _buildRatingFilter()),
-                  _filterSection('Gamme de prix', _buildPriceFilter()),
-                  _filterSection('Disponibilité', _buildOpenNowFilter()),
+                    KeyedSubtree(
+                      key: _communeKey,
+                      child: _filterSection(context.l10n.commune, _buildCommuneFilter()),
+                    ),
+                  _filterSection(context.l10n.filterMinRatingLabel, _buildRatingFilter()),
+                  _filterSection(context.l10n.priceRange, _buildPriceFilter()),
+                  _filterSection(context.l10n.filterAvailability, _buildOpenNowFilter()),
                   if (widget.hasLocation)
-                    _filterSection('Distance max.', _buildDistanceFilter()),
+                    _filterSection(context.l10n.maxDistanceLabel, _buildDistanceFilter()),
                 ],
               ),
             ),
@@ -2161,8 +2201,8 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Appliquer les filtres',
-                        style: TextStyle(
+                    child: Text(context.l10n.applyFilters,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
@@ -2170,7 +2210,8 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
             ),
           ],
         ),
-      ),
+      );
+      },
     );
   }
 
@@ -2190,11 +2231,14 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
   }
 
   Widget _buildCategoryFilter() {
+    final lang = Localizations.localeOf(context).languageCode;
+    final availableCategories = widget.categories.where((c) => c.isActive).toList();
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: widget.categories.map((cat) {
+      children: availableCategories.map((cat) {
         final isSelected = _categoryId == cat.id;
+        final label = cat.localizedName(lang);
         return GestureDetector(
           onTap: () {
             setState(() {
@@ -2205,13 +2249,13 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
                 _subcategories = [];
               } else {
                 _categoryId = cat.id;
-                _categoryName = cat.name;
+                _categoryName = label;
                 _subcategoryId = null;
                 _loadSubcategories(cat.id);
               }
             });
           },
-          child: _FilterChip(label: cat.name, isSelected: isSelected),
+          child: _FilterChip(label: label, isSelected: isSelected),
         );
       }).toList(),
     );
@@ -2223,28 +2267,33 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
           child: CircularProgressIndicator(
               strokeWidth: 2, color: AppColors.primaryGreen));
     }
+    final lang = Localizations.localeOf(context).languageCode;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: _subcategories.map((sub) {
         final isSelected = _subcategoryId == sub.id;
+        final label = sub.localizedName(lang);
         return GestureDetector(
           onTap: () => setState(() {
             _subcategoryId = isSelected ? null : sub.id;
-            _subcategoryName = isSelected ? null : sub.name;
+            _subcategoryName = isSelected ? null : label;
           }),
-          child: _FilterChip(label: sub.name, isSelected: isSelected),
+          child: _FilterChip(label: label, isSelected: isSelected),
         );
       }).toList(),
     );
   }
 
   Widget _buildWilayaFilter() {
+    final lang = Localizations.localeOf(context).languageCode;
+    final availableWilayas = widget.wilayas.where((w) => w.isActive).toList();
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: widget.wilayas.map((w) {
+      children: availableWilayas.map((w) {
         final isSelected = _wilayaId == w.id;
+        final label = w.localizedName(lang);
         return GestureDetector(
           onTap: () {
             setState(() {
@@ -2255,13 +2304,13 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
                 _communes = [];
               } else {
                 _wilayaId = w.id;
-                _wilayaName = w.name;
+                _wilayaName = label;
                 _communeId = null;
                 _loadCommunes(w.id);
               }
             });
           },
-          child: _FilterChip(label: w.name, isSelected: isSelected),
+          child: _FilterChip(label: label, isSelected: isSelected),
         );
       }).toList(),
     );
@@ -2273,17 +2322,19 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
           child: CircularProgressIndicator(
               strokeWidth: 2, color: AppColors.primaryGreen));
     }
+    final lang = Localizations.localeOf(context).languageCode;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: _communes.map((c) {
         final isSelected = _communeId == c.id;
+        final label = c.localizedName(lang);
         return GestureDetector(
           onTap: () => setState(() {
             _communeId = isSelected ? null : c.id;
-            _communeName = isSelected ? null : c.name;
+            _communeName = isSelected ? null : label;
           }),
-          child: _FilterChip(label: c.name, isSelected: isSelected),
+          child: _FilterChip(label: label, isSelected: isSelected),
         );
       }).toList(),
     );
@@ -2305,15 +2356,21 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
   }
 
   Widget _buildPriceFilter() {
+    final priceLabels = {
+      '\$': context.l10n.priceEconomicalLabel,
+      '\$\$': context.l10n.priceModerateLabel,
+      '\$\$\$': context.l10n.priceHighLabel,
+      '\$\$\$\$': context.l10n.priceLuxuryLabel,
+    };
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _prices.map((p) {
-        final isSelected = _priceRange == p.$1;
+      children: _priceSymbols.map((p) {
+        final isSelected = _priceRange == p;
         return GestureDetector(
-          onTap: () => setState(() => _priceRange = isSelected ? null : p.$1),
-          child:
-              _FilterChip(label: '${p.$1} · ${p.$2}', isSelected: isSelected),
+          onTap: () => setState(() => _priceRange = isSelected ? null : p),
+          child: _FilterChip(
+              label: '$p · ${priceLabels[p]!}', isSelected: isSelected),
         );
       }).toList(),
     );
@@ -2346,7 +2403,7 @@ class _MapFiltersSheetState extends State<MapFiltersSheet> {
             ),
           ),
           const SizedBox(width: 12),
-          const Text('Ouverts maintenant', style: TextStyle(fontSize: 14)),
+          Text(context.l10n.openNow, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );

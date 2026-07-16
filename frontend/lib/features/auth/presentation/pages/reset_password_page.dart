@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../app_router.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -44,8 +45,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Mot de passe réinitialisé avec succès !'),
+          SnackBar(
+            content: Text(context.l10n.passwordResetSuccess),
             backgroundColor: AppColors.success,
           ),
         );

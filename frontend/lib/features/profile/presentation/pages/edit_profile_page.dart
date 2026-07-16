@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
@@ -102,12 +103,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               ListTile(
                 leading: const Icon(Iconsax.camera),
-                title: const Text('Prendre une photo'),
+                title: Text(context.l10n.takePhoto),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
               ListTile(
                 leading: const Icon(Iconsax.gallery),
-                title: const Text('Choisir de la galerie'),
+                title: Text(context.l10n.chooseFromGallery),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
             ],
@@ -186,8 +187,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil mis à jour avec succès'),
+          SnackBar(
+            content: Text(context.l10n.profileUpdated),
             backgroundColor: AppColors.success,
           ),
         );
@@ -228,7 +229,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           icon: const Icon(Iconsax.arrow_left),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Modifier le profil'),
+        title: Text(context.l10n.editProfile),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -245,7 +246,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is! AuthAuthenticated) {
-          return const Center(child: Text('Non connecté'));
+          return Center(child: Text(context.l10n.notConnected));
         }
 
         final user = state.user;
@@ -331,7 +332,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       const SizedBox(height: AppDimens.paddingS),
                       TextButton(
                         onPressed: _pickAvatar,
-                        child: const Text('Changer la photo'),
+                        child: Text(context.l10n.changePhoto),
                       ),
                     ],
                   ),
@@ -341,7 +342,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                 // Personal Info Section
                 Text(
-                  'Informations personnelles',
+                  context.l10n.personalInfo,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.grey800,
@@ -352,11 +353,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 // First Name
                 _buildTextField(
                   controller: _firstNameController,
-                  label: 'Prénom *',
+                  label: '${context.l10n.firstName} *',
                   icon: Iconsax.user,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Le prénom est requis';
+                      return context.l10n.firstNameRequired;
                     }
                     return null;
                   },
@@ -366,11 +367,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 // Last Name
                 _buildTextField(
                   controller: _lastNameController,
-                  label: 'Nom *',
+                  label: '${context.l10n.lastName} *',
                   icon: Iconsax.user,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Le nom est requis';
+                      return context.l10n.lastNameRequired;
                     }
                     return null;
                   },
@@ -380,7 +381,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 // Email (read-only)
                 _buildTextField(
                   controller: TextEditingController(text: user.email),
-                  label: 'Email',
+                  label: context.l10n.email,
                   icon: Iconsax.sms,
                   enabled: false,
                 ),
@@ -389,7 +390,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 // Phone
                 _buildTextField(
                   controller: _phoneController,
-                  label: 'Téléphone',
+                  label: context.l10n.phone,
                   icon: Iconsax.call,
                   keyboardType: TextInputType.phone,
                 ),
@@ -401,7 +402,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       .where((w) => w.id == _selectedWilayaId)
                       .firstOrNull,
                   items: _wilayas,
-                  label: 'Wilaya',
+                  label: context.l10n.wilaya,
                   icon: Iconsax.location,
                   itemBuilder: (wilaya) => '${wilaya.code} - ${wilaya.name}',
                   onChanged: (wilaya) {
@@ -434,7 +435,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Enregistrer'),
+                        : Text(context.l10n.save),
                   ),
                 ),
 
@@ -445,7 +446,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: TextButton.icon(
                     onPressed: () => _showChangePasswordDialog(),
                     icon: const Icon(Iconsax.lock),
-                    label: const Text('Changer le mot de passe'),
+                    label: Text(context.l10n.changePassword),
                   ),
                 ),
 
@@ -476,7 +477,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Informations entreprise',
+                                    context.l10n.businessInfo,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleSmall
@@ -506,7 +507,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             onPressed: () =>
                                 context.push(AppRoutes.editPartnerProfile),
                             icon: const Icon(Iconsax.edit, size: 18),
-                            label: const Text('Modifier les informations'),
+                            label: Text(context.l10n.editInfo),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.primaryGreen,
                               side: const BorderSide(
@@ -617,21 +618,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  String _extractPasswordError(Object e) {
+  String _extractPasswordError(Object e, BuildContext ctx) {
     if (e is ValidationException) {
       final fieldErrors = e.fieldErrors;
       if (fieldErrors.isNotEmpty) {
         return fieldErrors.values.expand((msgs) => msgs).join('\n');
       }
-      return e.message.isNotEmpty ? e.message : 'Erreur de validation';
+      return e.message.isNotEmpty ? e.message : ctx.l10n.validationError;
     }
     if (e is BadRequestException) {
-      const map = {
-        'Current password is incorrect': 'Le mot de passe actuel est incorrect',
-      };
-      return map[e.message] ?? e.message;
+      if (e.message == 'Current password is incorrect') {
+        return ctx.l10n.incorrectCurrentPassword;
+      }
+      return e.message;
     }
-    return 'Une erreur est survenue. Veuillez réessayer.';
+    return ctx.l10n.genericError;
   }
 
   void _showChangePasswordDialog() {
@@ -649,7 +650,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Changer le mot de passe'),
+          title: Text(context.l10n.changePassword),
           content: Form(
             key: formKey,
             child: SingleChildScrollView(
@@ -676,7 +677,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     controller: currentPasswordController,
                     obscureText: obscureCurrent,
                     decoration: InputDecoration(
-                      labelText: 'Mot de passe actuel',
+                      labelText: context.l10n.currentPassword,
                       prefixIcon: const Icon(Iconsax.lock),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -690,7 +691,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Requis';
+                        return context.l10n.required;
                       }
                       return null;
                     },
@@ -700,7 +701,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     controller: newPasswordController,
                     obscureText: obscureNew,
                     decoration: InputDecoration(
-                      labelText: 'Nouveau mot de passe',
+                      labelText: context.l10n.newPassword,
                       prefixIcon: const Icon(Iconsax.lock_1),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -714,10 +715,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Requis';
+                        return context.l10n.required;
                       }
                       if (value.length < 6) {
-                        return 'Minimum 6 caractères';
+                        return context.l10n.minSixChars;
                       }
                       return null;
                     },
@@ -727,7 +728,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     controller: confirmPasswordController,
                     obscureText: obscureConfirm,
                     decoration: InputDecoration(
-                      labelText: 'Confirmer le mot de passe',
+                      labelText: context.l10n.confirmPassword,
                       prefixIcon: const Icon(Iconsax.lock_1),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -741,7 +742,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     validator: (value) {
                       if (value != newPasswordController.text) {
-                        return 'Les mots de passe ne correspondent pas';
+                        return context.l10n.passwordsDoNotMatch;
                       }
                       return null;
                     },
@@ -753,7 +754,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           actions: [
             TextButton(
               onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
-              child: const Text('Annuler'),
+              child: Text(context.l10n.cancel),
             ),
             ElevatedButton(
               onPressed: isLoading
@@ -780,14 +781,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         if (context.mounted) {
                           Navigator.pop(dialogContext);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Mot de passe modifié avec succès'),
+                            SnackBar(
+                              content: Text(context.l10n.passwordChanged),
                               backgroundColor: AppColors.success,
                             ),
                           );
                         }
                       } catch (e) {
-                        final msg = _extractPasswordError(e);
+                        final msg = _extractPasswordError(e, context);
                         setDialogState(() {
                           errorMessage = msg;
                           isLoading = false;
@@ -807,7 +808,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('Changer'),
+                  : Text(context.l10n.change),
             ),
           ],
         ),

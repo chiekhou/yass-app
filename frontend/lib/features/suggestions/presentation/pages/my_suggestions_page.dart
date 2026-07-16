@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -94,14 +95,14 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
     return Scaffold(
       backgroundColor: AppColors.kleinBlue,
       appBar: AppBar(
-        title: const Text('Mes suggestions'),
+        title: Text(context.l10n.mySuggestions),
         backgroundColor: AppColors.kleinBlue,
         foregroundColor: AppColors.white,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Iconsax.add_circle),
-            tooltip: 'Faire une suggestion',
+            tooltip: context.l10n.makeSuggestion,
             onPressed: () => context.push(AppRoutes.newSuggestion),
           ),
         ],
@@ -132,7 +133,7 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
               Text(_error!, style: const TextStyle(color: AppColors.white),
                   textAlign: TextAlign.center),
               const SizedBox(height: AppDimens.paddingM),
-              ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
+              ElevatedButton(onPressed: _load, child: Text(context.l10n.retry)),
             ],
           ),
         ),
@@ -157,25 +158,25 @@ class _MySuggestionsPageState extends State<MySuggestionsPage> {
                     size: 48, color: AppColors.white),
               ),
               const SizedBox(height: AppDimens.paddingL),
-              const Text(
-                'Aucune suggestion pour le moment',
-                style: TextStyle(
+              Text(
+                context.l10n.noSuggestionsYet,
+                style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                     color: AppColors.white),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppDimens.paddingS),
-              const Text(
-                'Suggérez un établissement que vous aimeriez voir sur la plateforme.',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+              Text(
+                context.l10n.suggestYourEstablishment,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppDimens.paddingXL),
               ElevatedButton.icon(
                 onPressed: () => context.push(AppRoutes.newSuggestion),
                 icon: const Icon(Iconsax.add),
-                label: const Text('Faire une suggestion'),
+                label: Text(context.l10n.makeSuggestion),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accentGreen,
                   foregroundColor: AppColors.black,

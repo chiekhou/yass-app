@@ -85,7 +85,13 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
                           const SizedBox(height: AppDimens.paddingL),
                           _buildMainStats(context, state),
                           const SizedBox(height: AppDimens.paddingL),
-                          _buildEngagementStats(context, state),
+                          _buildEngagementFunnel(context, state),
+                          const SizedBox(height: AppDimens.paddingL),
+                          _buildRatingDistribution(context, state),
+                          const SizedBox(height: AppDimens.paddingL),
+                          _buildRatingTrend(context, state),
+                          const SizedBox(height: AppDimens.paddingL),
+                          _buildTopWilayas(context, state),
                           const SizedBox(height: AppDimens.paddingL),
                           _buildQuickActions(context),
                         ],
@@ -113,7 +119,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppDimens.paddingS),
@@ -159,7 +165,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Bienvenue, Partenaire',
+                  context.l10n.welcomePartner,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
@@ -167,7 +173,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
                 ),
                 const SizedBox(height: AppDimens.paddingXS),
                 Text(
-                  'Gérez vos établissements',
+                  context.l10n.manageYourEstablishments,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.white.withValues(alpha: 0.8),
                       ),
@@ -198,7 +204,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mes établissements',
+          context.l10n.myEstablishments,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.grey900,
@@ -214,14 +220,14 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
           childAspectRatio: 1.2,
           children: [
             PartnerStatCard(
-              title: 'Total',
+              title: context.l10n.totalLabel,
               value: stats.totalEstablishments.toString(),
               icon: Iconsax.building,
               color: AppColors.info,
               onTap: () => context.push(AppRoutes.partnerEstablishments),
             ),
             PartnerStatCard(
-              title: 'Actifs',
+              title: context.l10n.statusActive,
               value: stats.activeEstablishments.toString(),
               icon: Iconsax.tick_circle,
               color: AppColors.success,
@@ -233,65 +239,13 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               color: AppColors.warning,
             ),
             PartnerStatCard(
-              title: 'Note moyenne',
+              title: context.l10n.averageRating,
               value: stats.averageRating.toStringAsFixed(1),
               icon: Iconsax.star,
               color: AppColors.primaryRed,
-              subtitle: '${stats.totalReviews} avis',
+              subtitle: context.l10n.reviewsN(stats.totalReviews),
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEngagementStats(
-      BuildContext context, PartnerDashboardLoaded state) {
-    final stats = state.stats;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Engagement',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.grey900,
-              ),
-        ),
-        const SizedBox(height: AppDimens.paddingM),
-        PartnerStatCardCompact(
-          title: 'Vues totales',
-          value: _formatNumber(stats.totalViews),
-          icon: Iconsax.eye,
-          color: AppColors.info,
-        ),
-        const SizedBox(height: AppDimens.paddingS),
-        PartnerStatCardCompact(
-          title: 'Favoris',
-          value: _formatNumber(stats.totalFavorites),
-          icon: Iconsax.heart,
-          color: AppColors.primaryRed,
-        ),
-        const SizedBox(height: AppDimens.paddingS),
-        PartnerStatCardCompact(
-          title: 'Appels téléphone',
-          value: _formatNumber(stats.phoneClicks),
-          icon: Iconsax.call,
-          color: AppColors.success,
-        ),
-        const SizedBox(height: AppDimens.paddingS),
-        PartnerStatCardCompact(
-          title: 'Clics WhatsApp',
-          value: _formatNumber(stats.whatsappClicks),
-          icon: Iconsax.message,
-          color: AppColors.primaryGreen,
-        ),
-        const SizedBox(height: AppDimens.paddingS),
-        PartnerStatCardCompact(
-          title: 'Prises de contact',
-          value: _formatNumber(stats.totalContacts),
-          icon: Iconsax.message_edit,
-          color: AppColors.warning,
         ),
       ],
     );
@@ -302,7 +256,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Actions rapides',
+          context.l10n.quickActions,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.grey900,
@@ -315,7 +269,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               child: _buildQuickActionButton(
                 context,
                 icon: Iconsax.add_circle,
-                label: 'Ajouter',
+                label: context.l10n.add,
                 color: AppColors.primaryGreen,
                 onTap: () => context.push(AppRoutes.partnerEstablishmentCreate),
               ),
@@ -325,7 +279,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               child: _buildQuickActionButton(
                 context,
                 icon: Iconsax.building,
-                label: 'Mes établ.',
+                label: context.l10n.myEstablishmentsShort,
                 color: AppColors.info,
                 onTap: () => context.push(AppRoutes.partnerEstablishments),
               ),
@@ -335,7 +289,7 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
               child: _buildQuickActionButton(
                 context,
                 icon: Iconsax.receipt_item,
-                label: 'Factures',
+                label: context.l10n.invoicesLabel,
                 color: AppColors.primaryGreen,
                 onTap: () => context.push(AppRoutes.partnerInvoices),
               ),
@@ -399,4 +353,336 @@ class _PartnerDashboardPageState extends State<PartnerDashboardPage> {
     }
     return number.toString();
   }
+
+  // ── Funnel d'engagement ────────────────────────────────────────────────────
+  Widget _buildEngagementFunnel(
+      BuildContext context, PartnerDashboardLoaded state) {
+    final s = state.stats;
+    final steps = [
+      _FunnelStep(context.l10n.views, s.totalViews, AppColors.info, Iconsax.eye),
+      _FunnelStep(context.l10n.favorites, s.totalFavorites, AppColors.primaryRed, Iconsax.heart),
+      _FunnelStep(context.l10n.calls, s.phoneClicks, AppColors.success, Iconsax.call),
+      _FunnelStep('WhatsApp', s.whatsappClicks, AppColors.primaryGreen, Iconsax.message),
+      _FunnelStep(context.l10n.contact, s.totalContacts, AppColors.warning, Iconsax.message_edit),
+    ];
+    final maxVal = steps.map((e) => e.value).fold(1, (a, b) => a > b ? a : b);
+
+    return _buildSection(
+      context,
+      title: context.l10n.engagementFunnel,
+      icon: Iconsax.chart_2,
+      child: Column(
+        children: steps.map((step) {
+          final ratio = maxVal > 0 ? step.value / maxVal : 0.0;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Icon(step.icon, size: 16, color: step.color),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 68,
+                  child: Text(
+                    step.label,
+                    style:
+                        const TextStyle(fontSize: 12, color: AppColors.grey700),
+                  ),
+                ),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: ratio.toDouble(),
+                      minHeight: 10,
+                      backgroundColor: AppColors.grey100,
+                      valueColor: AlwaysStoppedAnimation<Color>(step.color),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 42,
+                  child: Text(
+                    _formatNumber(step.value),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: step.color,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ── Distribution des notes ─────────────────────────────────────────────────
+  Widget _buildRatingDistribution(
+      BuildContext context, PartnerDashboardLoaded state) {
+    final dist = state.stats.ratingDistribution;
+    final total = dist.values.fold(0, (a, b) => a + b);
+
+    if (total == 0) return const SizedBox.shrink();
+
+    return _buildSection(
+      context,
+      title: context.l10n.ratingDistributionTitle,
+      icon: Iconsax.star,
+      child: Column(
+        children: List.generate(5, (i) {
+          final star = 5 - i;
+          final count = dist[star] ?? 0;
+          final ratio = total > 0 ? count / total : 0.0;
+          const starColor = Color(0xFFFFC107);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Text(
+                  '$star',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey800,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.star_rounded, size: 14, color: starColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: ratio.toDouble(),
+                      minHeight: 10,
+                      backgroundColor: AppColors.grey100,
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(starColor),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 32,
+                  child: Text(
+                    '$count',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.grey600,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ── Tendance de la note sur 6 mois ─────────────────────────────────────────
+  Widget _buildRatingTrend(BuildContext context, PartnerDashboardLoaded state) {
+    final trend = state.stats.ratingTrend;
+    if (trend.isEmpty) return const SizedBox.shrink();
+
+    const maxRating = 5.0;
+    const chartHeight = 80.0;
+
+    return _buildSection(
+      context,
+      title: context.l10n.ratingTrend6Months,
+      icon: Iconsax.trend_up,
+      child: SizedBox(
+        height: chartHeight + 44,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: trend.map((t) {
+            final barH = (t.average / maxRating) * chartHeight;
+            final isHigh = t.average >= 4.0;
+            final barColor =
+                isHigh ? AppColors.primaryGreen : AppColors.warning;
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      t.average > 0 ? t.average.toStringAsFixed(1) : '',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: barColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 600),
+                      height: barH.clamp(4.0, chartHeight),
+                      decoration: BoxDecoration(
+                        color: barColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      t.month,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.grey500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // ── Top 5 wilayas des clients ──────────────────────────────────────────────
+  Widget _buildTopWilayas(BuildContext context, PartnerDashboardLoaded state) {
+    final wilayas = state.stats.topWilayas;
+    if (wilayas.isEmpty) return const SizedBox.shrink();
+
+    final maxCount =
+        wilayas.map((w) => w.count).fold(1, (a, b) => a > b ? a : b);
+    final colors = [
+      AppColors.primaryGreen,
+      AppColors.info,
+      AppColors.warning,
+      AppColors.primaryRed,
+      AppColors.grey500,
+    ];
+
+    return _buildSection(
+      context,
+      title: context.l10n.topCustomerWilayas,
+      icon: Iconsax.location,
+      child: Column(
+        children: wilayas.asMap().entries.map((entry) {
+          final i = entry.key;
+          final w = entry.value;
+          final ratio = w.count / maxCount;
+          final color = colors[i % colors.length];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${i + 1}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    w.name,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.grey800,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: ratio,
+                      minHeight: 10,
+                      backgroundColor: AppColors.grey100,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${w.count}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.grey700,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ── Helper section wrapper ─────────────────────────────────────────────────
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppDimens.paddingM),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppDimens.radiusL),
+        border: Border.all(color: AppColors.grey100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: AppColors.primaryGreen),
+              const SizedBox(width: AppDimens.paddingS),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.grey900,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimens.paddingM),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _FunnelStep {
+  final String label;
+  final int value;
+  final Color color;
+  final IconData icon;
+  const _FunnelStep(this.label, this.value, this.color, this.icon);
 }

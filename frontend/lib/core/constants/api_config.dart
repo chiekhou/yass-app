@@ -166,6 +166,8 @@ class ApiConfig {
   static const String adminPendingPayments = '$admin/payments/pending';
   static String adminValidatePayment(String id) =>
       '$admin/payments/$id/validate';
+  static String adminCancelPayment(String id) =>
+      '$admin/payments/$id/cancel';
 
   // Notifications
   static const String notifications = '/notifications';
@@ -173,6 +175,13 @@ class ApiConfig {
   static const String notificationsReadAll = '$notifications/read-all';
   static String notificationRead(String id) => '$notifications/$id/read';
   static String notificationDelete(String id) => '$notifications/$id';
+  static const String notificationsDeleteAll = notifications;
+
+  // Admin Availability
+  static const String adminWilayas = '$admin/wilayas';
+  static String adminToggleWilaya(String id) => '$adminWilayas/$id/toggle';
+  static const String adminCategories = '$admin/categories';
+  static String adminToggleCategory(String id) => '$adminCategories/$id/toggle';
 
   // FCM Token
   static const String updateFcmToken = '$auth/fcm-token';

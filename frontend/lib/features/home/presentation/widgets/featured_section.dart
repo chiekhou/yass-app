@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../app_router.dart';
@@ -23,7 +24,7 @@ class FeaturedSection extends StatelessWidget {
       return SizedBox(
           height: 220,
           child: Center(
-              child: Text('Aucun établissement à la une',
+              child: Text(context.l10n.noFeatured,
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium

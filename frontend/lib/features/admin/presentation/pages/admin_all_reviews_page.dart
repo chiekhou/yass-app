@@ -26,11 +26,11 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
   Timer? _searchDebounce;
   String _statusFilter = 'all';
 
-  static const _statusOptions = {
-    'all': 'Tous',
-    'pending': 'En attente',
-    'approved': 'Approuvés',
-    'rejected': 'Rejetés',
+  Map<String, String> _statusOptions(BuildContext context) => {
+    'all': context.l10n.filterAll,
+    'pending': context.l10n.filterPending,
+    'approved': context.l10n.filterApproved,
+    'rejected': context.l10n.filterRejected,
   };
 
   @override
@@ -58,7 +58,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Tous les avis'),
+        title: Text(context.l10n.allReviews),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -87,7 +87,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
         style: TextStyle(color: AppColors.scaffoldBackground),
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Rechercher un avis...',
+          hintText: context.l10n.searchReview,
           prefixIcon: const Icon(Iconsax.search_normal, size: 20),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
@@ -141,7 +141,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
                 const Icon(Iconsax.filter, size: 14, color: AppColors.grey500),
                 const SizedBox(width: 6),
                 Text(
-                  'Statut :',
+                  '${context.l10n.statusLabel} :',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.grey500,
                         fontWeight: FontWeight.w600,
@@ -152,7 +152,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: _statusOptions.entries.map((entry) {
+                      children: _statusOptions(context).entries.map((entry) {
                         final isSelected = _statusFilter == entry.key;
                         final color = switch (entry.key) {
                           'approved' => AppColors.success,
@@ -318,7 +318,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
                       ),
                 ),
                 Text(
-                  'Gérez l\'ensemble des avis de la plateforme',
+                  context.l10n.managePlatformReviews,
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
@@ -335,7 +335,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
   Widget _buildCard(Review review) {
     final userName = review.user != null
         ? '${review.user!.firstName} ${review.user!.lastName}'
-        : 'Utilisateur';
+        : context.l10n.userRole;
     final initials =
         review.user != null ? review.user!.firstName[0].toUpperCase() : 'U';
     final timeAgo = _formatTimeAgo(review.createdAt);
@@ -524,7 +524,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
                         side: const BorderSide(color: AppColors.success),
                       ),
                       icon: const Icon(Iconsax.tick_circle, size: 18),
-                      label: const Text('Approuver'),
+                      label: Text(context.l10n.approve),
                     ),
                   ),
                   const SizedBox(width: AppDimens.paddingS),
@@ -536,7 +536,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
                         side: const BorderSide(color: AppColors.error),
                       ),
                       icon: const Icon(Iconsax.close_circle, size: 18),
-                      label: const Text('Rejeter'),
+                      label: Text(context.l10n.reject),
                     ),
                   ),
                 ],
@@ -553,7 +553,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
                     side: const BorderSide(color: AppColors.grey300),
                   ),
                   icon: const Icon(Iconsax.minus_cirlce, size: 18),
-                  label: const Text('Révoquer'),
+                  label: Text(context.l10n.revoke),
                 ),
               ),
           ],
@@ -569,19 +569,19 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL)),
-        title: const Text('Rejeter cet avis'),
+        title: Text(context.l10n.rejectThisReview),
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Raison du rejet (min. 10 caractères)',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: context.l10n.rejectReasonMin10,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -594,7 +594,7 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Rejeter'),
+            child: Text(context.l10n.reject),
           ),
         ],
       ),
@@ -639,13 +639,13 @@ class _AdminAllReviewsPageState extends State<AdminAllReviewsPage> {
           children: [
             const Icon(Iconsax.star, size: 64, color: AppColors.grey300),
             const SizedBox(height: AppDimens.paddingL),
-            Text('Aucun avis trouvé',
+            Text(context.l10n.noReviewFound,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.grey900,
                     )),
             const SizedBox(height: AppDimens.paddingS),
-            Text('Aucun avis ne correspond à ce filtre',
+            Text(context.l10n.noReviewForFilter,
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium

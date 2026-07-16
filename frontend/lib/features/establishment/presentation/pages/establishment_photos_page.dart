@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/l10n/l10n_extensions.dart';
 import '../../data/models/establishment_model.dart';
 import '../../data/models/photo_category.dart';
 
@@ -64,14 +65,9 @@ class _EstablishmentPhotosPageState extends State<EstablishmentPhotosPage>
   }
 
   String _tabLabel(String key) {
-    if (key == _allKey) return 'Tout (${widget.photos.length})';
-    final cat = kPhotoCategories.firstWhere(
-      (c) => c.key == key,
-      orElse: () =>
-          const PhotoCategory(key: 'autres', label: 'Autres', icon: Iconsax.more_circle),
-    );
+    if (key == _allKey) return context.l10n.allPhotosTab(widget.photos.length);
     final count = widget.photos.where((p) => p.category == key).length;
-    return '${cat.label} ($count)';
+    return '${photoCategoryL10nLabel(context, key)} ($count)';
   }
 
   @override
@@ -89,9 +85,9 @@ class _EstablishmentPhotosPageState extends State<EstablishmentPhotosPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Photos',
-              style: TextStyle(
+            Text(
+              context.l10n.photos,
+              style: const TextStyle(
                 color: AppColors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 17,
@@ -133,16 +129,16 @@ class _EstablishmentPhotosPageState extends State<EstablishmentPhotosPage>
               ),
       ),
       body: widget.photos.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Iconsax.gallery_slash,
+                  const Icon(Iconsax.gallery_slash,
                       size: 64, color: AppColors.white),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'Aucune photo disponible',
-                    style: TextStyle(color: Colors.white70, fontSize: 15),
+                    context.l10n.noPhotosAvailable,
+                    style: const TextStyle(color: Colors.white70, fontSize: 15),
                   ),
                 ],
               ),
@@ -243,7 +239,7 @@ class _PhotoGrid extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    item.categoryLabel,
+                    photoCategoryL10nLabel(context, item.category),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,

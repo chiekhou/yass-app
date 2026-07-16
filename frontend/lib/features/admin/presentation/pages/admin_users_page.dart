@@ -42,7 +42,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Gestion des utilisateurs'),
+        title: Text(context.l10n.managementUsers),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -72,7 +72,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
         style: TextStyle(color: AppColors.scaffoldBackground),
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Rechercher un utilisateur...',
+          hintText: context.l10n.searchUser,
           prefixIcon: const Icon(Iconsax.search_normal, size: 20),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
@@ -126,7 +126,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               children: [
                 _buildFilterChip(
                   context,
-                  label: 'Tous les rôles',
+                  label: context.l10n.allRoles,
                   isSelected: roleFilter == null,
                   onTap: () => context
                       .read<AdminUsersBloc>()
@@ -135,7 +135,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Utilisateurs',
+                  label: context.l10n.users,
                   isSelected: roleFilter == 'user',
                   onTap: () => context
                       .read<AdminUsersBloc>()
@@ -144,7 +144,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Partenaires',
+                  label: context.l10n.partners,
                   isSelected: roleFilter == 'partner',
                   onTap: () => context
                       .read<AdminUsersBloc>()
@@ -153,7 +153,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Admins',
+                  label: context.l10n.admins,
                   isSelected: roleFilter == 'admin',
                   onTap: () => context
                       .read<AdminUsersBloc>()
@@ -168,7 +168,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingM),
                 _buildFilterChip(
                   context,
-                  label: 'Actifs',
+                  label: context.l10n.filterActive,
                   isSelected: statusFilter == 'active',
                   color: AppColors.success,
                   onTap: () => context
@@ -178,7 +178,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Inactifs',
+                  label: context.l10n.filterInactive,
                   isSelected: statusFilter == 'inactive',
                   color: AppColors.grey500,
                   onTap: () => context
@@ -198,7 +198,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Suspendus',
+                  label: context.l10n.filterSuspended,
                   isSelected: statusFilter == 'suspended',
                   color: AppColors.error,
                   onTap: () => context
@@ -325,7 +325,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             const Icon(Iconsax.warning_2, size: 64, color: AppColors.error),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: AppDimens.paddingS),
@@ -359,14 +359,14 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             Icon(Iconsax.people, size: 64, color: AppColors.grey400),
             const SizedBox(height: AppDimens.paddingM),
             Text(
-              'Aucun utilisateur trouvé',
+              context.l10n.noUserFound,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.grey600,
                   ),
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Essayez de modifier vos filtres de recherche',
+              context.l10n.modifySearchFilters,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.grey500,
                   ),
@@ -396,7 +396,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Modifier le statut'),
+        title: Text(context.l10n.changeStatus),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -415,7 +415,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             ListTile(
               leading:
                   const Icon(Iconsax.minus_cirlce, color: AppColors.grey500),
-              title: const Text('Inactif'),
+              title: Text(context.l10n.statusInactive),
               selected: user.status == 'inactive',
               onTap: () {
                 Navigator.pop(dialogContext);
@@ -464,7 +464,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer l\'utilisateur'),
+        title: Text(context.l10n.deleteUser),
         content: Text(
           'Êtes-vous sûr de vouloir supprimer ${user.fullName} ?\n\nCette action est irréversible.',
         ),
@@ -505,7 +505,7 @@ class _FilterBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Filtres',
+                context.l10n.filters,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -515,13 +515,13 @@ class _FilterBottomSheet extends StatelessWidget {
                   context.read<AdminUsersBloc>().add(const AdminUsersLoad());
                   Navigator.pop(context);
                 },
-                child: const Text('Réinitialiser'),
+                child: Text(context.l10n.resetFilters),
               ),
             ],
           ),
           const SizedBox(height: AppDimens.paddingL),
           Text(
-            'Rôle',
+            context.l10n.role,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -531,7 +531,7 @@ class _FilterBottomSheet extends StatelessWidget {
             spacing: AppDimens.paddingS,
             children: [
               FilterChip(
-                label: const Text('Tous'),
+                label: Text(context.l10n.filterAll),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -541,7 +541,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Utilisateur'),
+                label: Text(context.l10n.userRole),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -551,7 +551,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Partenaire'),
+                label: Text(context.l10n.partnerRole),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -561,7 +561,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Admin'),
+                label: Text(context.l10n.adminRole),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -574,7 +574,7 @@ class _FilterBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppDimens.paddingL),
           Text(
-            'Statut',
+            context.l10n.statusLabel,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -584,7 +584,7 @@ class _FilterBottomSheet extends StatelessWidget {
             spacing: AppDimens.paddingS,
             children: [
               FilterChip(
-                label: const Text('Tous'),
+                label: Text(context.l10n.filterAll),
                 selected: false,
                 onSelected: (_) {
                   context
@@ -604,7 +604,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Inactif'),
+                label: Text(context.l10n.statusInactive),
                 selected: false,
                 onSelected: (_) {
                   context

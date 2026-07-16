@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../data/models/admin_partner_model.dart';
@@ -270,7 +271,7 @@ class PartnerListItem extends StatelessWidget {
                     const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
               ),
               icon: const Icon(Iconsax.close_circle, size: 16),
-              label: const Text('Rejeter'),
+              label: Text(context.l10n.reject),
             ),
           ),
           const SizedBox(width: AppDimens.paddingS),
@@ -284,7 +285,7 @@ class PartnerListItem extends StatelessWidget {
                     const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
               ),
               icon: const Icon(Iconsax.tick_circle, size: 16),
-              label: const Text('Approuver'),
+              label: Text(context.l10n.approve),
             ),
           ),
         ],
@@ -303,7 +304,7 @@ class PartnerListItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: AppDimens.paddingS),
           ),
           icon: const Icon(Iconsax.slash, size: 16),
-          label: const Text('Suspendre le partenaire'),
+          label: Text(context.l10n.suspendPartner),
         ),
       );
     }

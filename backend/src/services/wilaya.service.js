@@ -39,6 +39,7 @@ class WilayaService {
         "name_en",
         "latitude",
         "longitude",
+        "is_active",
       ],
     });
 

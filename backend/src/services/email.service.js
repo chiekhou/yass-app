@@ -528,6 +528,139 @@ class EmailService {
   }
 
   /**
+   * Send email to partner when a review on their establishment is approved by admin
+   */
+  async sendReviewApprovedEmail(partnerUser, establishment, review, reviewer) {
+    const reviewerName = reviewer
+      ? `${reviewer.first_name} ${reviewer.last_name}`.trim()
+      : 'Un utilisateur';
+
+    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const ratingLabel = ['', 'Très mauvais', 'Mauvais', 'Correct', 'Bien', 'Excellent'][review.rating] || '';
+
+    const reviewContent = review.comment || review.title || '';
+
+    const establishmentUrl = `win://home`;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouvel avis sur votre établissement</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+
+          <!-- Barre drapeau -->
+          <tr>
+            <td style="height:5px;background:linear-gradient(to right,#006233 50%,#D21034 50%);"></td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#006233;padding:28px 32px;text-align:center;">
+              <p style="margin:0;font-size:28px;font-weight:bold;color:#ffffff;letter-spacing:2px;">Win</p>
+              <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.8);letter-spacing:1px;">وِين — Le répertoire des services en Algérie</p>
+            </td>
+          </tr>
+
+          <!-- Corps -->
+          <tr>
+            <td style="padding:32px;">
+
+              <p style="margin:0 0 8px;font-size:20px;font-weight:bold;color:#1a1a1a;">Bonjour ${partnerUser.first_name} !</p>
+
+              <p style="margin:16px 0;font-size:15px;color:#4a4a4a;line-height:1.6;">
+                Un nouvel avis noté <strong>${review.rating} étoile${review.rating > 1 ? 's' : ''}</strong> a été posté par
+                <strong>${reviewerName}</strong> sur votre établissement
+                <strong>${establishment.name}</strong>.
+              </p>
+
+              <!-- Note étoiles -->
+              <table cellpadding="0" cellspacing="0" style="margin:20px 0;">
+                <tr>
+                  <td style="font-size:26px;color:#FF8C00;letter-spacing:3px;">${stars}</td>
+                  <td style="padding-left:10px;font-size:14px;color:#888;vertical-align:middle;">${ratingLabel}</td>
+                </tr>
+              </table>
+
+              <!-- Contenu de l'avis -->
+              ${reviewContent ? `
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+                <tr>
+                  <td style="background-color:#f8f9fa;border-left:4px solid #006233;border-radius:0 8px 8px 0;padding:16px 20px;">
+                    <p style="margin:0 0 6px;font-size:11px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:1px;">Contenu de l'avis</p>
+                    <p style="margin:0;font-size:14px;color:#333;line-height:1.7;font-style:italic;">"${reviewContent}"</p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              ${review.title && review.comment ? `
+              <p style="margin:0 0 4px;font-size:13px;color:#888;">Titre : <strong style="color:#333;">${review.title}</strong></p>
+              ` : ''}
+
+              <p style="margin:24px 0 8px;font-size:14px;color:#4a4a4a;line-height:1.6;">
+                Cet avis est maintenant visible par tous les utilisateurs de Win sur la page de votre établissement.
+                Vous pouvez y répondre directement depuis votre espace partenaire.
+              </p>
+
+              <!-- CTA -->
+              <table cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
+                <tr>
+                  <td style="background-color:#006233;border-radius:8px;">
+                    <a href="${establishmentUrl}" style="display:inline-block;padding:14px 32px;font-size:14px;font-weight:bold;color:#ffffff;text-decoration:none;letter-spacing:0.5px;">
+                      Voir l'avis sur mon établissement →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Séparateur -->
+          <tr>
+            <td style="height:1px;background-color:#f0f0f0;"></td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#006233;padding:20px 32px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.7);">
+                © ${new Date().getFullYear()} Win — Tous droits réservés
+              </p>
+              <p style="margin:6px 0 0;font-size:11px;color:rgba(255,255,255,0.5);">
+                Vous recevez cet email car vous êtes partenaire sur Win.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Barre drapeau bas -->
+          <tr>
+            <td style="height:5px;background:linear-gradient(to right,#006233 50%,#D21034 50%);"></td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    return this.send({
+      to: partnerUser.email,
+      subject: `⭐ Nouvel avis ${stars} sur ${establishment.name} — Win`,
+      html,
+    });
+  }
+
+  /**
    * Send notification to admin for new partner registration
    */
   async sendAdminNewPartnerNotification(adminEmail, user, partner) {

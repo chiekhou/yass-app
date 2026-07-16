@@ -43,7 +43,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Mes établissements'),
+        title: Text(context.l10n.myEstablishments),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -91,7 +91,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
               children: [
                 _buildFilterChip(
                   context,
-                  label: 'Tous',
+                  label: context.l10n.filterAll,
                   isSelected: statusFilter == null,
                   onTap: () => context.read<PartnerEstablishmentsBloc>().add(
                       const PartnerEstablishmentsFilterByStatus(status: null)),
@@ -99,7 +99,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Actifs',
+                  label: context.l10n.filterActive,
                   isSelected: statusFilter == 'active',
                   color: AppColors.success,
                   onTap: () => context.read<PartnerEstablishmentsBloc>().add(
@@ -119,7 +119,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Inactifs',
+                  label: context.l10n.filterInactive,
                   isSelected: statusFilter == 'inactive',
                   color: AppColors.grey500,
                   onTap: () => context.read<PartnerEstablishmentsBloc>().add(
@@ -129,7 +129,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
                 const SizedBox(width: AppDimens.paddingS),
                 _buildFilterChip(
                   context,
-                  label: 'Rejetés',
+                  label: context.l10n.filterRejected,
                   isSelected: statusFilter == 'rejected',
                   color: AppColors.error,
                   onTap: () => context.read<PartnerEstablishmentsBloc>().add(
@@ -183,8 +183,8 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
       listener: (context, state) {
         if (state is PartnerEstablishmentDeleted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Établissement supprimé'),
+            SnackBar(
+              content: Text(context.l10n.establishmentDeleted),
               backgroundColor: AppColors.success,
             ),
           );
@@ -342,7 +342,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
               onPressed: () =>
                   context.push(AppRoutes.partnerEstablishmentCreate),
               icon: const Icon(Iconsax.add),
-              label: const Text('Ajouter un établissement'),
+              label: Text(context.l10n.addEstablishment),
             ),
           ],
         ),
@@ -369,7 +369,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer l\'établissement'),
+        title: Text(context.l10n.deleteEstablishmentTitle),
         content: Text(
           'Êtes-vous sûr de vouloir supprimer "${establishment.name}" ?\n\nCette action est irréversible.',
         ),
@@ -400,7 +400,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Changer le statut'),
+        title: Text(context.l10n.changeStatus),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -408,7 +408,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
               ListTile(
                 leading:
                     const Icon(Iconsax.tick_circle, color: AppColors.success),
-                title: const Text('Activer'),
+                title: Text(context.l10n.activateStatus),
                 onTap: () {
                   Navigator.pop(dialogContext);
                   context.read<PartnerEstablishmentsBloc>().add(
@@ -423,7 +423,7 @@ class _PartnerEstablishmentsPageState extends State<PartnerEstablishmentsPage> {
               ListTile(
                 leading:
                     const Icon(Iconsax.minus_cirlce, color: AppColors.grey500),
-                title: const Text('Désactiver'),
+                title: Text(context.l10n.deactivateStatus),
                 onTap: () {
                   Navigator.pop(dialogContext);
                   context.read<PartnerEstablishmentsBloc>().add(
@@ -460,7 +460,7 @@ class _FilterBottomSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Filtres',
+                context.l10n.filters,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -472,13 +472,13 @@ class _FilterBottomSheet extends StatelessWidget {
                       .add(const PartnerEstablishmentsLoad());
                   Navigator.pop(context);
                 },
-                child: const Text('Réinitialiser'),
+                child: Text(context.l10n.reset),
               ),
             ],
           ),
           const SizedBox(height: AppDimens.paddingL),
           Text(
-            'Statut',
+            context.l10n.statusLabel,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -488,7 +488,7 @@ class _FilterBottomSheet extends StatelessWidget {
             spacing: AppDimens.paddingS,
             children: [
               FilterChip(
-                label: const Text('Tous'),
+                label: Text(context.l10n.filterAll),
                 selected: false,
                 onSelected: (_) {
                   context.read<PartnerEstablishmentsBloc>().add(
@@ -517,7 +517,7 @@ class _FilterBottomSheet extends StatelessWidget {
                 },
               ),
               FilterChip(
-                label: const Text('Inactif'),
+                label: Text(context.l10n.filterInactive),
                 selected: false,
                 onSelected: (_) {
                   context.read<PartnerEstablishmentsBloc>().add(

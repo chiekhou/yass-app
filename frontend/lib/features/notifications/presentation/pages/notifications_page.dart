@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -28,18 +27,31 @@ class NotificationsPage extends StatelessWidget {
         actions: [
           BlocBuilder<NotificationsBloc, NotificationsState>(
             builder: (context, state) {
-              if (state is NotificationsLoaded && state.unreadCount > 0) {
-                return TextButton(
-                  onPressed: () => context
-                      .read<NotificationsBloc>()
-                      .add(const MarkAllNotificationsRead()),
-                  child: Text(
-                    context.l10n.markAllRead,
-                    style: const TextStyle(color: AppColors.white),
-                  ),
-                );
+              if (state is! NotificationsLoaded ||
+                  state.notifications.isEmpty) {
+                return const SizedBox.shrink();
               }
-              return const SizedBox.shrink();
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (state.unreadCount > 0)
+                    TextButton(
+                      onPressed: () => context
+                          .read<NotificationsBloc>()
+                          .add(const MarkAllNotificationsRead()),
+                      child: Text(
+                        context.l10n.markAllRead,
+                        style: const TextStyle(color: AppColors.white),
+                      ),
+                    ),
+                  IconButton(
+                    icon: const Icon(Iconsax.trash, size: 20),
+                    color: AppColors.white,
+                    tooltip: 'Tout supprimer',
+                    onPressed: () => _confirmDeleteAll(context),
+                  ),
+                ],
+              );
             },
           ),
         ],
@@ -238,6 +250,33 @@ class NotificationsPage extends StatelessWidget {
       ),
     );
   }
+}
+
+void _confirmDeleteAll(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(context.l10n.deleteAllNotifications),
+      content: const Text(
+          'Cette action est irréversible. Toutes vos notifications seront supprimées définitivement.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(context.l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(ctx);
+            context
+                .read<NotificationsBloc>()
+                .add(const ClearNotifications());
+          },
+          style: TextButton.styleFrom(foregroundColor: AppColors.error),
+          child: Text(context.l10n.delete),
+        ),
+      ],
+    ),
+  );
 }
 
 // ─── Notification Card ───────────────────────────────────────────────────────
@@ -566,8 +605,8 @@ class _NotificationCard extends StatelessWidget {
                   if (message.isNotEmpty) ...[
                     const Divider(color: Colors.white12),
                     const SizedBox(height: 10),
-                    const Text('Message',
-                        style: TextStyle(
+                    Text(context.l10n.message,
+                        style: const TextStyle(
                             color: Colors.white54,
                             fontSize: 12,
                             fontWeight: FontWeight.w600)),
@@ -618,7 +657,7 @@ class _NotificationCard extends StatelessWidget {
                   foregroundColor: Colors.white54,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                child: const Text('Fermer'),
+                child: Text(context.l10n.close),
               ),
             ),
           ],

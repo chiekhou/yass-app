@@ -16,7 +16,7 @@ const Map<String, _CatIcon> _iconMap = {
   'beaute-bien-etre':          _CatIcon(Iconsax.lovely,       Icons.face_retouching_natural),
   'sante':                     _CatIcon(Iconsax.health,       Icons.add_rounded),
   'automobile':                _CatIcon(Iconsax.car,          Icons.settings_rounded),
-  'hebergement':               _CatIcon(Iconsax.building_4,   Icons.bed_rounded),
+  'activites-services':        _CatIcon(Iconsax.game,         Icons.home_repair_service_rounded),
   'activites-loisirs':         _CatIcon(Iconsax.game,         Icons.sports_rounded),
   'maison-services':           _CatIcon(Iconsax.home_2,       Icons.build_rounded),
   'commerces':                 _CatIcon(Iconsax.shop,         Icons.shopping_cart_rounded),

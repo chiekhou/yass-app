@@ -15,6 +15,10 @@ class Category extends Equatable {
   final String name;
   final String? nameAr;
   final String? nameEn;
+  final String? nameDe;
+  final String? nameEs;
+  final String? nameIt;
+  final String? nameNl;
   final String slug;
   final String? description;
   final String? descriptionAr;
@@ -22,6 +26,7 @@ class Category extends Equatable {
   final String? image;
   final String? color;
   final int order;
+  final bool isActive;
   final List<SubCategory>? subcategories;
   final int? establishmentsCount;
 
@@ -30,6 +35,10 @@ class Category extends Equatable {
     required this.name,
     this.nameAr,
     this.nameEn,
+    this.nameDe,
+    this.nameEs,
+    this.nameIt,
+    this.nameNl,
     required this.slug,
     this.description,
     this.descriptionAr,
@@ -37,6 +46,7 @@ class Category extends Equatable {
     this.image,
     this.color,
     this.order = 0,
+    this.isActive = true,
     this.subcategories,
     this.establishmentsCount,
   });
@@ -47,6 +57,10 @@ class Category extends Equatable {
       name: json['name'] ?? '',
       nameAr: json['name_ar'],
       nameEn: json['name_en'],
+      nameDe: json['name_de'],
+      nameEs: json['name_es'],
+      nameIt: json['name_it'],
+      nameNl: json['name_nl'],
       slug: json['slug'] ?? '',
       description: json['description'],
       descriptionAr: json['description_ar'],
@@ -54,6 +68,7 @@ class Category extends Equatable {
       image: json['image'],
       color: json['color'],
       order: json['order'] ?? 0,
+      isActive: json['is_active'] ?? true,
       subcategories: json['subcategories'] != null
           ? (json['subcategories'] as List)
               .map((e) => SubCategory.fromJson(e))
@@ -61,6 +76,18 @@ class Category extends Equatable {
           : null,
       establishmentsCount: json['establishments_count'],
     );
+  }
+
+  String localizedName(String languageCode) {
+    switch (languageCode) {
+      case 'ar': return nameAr ?? name;
+      case 'en': return nameEn ?? name;
+      case 'de': return nameDe ?? name;
+      case 'es': return nameEs ?? name;
+      case 'it': return nameIt ?? name;
+      case 'nl': return nameNl ?? name;
+      default:   return name;
+    }
   }
 
   @override
@@ -72,6 +99,7 @@ class Category extends Equatable {
         icon,
         color,
         order,
+        isActive,
         subcategories,
         establishmentsCount,
       ];
@@ -84,6 +112,10 @@ class SubCategory extends Equatable {
   final String name;
   final String? nameAr;
   final String? nameEn;
+  final String? nameDe;
+  final String? nameEs;
+  final String? nameIt;
+  final String? nameNl;
   final String slug;
   final String? description;
   final String? descriptionAr;
@@ -98,6 +130,10 @@ class SubCategory extends Equatable {
     required this.name,
     this.nameAr,
     this.nameEn,
+    this.nameDe,
+    this.nameEs,
+    this.nameIt,
+    this.nameNl,
     required this.slug,
     this.description,
     this.descriptionAr,
@@ -114,6 +150,10 @@ class SubCategory extends Equatable {
       name: json['name'] ?? '',
       nameAr: json['name_ar'],
       nameEn: json['name_en'],
+      nameDe: json['name_de'],
+      nameEs: json['name_es'],
+      nameIt: json['name_it'],
+      nameNl: json['name_nl'],
       slug: json['slug'] ?? '',
       description: json['description'],
       descriptionAr: json['description_ar'],
@@ -125,6 +165,18 @@ class SubCategory extends Equatable {
           ? Category.fromJson(json['category'])
           : null,
     );
+  }
+
+  String localizedName(String languageCode) {
+    switch (languageCode) {
+      case 'ar': return nameAr ?? name;
+      case 'en': return nameEn ?? name;
+      case 'de': return nameDe ?? name;
+      case 'es': return nameEs ?? name;
+      case 'it': return nameIt ?? name;
+      case 'nl': return nameNl ?? name;
+      default:   return name;
+    }
   }
 
   @override
@@ -141,6 +193,7 @@ class Wilaya extends Equatable {
   final String? nameEn;
   final double? latitude;
   final double? longitude;
+  final bool isActive;
   final List<Commune>? communes;
 
   const Wilaya({
@@ -151,6 +204,7 @@ class Wilaya extends Equatable {
     this.nameEn,
     this.latitude,
     this.longitude,
+    this.isActive = true,
     this.communes,
   });
 
@@ -163,6 +217,7 @@ class Wilaya extends Equatable {
       nameEn: json['name_en'],
       latitude: _parseDouble(json['latitude']),
       longitude: _parseDouble(json['longitude']),
+      isActive: json['is_active'] ?? true,
       communes: json['communes'] != null
           ? (json['communes'] as List)
               .map((e) => Commune.fromJson(e))
@@ -171,8 +226,16 @@ class Wilaya extends Equatable {
     );
   }
 
+  String localizedName(String languageCode) {
+    switch (languageCode) {
+      case 'ar': return nameAr ?? name;
+      case 'en': return nameEn ?? name;
+      default:   return name;
+    }
+  }
+
   @override
-  List<Object?> get props => [id, code, name, nameAr, latitude, longitude];
+  List<Object?> get props => [id, code, name, nameAr, latitude, longitude, isActive];
 }
 
 // ==================== COMMUNE ====================
@@ -212,6 +275,14 @@ class Commune extends Equatable {
       longitude: _parseDouble(json['longitude']),
       wilayaId: json['wilaya_id'],
     );
+  }
+
+  String localizedName(String languageCode) {
+    switch (languageCode) {
+      case 'ar': return nameAr ?? name;
+      case 'en': return nameEn ?? name;
+      default:   return name;
+    }
   }
 
   @override

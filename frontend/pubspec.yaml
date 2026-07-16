@@ -48,7 +48,6 @@ dependencies:
 
   # Maps
   mapbox_maps_flutter: ^2.5.0
-  flutter_map: ^8.2.2   # gardé pour la mini-carte dans establishment_details
   latlong2: ^0.9.0
 
   # Image & Video
@@ -68,6 +67,7 @@ dependencies:
 
   # Rating
   flutter_rating_bar: ^4.0.1
+  in_app_review: ^2.0.9
 
   # Carousel
   carousel_slider: ^5.1.1

@@ -21,8 +21,8 @@ class AdminUserDetailPage extends StatelessWidget {
         if (state is AdminUserDeletedSuccess) {
           context.pop();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Utilisateur supprimé avec succès'),
+            SnackBar(
+              content: Text(context.l10n.userDeleted),
               backgroundColor: AppColors.success,
             ),
           );
@@ -135,13 +135,13 @@ class _UserDetailViewState extends State<_UserDetailView> {
               }
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Iconsax.trash, size: 16, color: AppColors.error),
-                    SizedBox(width: AppDimens.paddingS),
-                    Text('Supprimer', style: TextStyle(color: AppColors.error)),
+                    const Icon(Iconsax.trash, size: 16, color: AppColors.error),
+                    const SizedBox(width: AppDimens.paddingS),
+                    Text(context.l10n.delete, style: const TextStyle(color: AppColors.error)),
                   ],
                 ),
               ),
@@ -555,7 +555,7 @@ class _UserDetailViewState extends State<_UserDetailView> {
           AppRoutes.adminPartnerDetails.replaceFirst(':id', p.id),
         ),
         icon: const Icon(Iconsax.arrow_right_3, size: 14),
-        label: const Text('Voir détails'),
+        label: Text(context.l10n.seeDetails),
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primaryGreen,
           padding: EdgeInsets.zero,
@@ -695,23 +695,23 @@ class _UserDetailViewState extends State<_UserDetailView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Interlocuteur',
+                        context.l10n.interlocutor,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.primaryGreen,
                               fontWeight: FontWeight.w600,
                             ),
                       ),
                       const SizedBox(height: AppDimens.paddingXS),
-                      _estInfoRow(context, Iconsax.user, 'Prénom',
-                          est.contactFirstName ?? 'Non renseigné'),
-                      _estInfoRow(context, Iconsax.user, 'Nom',
-                          est.contactLastName ?? 'Non renseigné'),
-                      _estInfoRow(context, Iconsax.briefcase, 'Poste',
-                          est.contactPosition ?? 'Non renseigné'),
-                      _estInfoRow(context, Iconsax.call, 'Tél.',
-                          est.contactPhone ?? 'Non renseigné'),
-                      _estInfoRow(context, Iconsax.sms, 'Email',
-                          est.contactEmail ?? 'Non renseigné'),
+                      _estInfoRow(context, Iconsax.user, context.l10n.firstName,
+                          est.contactFirstName ?? context.l10n.notProvided),
+                      _estInfoRow(context, Iconsax.user, context.l10n.lastName,
+                          est.contactLastName ?? context.l10n.notProvided),
+                      _estInfoRow(context, Iconsax.briefcase, context.l10n.positionLabel,
+                          est.contactPosition ?? context.l10n.notProvided),
+                      _estInfoRow(context, Iconsax.call, context.l10n.phoneShort,
+                          est.contactPhone ?? context.l10n.notProvided),
+                      _estInfoRow(context, Iconsax.sms, context.l10n.email,
+                          est.contactEmail ?? context.l10n.notProvided),
                     ],
                   ),
                 ),
@@ -728,7 +728,7 @@ class _UserDetailViewState extends State<_UserDetailView> {
                 onPressed:
                     _estPage > 0 ? () => setState(() => _estPage--) : null,
                 icon: const Icon(Iconsax.arrow_left_2, size: 14),
-                label: const Text('Préc.'),
+                label: Text(context.l10n.previousShort),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primaryGreen,
                   disabledForegroundColor: AppColors.grey300,
@@ -748,7 +748,7 @@ class _UserDetailViewState extends State<_UserDetailView> {
                     ? () => setState(() => _estPage++)
                     : null,
                 icon: const Icon(Iconsax.arrow_right_3, size: 14),
-                label: const Text('Suiv.'),
+                label: Text(context.l10n.nextShort),
                 iconAlignment: IconAlignment.end,
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primaryGreen,
@@ -955,7 +955,7 @@ class _UserDetailViewState extends State<_UserDetailView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -990,7 +990,7 @@ class _UserDetailViewState extends State<_UserDetailView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1015,15 +1015,12 @@ class _UserDetailViewState extends State<_UserDetailView> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Supprimer l\'utilisateur'),
-        content: Text(
-          'Êtes-vous sûr de vouloir supprimer "${user.fullName}" ? '
-          'Cette action est irréversible et supprimera également ses avis, favoris et profil partenaire.',
-        ),
+        title: Text(context.l10n.deleteUser),
+        content: Text(context.l10n.deleteUserQuestion(user.fullName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1036,7 +1033,7 @@ class _UserDetailViewState extends State<_UserDetailView> {
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
             ),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),

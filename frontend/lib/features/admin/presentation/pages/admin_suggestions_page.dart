@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -97,9 +98,9 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
 
   Future<void> _approve(SuggestionModel s) async {
     final confirm = await _showConfirmDialog(
-      'Approuver la suggestion',
-      'Approuver « ${s.name} » ? Elle sera convertie en établissement.',
-      confirmLabel: 'Approuver',
+      context.l10n.approveSuggestion,
+      context.l10n.approveSuggestionQuestion(s.name),
+      confirmLabel: context.l10n.approve,
       confirmColor: AppColors.primaryGreen,
     );
     if (!confirm) return;
@@ -107,8 +108,8 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
       await _repo.adminApprove(s.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Suggestion approuvée'),
+          SnackBar(
+            content: Text(context.l10n.suggestionApproved),
             backgroundColor: AppColors.primaryGreen,
           ),
         );
@@ -129,18 +130,18 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rejeter la suggestion'),
+        title: Text(context.l10n.rejectSuggestion),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Rejeter « ${s.name} » ?'),
+            Text(context.l10n.rejectQuestion(s.name)),
             const SizedBox(height: AppDimens.paddingM),
             TextField(
               controller: noteController,
-              decoration: const InputDecoration(
-                labelText: 'Raison du rejet (optionnel)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.rejectReasonOptional,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -149,14 +150,14 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppColors.redLight),
             child:
-                const Text('Rejeter', style: TextStyle(color: AppColors.white)),
+                Text(context.l10n.reject, style: const TextStyle(color: AppColors.white)),
           ),
         ],
       ),
@@ -166,7 +167,7 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
       await _repo.adminReject(s.id, note: noteController.text.trim());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Suggestion rejetée')),
+          SnackBar(content: Text(context.l10n.suggestionRejected)),
         );
         _load();
       }
@@ -194,7 +195,7 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -213,7 +214,7 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Suggestions communauté'),
+        title: Text(context.l10n.adminSuggestions),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -229,11 +230,11 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
   }
 
   Widget _buildFilterBar() {
-    const filters = [
-      ('all', 'Toutes'),
-      ('approved', 'Approuvées'),
-      ('pending', 'En attente'),
-      ('rejected', 'Rejetées'),
+    final filters = [
+      ('all', context.l10n.allFeminine),
+      ('approved', context.l10n.approvedFeminine),
+      ('pending', context.l10n.filterPending),
+      ('rejected', context.l10n.rejectedFeminine),
     ];
     return Container(
       color: AppColors.white,
@@ -284,7 +285,7 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
             const SizedBox(height: AppDimens.paddingM),
             Text(_error!, style: const TextStyle(color: AppColors.grey600)),
             const SizedBox(height: AppDimens.paddingM),
-            ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
+            ElevatedButton(onPressed: _load, child: Text(context.l10n.retry)),
           ],
         ),
       );
@@ -296,9 +297,9 @@ class _AdminSuggestionsPageState extends State<AdminSuggestionsPage> {
           children: [
             const Icon(Iconsax.shop_add, size: 64, color: AppColors.grey300),
             const SizedBox(height: AppDimens.paddingM),
-            const Text(
-              'Aucune suggestion',
-              style: TextStyle(
+            Text(
+              context.l10n.noSuggestion,
+              style: const TextStyle(
                   fontWeight: FontWeight.w600, color: AppColors.grey600),
             ),
           ],
@@ -518,7 +519,7 @@ class _AdminSuggestionCard extends StatelessWidget {
                 const Icon(Iconsax.user, size: 13, color: AppColors.grey400),
                 const SizedBox(width: 4),
                 Text(
-                  s.suggesterName ?? 'Anonyme',
+                  s.suggesterName ?? context.l10n.anonymeUser,
                   style:
                       const TextStyle(fontSize: 12, color: AppColors.grey500),
                 ),
@@ -546,7 +547,7 @@ class _AdminSuggestionCard extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: onReject,
                         icon: const Icon(Iconsax.close_circle, size: 16),
-                        label: const Text('Rejeter'),
+                        label: Text(context.l10n.reject),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.redLight,
                           side: const BorderSide(color: AppColors.redLight),
@@ -560,7 +561,7 @@ class _AdminSuggestionCard extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: onApprove,
                         icon: const Icon(Iconsax.tick_circle, size: 16),
-                        label: const Text('Approuver'),
+                        label: Text(context.l10n.approve),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.greenDark,
                           foregroundColor: AppColors.white,

@@ -28,7 +28,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Paiements en attente'),
+        title: Text(context.l10n.pendingPayments),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -38,9 +38,18 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
         listener: (context, state) {
           if (state is AdminPaymentValidated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Paiement validé — abonnement activé'),
+              SnackBar(
+                content: Text(context.l10n.paymentValidated),
                 backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            context.read<AdminPaymentsBloc>().add(const LoadPendingPayments());
+          } else if (state is AdminPaymentCancelled) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(context.l10n.paymentCancelledAdmin),
+                backgroundColor: AppColors.error,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -57,7 +66,8 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
         },
         builder: (context, state) {
           if (state is AdminPaymentsLoading ||
-              state is AdminPaymentValidating) {
+              state is AdminPaymentValidating ||
+              state is AdminPaymentCancelling) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.primaryGreen),
             );
@@ -134,7 +144,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                       ),
                 ),
                 Text(
-                  'Vérifiez et validez les paiements manuels',
+                  context.l10n.verifyManualPayments,
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
@@ -155,7 +165,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
     final invoiceNumber = invoice['invoice_number'] as String? ?? '—';
     final plan = invoice['plan'] as String? ?? 'monthly';
     final isYearly = plan == 'yearly';
-    final planLabel = isYearly ? 'Annuel' : 'Mensuel';
+    final planLabel = isYearly ? context.l10n.planYearly : context.l10n.planMonthly;
     final amount = invoice['amount'] ?? 0;
     final createdAt = invoice['created_at'] != null
         ? DateTime.tryParse(invoice['created_at'])
@@ -280,7 +290,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                             ),
                       ),
                       Text(
-                        'Montant total',
+                        context.l10n.totalAmount,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.grey500,
                             ),
@@ -333,10 +343,10 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
               child: Column(
                 children: [
                   if (transferRef != null && transferRef.isNotEmpty)
-                    _detailRow(context, Iconsax.document_text, 'Référence',
+                    _detailRow(context, Iconsax.document_text, context.l10n.refLabel,
                         transferRef),
                   if (createdAt != null)
-                    _detailRow(context, Iconsax.calendar, 'Soumis le',
+                    _detailRow(context, Iconsax.calendar, context.l10n.submittedOn,
                         _formatDate(createdAt)),
                 ],
               ),
@@ -345,26 +355,51 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
           const SizedBox(height: AppDimens.paddingM),
           const Divider(height: 1, color: AppColors.grey100),
 
-          // ── Bouton Valider ───────────────────────────────────────────────
+          // ── Boutons Valider / Annuler ────────────────────────────────────
           Padding(
             padding: const EdgeInsets.all(AppDimens.paddingM),
-            child: SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: ElevatedButton.icon(
-                onPressed: () =>
-                    _confirmValidate(context, invoiceId, companyName),
-                icon: const Icon(Iconsax.tick_circle, size: 18),
-                label: const Text('Valider le paiement'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.scaffoldBackground,
-                  foregroundColor: AppColors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          _confirmCancel(context, invoiceId, companyName),
+                      icon: const Icon(Iconsax.close_circle, size: 18),
+                      label: Text(context.l10n.cancel),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: AppColors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: AppDimens.paddingS),
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      onPressed: () =>
+                          _confirmValidate(context, invoiceId, companyName),
+                      icon: const Icon(Iconsax.tick_circle, size: 18),
+                      label: Text(context.l10n.validate),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.scaffoldBackground,
+                        foregroundColor: AppColors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -410,14 +445,12 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL)),
-        title: const Text('Confirmer la validation'),
-        content: Text(
-          'Valider le paiement de "$companyName" ?\n\nL\'abonnement sera activé immédiatement.',
-        ),
+        title: Text(context.l10n.confirmValidation),
+        content: Text(context.l10n.validatePaymentQuestion(companyName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -426,7 +459,36 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen),
-            child: const Text('Valider'),
+            child: Text(context.l10n.validate),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCancel(
+      BuildContext context, String invoiceId, String companyName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppDimens.radiusL)),
+        title: Text(context.l10n.cancelPaymentTitle),
+        content: Text(context.l10n.cancelPaymentQuestion(companyName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n.noLabel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AdminPaymentsBloc>().add(CancelPayment(invoiceId));
+            },
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: AppColors.white),
+            child: Text(context.l10n.yesCancel),
           ),
         ],
       ),
@@ -456,7 +518,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Tout est à jour !',
+              context.l10n.allUpToDate,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.grey900,
@@ -464,7 +526,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Aucun paiement manuel en attente de validation',
+              context.l10n.noPaymentPending,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -477,7 +539,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                   .read<AdminPaymentsBloc>()
                   .add(const LoadPendingPayments()),
               icon: const Icon(Iconsax.refresh),
-              label: const Text('Actualiser'),
+              label: Text(context.l10n.refresh),
             ),
           ],
         ),
@@ -506,7 +568,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
             ),
             const SizedBox(height: AppDimens.paddingL),
             Text(
-              'Erreur de chargement',
+              context.l10n.loadingError,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -526,7 +588,7 @@ class _AdminPaymentsPageState extends State<AdminPaymentsPage> {
                   .read<AdminPaymentsBloc>()
                   .add(const LoadPendingPayments()),
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text(context.l10n.retry),
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryGreen),
             ),

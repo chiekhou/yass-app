@@ -21,6 +21,13 @@ class ValidatePayment extends AdminPaymentsEvent {
   List<Object?> get props => [invoiceId];
 }
 
+class CancelPayment extends AdminPaymentsEvent {
+  final String invoiceId;
+  const CancelPayment(this.invoiceId);
+  @override
+  List<Object?> get props => [invoiceId];
+}
+
 // ─── States ───────────────────────────────────────────────────────────────────
 
 abstract class AdminPaymentsState extends Equatable {
@@ -54,6 +61,20 @@ class AdminPaymentValidated extends AdminPaymentsState {
   List<Object?> get props => [invoiceId];
 }
 
+class AdminPaymentCancelling extends AdminPaymentsState {
+  final String invoiceId;
+  const AdminPaymentCancelling(this.invoiceId);
+  @override
+  List<Object?> get props => [invoiceId];
+}
+
+class AdminPaymentCancelled extends AdminPaymentsState {
+  final String invoiceId;
+  const AdminPaymentCancelled(this.invoiceId);
+  @override
+  List<Object?> get props => [invoiceId];
+}
+
 class AdminPaymentsError extends AdminPaymentsState {
   final String message;
   const AdminPaymentsError(this.message);
@@ -72,6 +93,7 @@ class AdminPaymentsBloc
         super(AdminPaymentsInitial()) {
     on<LoadPendingPayments>(_onLoad);
     on<ValidatePayment>(_onValidate);
+    on<CancelPayment>(_onCancel);
   }
 
   Future<void> _onLoad(
@@ -98,7 +120,24 @@ class AdminPaymentsBloc
     try {
       await _repository.validatePayment(event.invoiceId);
       emit(AdminPaymentValidated(event.invoiceId));
-      // Reload list after validation
+      final invoices = await _repository.getPendingPayments();
+      emit(AdminPaymentsLoaded(invoices));
+    } catch (e) {
+      emit(AdminPaymentsError(e.toString()));
+    }
+  }
+
+  Future<void> _onCancel(
+    CancelPayment event,
+    Emitter<AdminPaymentsState> emit,
+  ) async {
+    final current = state;
+    if (current is! AdminPaymentsLoaded) return;
+
+    emit(AdminPaymentCancelling(event.invoiceId));
+    try {
+      await _repository.cancelPayment(event.invoiceId);
+      emit(AdminPaymentCancelled(event.invoiceId));
       final invoices = await _repository.getPendingPayments();
       emit(AdminPaymentsLoaded(invoices));
     } catch (e) {

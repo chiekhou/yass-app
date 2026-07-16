@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:win_app/core/l10n/l10n_extensions.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -145,8 +146,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
   Future<void> _pickImage() async {
     if (_selectedImages.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Maximum 5 photos par avis'),
+        SnackBar(
+          content: Text(context.l10n.maxPhotosPerReview),
           backgroundColor: AppColors.grey700,
         ),
       );
@@ -189,8 +190,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
   Future<void> _pickVideo() async {
     if (_selectedVideos.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Maximum 3 vidéos par avis'),
+        SnackBar(
+          content: Text(context.l10n.maxVideosPerReview),
           backgroundColor: AppColors.grey700,
         ),
       );
@@ -307,8 +308,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
   Future<void> _submitReview() async {
     if (_overallRating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez donner une note d\'ensemble'),
+        SnackBar(
+          content: Text(context.l10n.ratingRequired),
           backgroundColor: AppColors.error,
         ),
       );
@@ -316,8 +317,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
     }
     if (!_allRated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez noter tous les critères'),
+        SnackBar(
+          content: Text(context.l10n.allCriteriaRequired),
           backgroundColor: AppColors.error,
         ),
       );
@@ -325,8 +326,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
     }
     if (_commentController.text.trim().length < 10) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Décrivez votre expérience (min. 10 caractères)'),
+        SnackBar(
+          content: Text(context.l10n.reviewMinChars),
           backgroundColor: AppColors.error,
         ),
       );
@@ -349,8 +350,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
       } catch (_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erreur lors de l\'envoi des photos'),
+            SnackBar(
+              content: Text(context.l10n.photoUploadError),
               backgroundColor: AppColors.error,
             ),
           );
@@ -377,8 +378,8 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
       } catch (_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erreur lors de l\'envoi des vidéos'),
+            SnackBar(
+              content: Text(context.l10n.videoUploadError),
               backgroundColor: AppColors.error,
             ),
           );

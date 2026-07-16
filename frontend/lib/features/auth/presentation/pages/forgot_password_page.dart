@@ -261,13 +261,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
         const SizedBox(height: AppDimens.paddingXL),
         CustomButton(
-          text: 'Retour à la connexion',
+          text: context.l10n.backToLogin,
           onPressed: () => context.pop(),
         ),
         const SizedBox(height: AppDimens.paddingM),
         TextButton(
           onPressed: () => setState(() => _emailSent = false),
-          child: const Text('Renvoyer l\'email'),
+          child: Text(context.l10n.resendEmail),
         ),
       ],
     );

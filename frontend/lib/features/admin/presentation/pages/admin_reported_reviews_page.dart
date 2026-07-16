@@ -46,7 +46,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
     return Scaffold(
       backgroundColor: AppColors.grey50,
       appBar: AppBar(
-        title: const Text('Avis signalés'),
+        title: Text(context.l10n.reportedReviews),
         backgroundColor: AppColors.scaffoldBackground,
         foregroundColor: AppColors.white,
         elevation: 0,
@@ -69,7 +69,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
         style: TextStyle(color: AppColors.scaffoldBackground),
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Rechercher un avis signalé...',
+          hintText: context.l10n.searchReportedReview,
           prefixIcon: const Icon(Iconsax.search_normal, size: 20),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
@@ -206,7 +206,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
                       ),
                 ),
                 Text(
-                  'Examinez et traitez les signalements',
+                  context.l10n.examineReports,
                   style: Theme.of(context)
                       .textTheme
                       .bodySmall
@@ -223,7 +223,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
   Widget _buildCard(Review review) {
     final userName = review.user != null
         ? '${review.user!.firstName} ${review.user!.lastName}'
-        : 'Utilisateur';
+        : context.l10n.userRole;
     final initials =
         review.user != null ? review.user!.firstName[0].toUpperCase() : 'U';
     final timeAgo = _formatTimeAgo(review.createdAt);
@@ -397,7 +397,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
                       side: const BorderSide(color: AppColors.success),
                     ),
                     icon: const Icon(Iconsax.tick_circle, size: 18),
-                    label: const Text('Ignorer'),
+                    label: Text(context.l10n.dismiss),
                   ),
                 ),
                 const SizedBox(width: AppDimens.paddingS),
@@ -409,7 +409,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
                       side: const BorderSide(color: AppColors.error),
                     ),
                     icon: const Icon(Iconsax.trash, size: 18),
-                    label: const Text('Supprimer'),
+                    label: Text(context.l10n.delete),
                   ),
                 ),
               ],
@@ -427,19 +427,19 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL)),
-        title: const Text('Supprimer cet avis'),
+        title: Text(context.l10n.deleteThisReview),
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Raison de la suppression (min. 10 caractères)',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: context.l10n.deleteReasonMin10,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -452,7 +452,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -505,13 +505,13 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
                   const Icon(Iconsax.flag, size: 64, color: AppColors.grey400),
             ),
             const SizedBox(height: AppDimens.paddingL),
-            Text('Aucun avis signalé',
+            Text(context.l10n.noReportedReview,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.grey900,
                     )),
             const SizedBox(height: AppDimens.paddingS),
-            Text('Aucun avis n\'a été signalé pour le moment',
+            Text(context.l10n.noReportedReviewYet,
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
@@ -521,7 +521,7 @@ class _AdminReportedReviewsPageState extends State<AdminReportedReviewsPage> {
             OutlinedButton.icon(
               onPressed: _load,
               icon: const Icon(Iconsax.refresh),
-              label: const Text('Actualiser'),
+              label: Text(context.l10n.refresh),
             ),
           ],
         ),

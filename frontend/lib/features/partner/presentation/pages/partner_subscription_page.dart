@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/l10n/l10n_extensions.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/models/invoice_model.dart';
 import '../bloc/partner_subscription_bloc.dart';
@@ -25,9 +26,9 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
   String _selectedMethod = 'online'; // 'online' | 'manual' | 'cash'
   final TextEditingController _referenceController = TextEditingController();
 
-  static const double _monthlyPrice = 2000;
-  static const double _yearlyPrice = 18000;
-  static const int _yearlySavingPercent = 25;
+  static const double _monthlyPrice = 5000;
+  static const double _yearlyPrice = 50000;
+  static const int _yearlySavingPercent = 17;
 
   @override
   void initState() {
@@ -38,15 +39,15 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
         if (!mounted) return;
         if (widget.paymentResult == 'success') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Paiement accepté — abonnement activé !'),
+            SnackBar(
+              content: Text(context.l10n.paymentAccepted),
               backgroundColor: Colors.green,
             ),
           );
         } else if (widget.paymentResult == 'failed') {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Le paiement a échoué. Veuillez réessayer.'),
+            SnackBar(
+              content: Text(context.l10n.paymentFailed),
               backgroundColor: Colors.red,
             ),
           );
@@ -78,8 +79,8 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
           } else if (state is SubscriptionCancelled) {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Abonnement annulé'),
+                SnackBar(
+                  content: Text(context.l10n.subscriptionCancelled),
                   backgroundColor: AppColors.primaryGreen,
                 ),
               );
@@ -144,7 +145,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                       _buildPendingPaymentBanner(),
                     ] else ...[
                       Text(
-                        'Choisissez votre offre',
+                        context.l10n.chooseYourOffer,
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   color: Colors.white,
@@ -154,7 +155,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                       ),
                       const SizedBox(height: AppDimens.paddingM),
                       Text(
-                        'Basic est gratuit pour toujours. Passez à Premium ou Gold pour débloquer plus de fonctionnalités.',
+                        context.l10n.subscriptionPageSubtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.white.withValues(alpha: 0.7),
                               height: 1.5,
@@ -169,49 +170,47 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                     _buildPlanCard(
                       plan: 'basic',
                       planLabel: 'Basic',
-                      title: 'Gratuit',
-                      subtitle: 'toujours gratuit',
+                      title: context.l10n.freePlan,
+                      subtitle: context.l10n.alwaysFree,
                       badge: null,
                       isSelected: _selectedPlan == 'basic',
                       isLocked: currentStatus?.isActive ?? false,
-                      features: const [
-                        'Profil établissement visible',
-                        'Prise de rendez-vous client',
-                        'Coordonnées & localisation',
+                      features: [
+                        context.l10n.featureEstablishmentProfile,
+                        context.l10n.featureContactLocation,
                       ],
                     ),
                     const SizedBox(height: AppDimens.paddingM),
                     _buildPlanCard(
                       plan: 'monthly',
                       planLabel: 'Premium',
-                      title: '${_monthlyPrice.toStringAsFixed(0)} DA / mois',
-                      subtitle: 'sans engagement',
+                      title: context.l10n.pricePerMonth(_monthlyPrice.toStringAsFixed(0)),
+                      subtitle: context.l10n.noCommitment,
                       badge: null,
                       isSelected: _selectedPlan == 'monthly',
                       isLocked: currentStatus?.isActive ?? false,
-                      features: const [
-                        'Tout Basic inclus',
-                        'Bouton WhatsApp',
-                        'Réseaux sociaux (Facebook, Instagram…)',
-                        'Galerie photos & vidéos',
-                        'Avis & notes clients',
+                      features: [
+                        context.l10n.featureAllBasicIncluded,
+                        context.l10n.featureWhatsappButton,
+                        context.l10n.featureSocialNetworks,
+                        context.l10n.featurePhotoGallery,
+                        context.l10n.featureCustomerReviews,
                       ],
                     ),
                     const SizedBox(height: AppDimens.paddingM),
                     _buildPlanCard(
                       plan: 'yearly',
                       planLabel: 'Gold',
-                      title: '${_yearlyPrice.toStringAsFixed(0)} DA / an',
-                      subtitle:
-                          'soit ${(_yearlyPrice / 12).toStringAsFixed(0)} DA/mois',
-                      badge: 'Économisez $_yearlySavingPercent%',
+                      title: context.l10n.pricePerYear(_yearlyPrice.toStringAsFixed(0)),
+                      subtitle: context.l10n.monthlyEquivalent((_yearlyPrice / 12).toStringAsFixed(0)),
+                      badge: context.l10n.savingPercent(_yearlySavingPercent),
                       isSelected: _selectedPlan == 'yearly',
                       isLocked: currentStatus?.isActive ?? false,
-                      features: const [
-                        'Tout Premium inclus',
-                        'Mise à la une automatique',
-                        'Priorité dans les résultats',
-                        'Badge établissement Gold',
+                      features: [
+                        context.l10n.featureAllPremiumIncluded,
+                        context.l10n.featureFeaturedListing,
+                        context.l10n.featurePriorityResults,
+                        context.l10n.featureGoldBadge,
                       ],
                     ),
 
@@ -224,7 +223,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Méthode de paiement',
+                          context.l10n.paymentMethodLabel,
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall
@@ -238,7 +237,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                             child: _buildMethodCard(
                               method: 'online',
                               icon: Iconsax.card,
-                              label: 'En ligne',
+                              label: context.l10n.paymentOnline,
                               subtitle: 'CIB / EDAHABIA',
                               isSelected: _selectedMethod == 'online',
                             ),
@@ -248,7 +247,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                             child: _buildMethodCard(
                               method: 'manual',
                               icon: Iconsax.money_send,
-                              label: 'Virement',
+                              label: context.l10n.paymentTransfer,
                               subtitle: 'CCP / Banque',
                               isSelected: _selectedMethod == 'manual',
                             ),
@@ -258,8 +257,8 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                             child: _buildMethodCard(
                               method: 'cash',
                               icon: Iconsax.money,
-                              label: 'Espèces',
-                              subtitle: 'En bureau',
+                              label: context.l10n.paymentCash,
+                              subtitle: context.l10n.inOffice,
                               isSelected: _selectedMethod == 'cash',
                             ),
                           ),
@@ -282,7 +281,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Effectuez votre virement puis soumettez votre demande. L\'admin validera dans les 24-48h.',
+                                context.l10n.transferInstructions,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -297,7 +296,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                                 controller: _referenceController,
                                 style: const TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
-                                  hintText: 'Référence du virement (optionnel)',
+                                  hintText: context.l10n.transferRefHint,
                                   hintStyle: TextStyle(
                                       color:
                                           Colors.white.withValues(alpha: 0.35)),
@@ -336,7 +335,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                                       color: AppColors.greenAccent, size: 16),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Paiement en agence',
+                                    context.l10n.inAgencyPayment,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall
@@ -349,7 +348,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                               ),
                               const SizedBox(height: AppDimens.paddingS),
                               Text(
-                                'Soumettez votre demande, puis rendez-vous à notre bureau pour régler en espèces. L\'admin validera votre paiement sur place.',
+                                context.l10n.cashInstructions,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -406,10 +405,10 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                                   ),
                                   child: Text(
                                     _selectedMethod == 'manual'
-                                        ? 'Soumettre ma demande'
+                                        ? context.l10n.submitMyRequest
                                         : _selectedMethod == 'cash'
-                                            ? 'Je confirme ma visite'
-                                            : 'J\'en profite',
+                                            ? context.l10n.confirmMyVisit
+                                            : context.l10n.takeAdvantage,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -442,54 +441,54 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
     );
   }
 
-  static const List<Map<String, dynamic>> _allFeatures = [
+  List<Map<String, dynamic>> _getAllFeatures(BuildContext context) => [
     {
-      'label': 'Profil établissement visible',
+      'label': context.l10n.featureEstablishmentProfile,
       'icon': Iconsax.building,
       'plan': 'basic',
     },
     {
-      'label': 'Coordonnées & localisation',
+      'label': context.l10n.featureContactLocation,
       'icon': Iconsax.location,
       'plan': 'basic',
     },
     {
-      'label': 'Prise de rendez-vous client',
+      'label': context.l10n.featureAppointmentBooking,
       'icon': Iconsax.calendar,
       'plan': 'basic',
     },
     {
-      'label': 'Bouton WhatsApp',
+      'label': context.l10n.featureWhatsappButton,
       'icon': Iconsax.message,
       'plan': 'premium',
     },
     {
-      'label': 'Réseaux sociaux (Facebook, Instagram…)',
+      'label': context.l10n.featureSocialNetworks,
       'icon': Iconsax.share,
       'plan': 'premium',
     },
     {
-      'label': 'Galerie photos & vidéos',
+      'label': context.l10n.featurePhotoGallery,
       'icon': Iconsax.gallery,
       'plan': 'premium',
     },
     {
-      'label': 'Avis & notes clients',
+      'label': context.l10n.featureCustomerReviews,
       'icon': Iconsax.star,
       'plan': 'premium',
     },
     {
-      'label': 'Mise à la une automatique',
+      'label': context.l10n.featureFeaturedListing,
       'icon': Iconsax.award,
       'plan': 'gold',
     },
     {
-      'label': 'Priorité dans les résultats',
+      'label': context.l10n.featurePriorityResults,
       'icon': Iconsax.ranking,
       'plan': 'gold',
     },
     {
-      'label': 'Badge établissement Gold',
+      'label': context.l10n.featureGoldBadge,
       'icon': Iconsax.medal,
       'plan': 'gold',
     },
@@ -517,11 +516,12 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
     }
   }
 
-  Widget _buildAllFeatures(BuildContext context, {required String currentPlan}) {
+  Widget _buildAllFeatures(BuildContext context,
+      {required String currentPlan}) {
     final currentLevel = _planLevel(currentPlan);
 
     // tri: disponible d'abord, verrouillé ensuite
-    final sorted = [..._allFeatures]..sort((a, b) {
+    final sorted = [..._getAllFeatures(context)]..sort((a, b) {
         final aLocked = _planLevel(a['plan'] as String) > currentLevel ? 1 : 0;
         final bLocked = _planLevel(b['plan'] as String) > currentLevel ? 1 : 0;
         return aLocked.compareTo(bLocked);
@@ -531,7 +531,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Toutes les fonctionnalités',
+          context.l10n.allFeatures,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -612,8 +612,10 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: featurePlan == 'gold'
-                                    ? const Color(0xFFFFD700).withValues(alpha: 0.15)
-                                    : AppColors.primaryGreen.withValues(alpha: 0.2),
+                                    ? const Color(0xFFFFD700)
+                                        .withValues(alpha: 0.15)
+                                    : AppColors.primaryGreen
+                                        .withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -673,7 +675,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
             Icon(Icons.lock_rounded, color: planColor, size: 20),
             const SizedBox(width: 8),
             Text(
-              'Fonctionnalité $planLabel',
+              context.l10n.featureOfPlan(planLabel),
               style: TextStyle(
                 color: planColor,
                 fontSize: 16,
@@ -695,8 +697,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
             ),
             const SizedBox(height: AppDimens.paddingS),
             Text(
-              'Cette fonctionnalité est disponible à partir de l\'offre $planLabel. '
-              'Sélectionnez l\'offre $planLabel ci-dessus pour en profiter.',
+              context.l10n.featureAvailableFromPlan(planLabel),
               style: const TextStyle(
                 color: Colors.white60,
                 height: 1.5,
@@ -708,22 +709,21 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Fermer',
-                style: TextStyle(color: Colors.white54)),
+            child:
+                Text(context.l10n.close, style: const TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
               setState(() {
-                _selectedPlan =
-                    requiredPlan == 'gold' ? 'yearly' : 'monthly';
+                _selectedPlan = requiredPlan == 'gold' ? 'yearly' : 'monthly';
               });
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: planColor,
               foregroundColor: Colors.black,
             ),
-            child: Text('Voir l\'offre $planLabel'),
+            child: Text(context.l10n.seePlan(planLabel)),
           ),
         ],
       ),
@@ -740,9 +740,8 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
     required bool isLocked,
     required List<String> features,
   }) {
-    final accentColor = plan == 'yearly'
-        ? const Color(0xFFFFD700)
-        : AppColors.greenAccent;
+    final accentColor =
+        plan == 'yearly' ? const Color(0xFFFFD700) : AppColors.greenAccent;
 
     return GestureDetector(
       onTap: isLocked ? null : () => setState(() => _selectedPlan = plan),
@@ -759,9 +758,8 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
               : Colors.white.withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
           border: Border.all(
-            color: isSelected
-                ? accentColor
-                : Colors.white.withValues(alpha: 0.12),
+            color:
+                isSelected ? accentColor : Colors.white.withValues(alpha: 0.12),
             width: 1.5,
           ),
         ),
@@ -776,22 +774,25 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                     children: [
                       Text(
                         planLabel,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: accentColor,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.8,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: accentColor,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
                       ),
                       const SizedBox(height: 2),
                       Text(title,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              )),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  )),
                       Text(subtitle,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.5),
-                              )),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                  )),
                     ],
                   ),
                 ),
@@ -902,7 +903,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
               const Icon(Iconsax.clock, color: AppColors.warning, size: 40),
               const SizedBox(height: AppDimens.paddingM),
               Text(
-                'Paiement en cours de validation',
+                context.l10n.paymentPendingValidation,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -911,7 +912,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
               ),
               const SizedBox(height: AppDimens.paddingS),
               Text(
-                'Votre demande a bien été enregistrée. Notre équipe la validera dans les 24–48h. Votre accès sera activé dès confirmation.',
+                context.l10n.paymentPendingDescription,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.white.withValues(alpha: 0.7),
                       height: 1.6,
@@ -928,7 +929,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
               .add(const LoadSubscriptionStatus()),
           icon: const Icon(Iconsax.refresh, color: Colors.white54, size: 16),
           label: Text(
-            'Actualiser le statut',
+            context.l10n.refreshStatus,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall
@@ -960,7 +961,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Abonnement actif — ${status.planLabel}',
+                      context.l10n.activeSubscriptionPlan(status.planLabel),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: AppColors.primaryGreen,
                             fontWeight: FontWeight.w600,
@@ -968,7 +969,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                     ),
                     if (status.subscriptionEndsAt != null)
                       Text(
-                        'Expire le ${_formatDate(status.subscriptionEndsAt!)}',
+                        context.l10n.expiresOn(_formatDate(status.subscriptionEndsAt!)),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.primaryGreen,
                             ),
@@ -981,7 +982,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
         ),
         const SizedBox(height: AppDimens.paddingM),
         Text(
-          'Vos établissements sont visibles sur l\'application.',
+          context.l10n.establishmentsVisibleOnApp,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.white,
               ),
@@ -1002,7 +1003,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
                 const Icon(Iconsax.close_circle, size: 14, color: Colors.white),
                 const SizedBox(width: 6),
                 Text(
-                  'Annuler l\'abonnement',
+                  context.l10n.cancelSubscription,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -1022,15 +1023,12 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.radiusL)),
-        title: const Text('Annuler l\'abonnement'),
-        content: const Text(
-          'Êtes-vous sûr de vouloir annuler votre abonnement ?\n\n'
-          'Vos établissements ne seront plus visibles sur l\'application.',
-        ),
+        title: Text(context.l10n.cancelSubscription),
+        content: Text(context.l10n.confirmCancelSubscriptionContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Garder'),
+            child: Text(context.l10n.keepSubscription),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1043,7 +1041,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
               backgroundColor: AppColors.primaryRed,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Annuler l\'abonnement'),
+            child: Text(context.l10n.cancelSubscription),
           ),
         ],
       ),
@@ -1074,8 +1072,8 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible d\'ouvrir la page de paiement'),
+        SnackBar(
+          content: Text(context.l10n.cannotOpenPaymentPage),
           backgroundColor: AppColors.error,
         ),
       );
@@ -1094,8 +1092,8 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
           children: [
             const Icon(Iconsax.tick_circle, color: AppColors.primaryGreen),
             const SizedBox(width: 8),
-            const Text('Demande soumise',
-                style: TextStyle(color: Colors.white, fontSize: 16)),
+            Text(context.l10n.requestSubmitted,
+                style: const TextStyle(color: Colors.white, fontSize: 16)),
           ],
         ),
         content: Column(
@@ -1103,13 +1101,13 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Votre demande a été enregistrée (${invoice.invoiceNumber}).',
+              context.l10n.requestRegisteredWithNumber(invoice.invoiceNumber),
               style: const TextStyle(color: Colors.white70, height: 1.5),
             ),
             const SizedBox(height: AppDimens.paddingM),
             if (isCash) ...[
-              const Text('Rendez-vous à notre bureau :',
-                  style: TextStyle(
+              Text(context.l10n.visitOurOffice,
+                  style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 13)),
@@ -1118,24 +1116,24 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
               _infoRow(Iconsax.clock, 'Lun – Sam : 8h00 – 17h00'),
               _infoRow(Iconsax.call, '0560 000 000'),
               const SizedBox(height: AppDimens.paddingM),
-              const Text(
-                'Munissez-vous de votre numéro de demande. L\'admin validera votre paiement sur place.',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
+              Text(
+                context.l10n.bringRequestNumber,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ] else ...[
-              const Text('Coordonnées bancaires :',
-                  style: TextStyle(
+              Text(context.l10n.bankDetailsColon,
+                  style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 13)),
               const SizedBox(height: 6),
               _bankRow('CCP', bankDetails.ccp),
               _bankRow('RIB', bankDetails.rib),
-              _bankRow('Bénéficiaire', bankDetails.accountName),
+              _bankRow(context.l10n.beneficiary, bankDetails.accountName),
               const SizedBox(height: AppDimens.paddingM),
-              const Text(
-                'L\'admin validera votre paiement sous 24-48h.',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
+              Text(
+                context.l10n.adminValidates24_48h,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ],
           ],
@@ -1145,7 +1143,7 @@ class _PartnerSubscriptionPageState extends State<PartnerSubscriptionPage> {
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryGreen),
-            child: const Text('Compris'),
+            child: Text(context.l10n.understood),
           ),
         ],
       ),
