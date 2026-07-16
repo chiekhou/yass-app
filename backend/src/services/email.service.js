@@ -10,12 +10,6 @@ class EmailService {
   constructor() {
     this.templates = {};
     this.loadTemplates();
-
-    if (!config.email.apiKey) {
-      console.warn("⚠️  Email service: BREVO_API_KEY non configuré — les emails seront désactivés.");
-    } else {
-      console.log(`📧 Email service init: Brevo API — from=${config.email.from}`);
-    }
   }
 
   /**
@@ -74,7 +68,7 @@ class EmailService {
             "Content-Type": "application/json",
           },
           timeout: 10000,
-        }
+        },
       );
 
       // console.log(`📧 Email sent to ${to} | messageId: ${response.data.messageId}`); // expose l'email
@@ -533,12 +527,15 @@ class EmailService {
   async sendReviewApprovedEmail(partnerUser, establishment, review, reviewer) {
     const reviewerName = reviewer
       ? `${reviewer.first_name} ${reviewer.last_name}`.trim()
-      : 'Un utilisateur';
+      : "Un utilisateur";
 
-    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-    const ratingLabel = ['', 'Très mauvais', 'Mauvais', 'Correct', 'Bien', 'Excellent'][review.rating] || '';
+    const stars = "★".repeat(review.rating) + "☆".repeat(5 - review.rating);
+    const ratingLabel =
+      ["", "Très mauvais", "Mauvais", "Correct", "Bien", "Excellent"][
+        review.rating
+      ] || "";
 
-    const reviewContent = review.comment || review.title || '';
+    const reviewContent = review.comment || review.title || "";
 
     const establishmentUrl = `win://home`;
 
@@ -576,7 +573,7 @@ class EmailService {
               <p style="margin:0 0 8px;font-size:20px;font-weight:bold;color:#1a1a1a;">Bonjour ${partnerUser.first_name} !</p>
 
               <p style="margin:16px 0;font-size:15px;color:#4a4a4a;line-height:1.6;">
-                Un nouvel avis noté <strong>${review.rating} étoile${review.rating > 1 ? 's' : ''}</strong> a été posté par
+                Un nouvel avis noté <strong>${review.rating} étoile${review.rating > 1 ? "s" : ""}</strong> a été posté par
                 <strong>${reviewerName}</strong> sur votre établissement
                 <strong>${establishment.name}</strong>.
               </p>
@@ -590,7 +587,9 @@ class EmailService {
               </table>
 
               <!-- Contenu de l'avis -->
-              ${reviewContent ? `
+              ${
+                reviewContent
+                  ? `
               <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
                 <tr>
                   <td style="background-color:#f8f9fa;border-left:4px solid #006233;border-radius:0 8px 8px 0;padding:16px 20px;">
@@ -599,11 +598,17 @@ class EmailService {
                   </td>
                 </tr>
               </table>
-              ` : ''}
+              `
+                  : ""
+              }
 
-              ${review.title && review.comment ? `
+              ${
+                review.title && review.comment
+                  ? `
               <p style="margin:0 0 4px;font-size:13px;color:#888;">Titre : <strong style="color:#333;">${review.title}</strong></p>
-              ` : ''}
+              `
+                  : ""
+              }
 
               <p style="margin:24px 0 8px;font-size:14px;color:#4a4a4a;line-height:1.6;">
                 Cet avis est maintenant visible par tous les utilisateurs de Win sur la page de votre établissement.

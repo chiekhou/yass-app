@@ -371,30 +371,25 @@ class EstablishmentService {
     const lng = parseFloat(longitude);
     const maxRadius = parseFloat(radius);
 
-    // Get all active establishments with coordinates
-    const establishments = await Establishment.findAll({
+    // Bounding box pre-filter in SQL to avoid loading all rows into memory
+    const latDelta = maxRadius / 111;
+    const lngDelta = maxRadius / (111 * Math.cos((lat * Math.PI) / 180));
+
+    const candidates = await Establishment.findAll({
       where: {
         status: "active",
-        latitude: { [Op.ne]: null },
-        longitude: { [Op.ne]: null },
+        latitude: { [Op.between]: [lat - latDelta, lat + latDelta] },
+        longitude: { [Op.between]: [lng - lngDelta, lng + lngDelta] },
       },
       include: [...this.getDefaultIncludes(), this.getPartnerInclude()],
       attributes: this.getPublicAttributes(),
     });
 
-    // Filter by distance and add distance field
-    const nearby = establishments
+    // Precise distance calculation on the small candidate set
+    const nearby = candidates
       .map((est) => {
-        const distance = calculateDistance(
-          lat,
-          lng,
-          est.latitude,
-          est.longitude,
-        );
-        return {
-          ...est.toJSON(),
-          distance: Math.round(distance * 100) / 100,
-        };
+        const distance = calculateDistance(lat, lng, est.latitude, est.longitude);
+        return { ...est.toJSON(), distance: Math.round(distance * 100) / 100 };
       })
       .filter((est) => est.distance <= maxRadius)
       .sort((a, b) => a.distance - b.distance)

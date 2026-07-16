@@ -179,40 +179,40 @@ OSM_TAG_MAP: list[tuple[tuple[str, str], tuple[str, str | None]]] = [
     (("shop",    "car"),           ("automobile", None)),
 
     # ── HÉBERGEMENT ──────────────────────────────────────────
-    (("tourism", "hotel"),         ("hebergement", "hotel")),
-    (("amenity", "hotel"),         ("hebergement", "hotel")),
-    (("tourism", "hostel"),        ("hebergement", "auberge")),
-    (("tourism", "guest_house"),   ("hebergement", "maison-hotes")),
-    (("tourism", "apartment"),     ("hebergement", "appart-hotel")),
-    (("tourism", "chalet"),        ("hebergement", "location-vacances")),
-    (("tourism", "motel"),         ("hebergement", "hotel")),
-    (("tourism", "camp_site"),     ("hebergement", "location-vacances")),
+    (("tourism", "hotel"),         ("hotels-sejours", "hotel")),
+    (("amenity", "hotel"),         ("hotels-sejours", "hotel")),
+    (("tourism", "hostel"),        ("hotels-sejours", "auberge")),
+    (("tourism", "guest_house"),   ("hotels-sejours", "maison-hotes")),
+    (("tourism", "apartment"),     ("hotels-sejours", "appart-hotel")),
+    (("tourism", "chalet"),        ("hotels-sejours", "location-vacances")),
+    (("tourism", "motel"),         ("hotels-sejours", "hotel")),
+    (("tourism", "camp_site"),     ("hotels-sejours", "location-vacances")),
 
     # ── ACTIVITÉS & LOISIRS ──────────────────────────────────
-    (("leisure", "fitness_centre"),  ("activites-loisirs", "salle-sport")),
-    (("leisure", "sports_centre"),   ("activites-loisirs", "salle-sport")),
-    (("amenity", "gym"),             ("activites-loisirs", "salle-sport")),
-    (("leisure", "swimming_pool"),   ("activites-loisirs", "piscine")),
-    (("leisure", "sports_club"),     ("activites-loisirs", "club-football")),
-    (("amenity", "cinema"),          ("activites-loisirs", "cinema")),
-    (("leisure", "amusement_arcade"),("activites-loisirs", "salle-jeux")),
-    (("leisure", "water_park"),      ("activites-loisirs", "parc-attractions")),
-    (("leisure", "park"),            ("activites-loisirs", None)),
-    (("leisure", "beach"),           ("activites-loisirs", "plage-privee")),
-    (("leisure", "playground"),      ("activites-loisirs", None)),
-    (("tourism", "theme_park"),      ("activites-loisirs", "parc-attractions")),
-    (("tourism", "zoo"),             ("activites-loisirs", None)),
+    (("leisure", "fitness_centre"),  ("sports-activites-loisirs", "salle-sport")),
+    (("leisure", "sports_centre"),   ("sports-activites-loisirs", "salle-sport")),
+    (("amenity", "gym"),             ("sports-activites-loisirs", "salle-sport")),
+    (("leisure", "swimming_pool"),   ("sports-activites-loisirs", "piscine")),
+    (("leisure", "sports_club"),     ("sports-activites-loisirs", "club-football")),
+    (("amenity", "cinema"),          ("sports-activites-loisirs", "cinema")),
+    (("leisure", "amusement_arcade"),("sports-activites-loisirs", "salle-jeux")),
+    (("leisure", "water_park"),      ("sports-activites-loisirs", "parc-attractions")),
+    (("leisure", "park"),            ("sports-activites-loisirs", None)),
+    (("leisure", "beach"),           ("sports-activites-loisirs", "plage-privee")),
+    (("leisure", "playground"),      ("sports-activites-loisirs", None)),
+    (("tourism", "theme_park"),      ("sports-activites-loisirs", "parc-attractions")),
+    (("tourism", "zoo"),             ("sports-activites-loisirs", None)),
 
     # ── MAISON & SERVICES ────────────────────────────────────
-    (("craft",   "plumber"),         ("maison-services", "plombier")),
-    (("craft",   "electrician"),     ("maison-services", "electricien")),
-    (("craft",   "carpenter"),       ("maison-services", "menuisier")),
-    (("craft",   "painter"),         ("maison-services", "peintre")),
-    (("craft",   "hvac"),            ("maison-services", "climatisation")),
-    (("craft",   "cleaning"),        ("maison-services", "service-menage")),
-    (("amenity", "moving_company"),  ("maison-services", "demenagement")),
-    (("shop",    "hardware"),        ("maison-services", None)),
-    (("shop",    "furniture"),       ("maison-services", None)),
+    (("craft",   "plumber"),         ("maison-travaux", "plombier")),
+    (("craft",   "electrician"),     ("maison-travaux", "electricien")),
+    (("craft",   "carpenter"),       ("maison-travaux", "menuisier")),
+    (("craft",   "painter"),         ("maison-travaux", "peintre")),
+    (("craft",   "hvac"),            ("maison-travaux", "climatisation")),
+    (("craft",   "cleaning"),        ("maison-travaux", "service-menage")),
+    (("amenity", "moving_company"),  ("maison-travaux", "demenagement")),
+    (("shop",    "hardware"),        ("maison-travaux", None)),
+    (("shop",    "furniture"),       ("maison-travaux", None)),
 
     # ── COMMERCES ────────────────────────────────────────────
     (("shop", "supermarket"),        ("commerces", "supermarche")),
@@ -611,7 +611,7 @@ def extract_services(tags: dict, category_slug: str) -> list[str]:
             add(f"Capacité : {tags['capacity']} couverts")
 
     # Hébergement
-    if category_slug == "hebergement":
+    if category_slug == "hotels-sejours":
         if tags.get("stars"):
             add(f"{tags['stars']} étoiles")
         if tags.get("rooms"):
@@ -631,7 +631,7 @@ def extract_services(tags: dict, category_slug: str) -> list[str]:
             add("GPL")
 
     # Sport
-    if category_slug == "activites-loisirs":
+    if category_slug == "sports-activites-loisirs":
         if tags.get("sport"):
             for sp in tags["sport"].split(";"):
                 add(sp.strip().capitalize())
@@ -838,6 +838,289 @@ def to_geojson(establishments: list[dict]) -> dict:
 
 
 # ============================================================
+# PHOTOS PAR CATÉGORIE (miroir de import-osm.js)
+# ============================================================
+
+_BASE = "https://images.unsplash.com"
+
+CATEGORY_PHOTOS = {
+    "restaurants": [
+        [
+            {"url": f"{_BASE}/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80", "category": "plats"},
+            {"url": f"{_BASE}/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1466978913421-dad2ebd01d17?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80", "category": "plats"},
+            {"url": f"{_BASE}/photo-1424847651672-bf20a4b0982b?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1543353071-10c8ba85a904?auto=format&fit=crop&w=800&q=80", "category": "plats"},
+            {"url": f"{_BASE}/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "beaute-bien-etre": [
+        [
+            {"url": f"{_BASE}/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1616394584738-fc6e612e71b9?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1604654894610-df63bc536371?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+        ],
+    ],
+    "salons-beaute-spas": [
+        [
+            {"url": f"{_BASE}/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1616394584738-fc6e612e71b9?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1562322140-8baeececf3df?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+        ],
+    ],
+    "sante": [
+        [
+            {"url": f"{_BASE}/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1584820927498-cfe5211fd8bf?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "sante-medical": [
+        [
+            {"url": f"{_BASE}/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+        ],
+    ],
+    "automobile": [
+        [
+            {"url": f"{_BASE}/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1562141961-b6b02e037e7c?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1517994112540-009c47ea476b?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "hotels-sejours": [
+        [
+            {"url": f"{_BASE}/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1551882547-ff40c63fe2e2?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1609949279531-cf48d64bed89?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "hotels-sejours": [
+        [
+            {"url": f"{_BASE}/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "sports-activites-loisirs": [
+        [
+            {"url": f"{_BASE}/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1574680178050-55c6a6a96e0a?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1598971861-2a3f9d73bcc3?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "sports-activites-loisirs": [
+        [
+            {"url": f"{_BASE}/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1459865264687-595d652de67e?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+        ],
+    ],
+    "maison-travaux": [
+        [
+            {"url": f"{_BASE}/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+        ],
+    ],
+    "maison-travaux": [
+        [
+            {"url": f"{_BASE}/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "commerces": [
+        [
+            {"url": f"{_BASE}/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1604719312566-8912e9c8a213?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1546213290-e1b492ab3eee?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "shopping": [
+        [
+            {"url": f"{_BASE}/photo-1555529669-e69e7aa0ba9a?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1604719312566-8912e9c8a213?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "alimentation": [
+        [
+            {"url": f"{_BASE}/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1506617564039-2f3b650b7010?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1518977956812-cd3dbadaaf31?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+        ],
+    ],
+    "voyage-tourisme": [
+        [
+            {"url": f"{_BASE}/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", "category": "autres"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1530521954074-e64f6810b32d?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=800&q=80", "category": "autres"},
+        ],
+    ],
+    "voyages-tourisme": [
+        [
+            {"url": f"{_BASE}/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80", "category": "autres"},
+        ],
+    ],
+    "services-professionnels": [
+        [
+            {"url": f"{_BASE}/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+        [
+            {"url": f"{_BASE}/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "services-destines-professionnels": [
+        [
+            {"url": f"{_BASE}/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "formation-enseignement": [
+        [
+            {"url": f"{_BASE}/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "education": [
+        [
+            {"url": f"{_BASE}/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "evenements": [
+        [
+            {"url": f"{_BASE}/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "organisation-evenements": [
+        [
+            {"url": f"{_BASE}/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+            {"url": f"{_BASE}/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "vie-nocturne": [
+        [
+            {"url": f"{_BASE}/photo-1574391884720-bbc3740c59d1?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1514214246283-d8a8d4b81f3f?auto=format&fit=crop&w=800&q=80", "category": "bar"},
+            {"url": f"{_BASE}/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+        ],
+    ],
+    "art-loisirs": [
+        [
+            {"url": f"{_BASE}/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=800&q=80", "category": "ambiance"},
+            {"url": f"{_BASE}/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+        ],
+    ],
+    "animaux-compagnie": [
+        [
+            {"url": f"{_BASE}/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1548767797-d8c844163c4a?auto=format&fit=crop&w=800&q=80", "category": "produits"},
+            {"url": f"{_BASE}/photo-1601758003122-53c40e686a19?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        ],
+    ],
+    "services-financiers": [
+        [
+            {"url": f"{_BASE}/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+            {"url": f"{_BASE}/photo-1601597111158-2fceff292cdc?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+            {"url": f"{_BASE}/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80", "category": "salle"},
+        ],
+    ],
+}
+
+_FALLBACK_PHOTOS = [
+    [
+        {"url": f"{_BASE}/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80", "category": "interieur"},
+        {"url": f"{_BASE}/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80", "category": "exterieur"},
+        {"url": f"{_BASE}/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=80", "category": "autres"},
+    ],
+]
+
+
+def get_photos_for_category(slug: str, index: int) -> list[dict]:
+    groups = CATEGORY_PHOTOS.get(slug) or _FALLBACK_PHOTOS
+    group = groups[index % len(groups)]
+    return [{"url": p["url"], "category": p["category"], "type": "photo"} for p in group]
+
+
+# ============================================================
 # GÉNÉRATION SQL
 # ============================================================
 
@@ -858,7 +1141,13 @@ def _sql_str(v) -> str:
 
 def generate_sql(establishments: list[dict]) -> str:
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-    system_partner_id = str(uuid.uuid4())
+
+    # Sous-requête réutilisée pour récupérer le partner_id OSM
+    partner_subq = (
+        "(SELECT p.id FROM partners p "
+        "JOIN users u ON u.id = p.user_id "
+        "WHERE u.email = 'osm-import@system.local' LIMIT 1)"
+    )
 
     lines = [
         "-- ============================================================",
@@ -870,39 +1159,19 @@ def generate_sql(establishments: list[dict]) -> str:
         "-- Activer l'extension unaccent si elle n'existe pas",
         "CREATE EXTENSION IF NOT EXISTS unaccent;",
         "",
-        "-- 1. Créer un partenaire système pour les données OSM",
-        "--    (ignoré si l'email existe déjà)",
-        "DO $$",
-        "DECLARE",
-        f"  v_user_id  UUID := '{str(uuid.uuid4())}';",
-        f"  v_partner_id UUID := '{system_partner_id}';",
-        "BEGIN",
-        "  IF NOT EXISTS (SELECT 1 FROM users WHERE email = 'osm-import@system.local') THEN",
-        "    INSERT INTO users (id, email, password, first_name, last_name, role, status, email_verified, created_at, updated_at)",
-        "    VALUES (v_user_id, 'osm-import@system.local', 'DISABLED', 'OSM', 'Import', 'partner', 'active', TRUE, NOW(), NOW());",
+        "-- 1. Créer l'utilisateur système OSM (ignoré s'il existe déjà)",
+        "INSERT INTO users (id, email, password, first_name, last_name, role, status, email_verified, created_at, updated_at)",
+        "SELECT gen_random_uuid(), 'osm-import@system.local', 'DISABLED', 'OSM', 'Import', 'partner', 'active', TRUE, NOW(), NOW()",
+        "WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'osm-import@system.local');",
         "",
-        "    INSERT INTO partners (id, user_id, company_name, status, created_at, updated_at)",
-        "    VALUES (v_partner_id, v_user_id, 'OSM Import Algeria', 'approved', NOW(), NOW());",
-        "  END IF;",
-        "END $$;",
+        "-- 2. Créer le partenaire système OSM (ignoré s'il existe déjà)",
+        "INSERT INTO partners (id, user_id, company_name, status, created_at, updated_at)",
+        "SELECT gen_random_uuid(), u.id, 'OSM Import Algeria', 'approved', NOW(), NOW()",
+        "FROM users u",
+        "WHERE u.email = 'osm-import@system.local'",
+        "  AND NOT EXISTS (SELECT 1 FROM partners p WHERE p.user_id = u.id);",
         "",
-        "-- 2. Récupérer l'ID du partenaire OSM",
-        "DO $$",
-        "DECLARE",
-        "  v_partner_id UUID;",
-        "BEGIN",
-        "  SELECT p.id INTO v_partner_id",
-        "  FROM partners p",
-        "  JOIN users u ON u.id = p.user_id",
-        "  WHERE u.email = 'osm-import@system.local'",
-        "  LIMIT 1;",
-        "",
-        "  IF v_partner_id IS NULL THEN",
-        "    RAISE EXCEPTION 'Partenaire OSM introuvable';",
-        "  END IF;",
-        "",
-        "-- 3. Insertion des établissements",
-        "--    On utilise INSERT ... ON CONFLICT DO NOTHING (basé sur le slug)",
+        "-- 3. Insertion des établissements (ON CONFLICT DO NOTHING sur le slug)",
     ]
 
     # Grouper par wilaya pour les commentaires
@@ -917,7 +1186,7 @@ def generate_sql(establishments: list[dict]) -> str:
         lines.append(f"--      {code} {w_name} : {by_wilaya[code]}")
     lines.append("")
 
-    for e in establishments:
+    for i, e in enumerate(establishments):
         e_id = str(uuid.uuid4())
 
         # Sous-requêtes pour les FK
@@ -934,7 +1203,6 @@ def generate_sql(establishments: list[dict]) -> str:
             wilaya_subq = "NULL"
 
         if e["commune_name"]:
-            # Recherche par nom (normalisé) dans la commune de la bonne wilaya
             commune_name_esc = e["commune_name"].replace("'", "''")
             commune_subq = (
                 f"(SELECT c.id FROM communes c "
@@ -952,24 +1220,28 @@ def generate_sql(establishments: list[dict]) -> str:
         amenities_json = _sql_str(e["amenities"]) if e["amenities"] else "'[]'"
         services_json  = _sql_str(e["services"])  if e["services"]  else "'[]'"
         tags_json      = _sql_str(e["tags_list"]) if e["tags_list"] else "'[]'"
-        images_json    = "'[]'"
+
+        photos      = get_photos_for_category(e["category_slug"] or "", i)
+        images_json = _sql_str(photos)
+        cover_sql   = _sql_str(photos[0]["url"]) if photos else "NULL"
 
         lines.append(
-            f"  INSERT INTO establishments ("
+            f"INSERT INTO establishments ("
             f"id, partner_id, category_id, subcategory_id, wilaya_id, commune_id, "
             f"name, name_ar, slug, description, address, address_ar, "
             f"latitude, longitude, "
             f"phone, phone_secondary, whatsapp, email, website, facebook, instagram, tiktok, snapchat, "
             f"opening_hours, price_range, "
             f"amenities, services, tags, images, logo, cover_image, "
+            f"contact_first_name, contact_last_name, contact_phone, contact_email, contact_position, "
             f"status, is_verified, is_featured, "
             f"average_rating, total_reviews, total_views, total_favorites, "
             f"total_calls, total_whatsapp_clicks, total_contacts, "
             f"created_at, updated_at)"
         )
         lines.append(
-            f"  VALUES ("
-            f"'{e_id}', v_partner_id, {cat_subq}, {subcat_subq}, {wilaya_subq}, {commune_subq}, "
+            f"VALUES ("
+            f"'{e_id}', {partner_subq}, {cat_subq}, {subcat_subq}, {wilaya_subq}, {commune_subq}, "
             f"{_sql_str(e['name'])}, {_sql_str(e['name_ar'])}, {_sql_str(e['slug'])}, "
             f"{_sql_str(e['description'])}, {_sql_str(e['address'])}, {_sql_str(e['address_ar'])}, "
             f"{lat}, {lon}, "
@@ -977,20 +1249,17 @@ def generate_sql(establishments: list[dict]) -> str:
             f"{_sql_str(e.get('email'))}, {_sql_str(e['website'])}, "
             f"{_sql_str(e['facebook'])}, {_sql_str(e['instagram'])}, {_sql_str(e['tiktok'])}, NULL, "
             f"{oh}, {_sql_str(e['price_range'])}, "
-            f"{amenities_json}, {services_json}, {tags_json}, {images_json}, NULL, NULL, "
-            f"'pending', FALSE, FALSE, "
+            f"{amenities_json}, {services_json}, {tags_json}, {images_json}, NULL, {cover_sql}, "
+            f"NULL, NULL, NULL, NULL, NULL, "
+            f"'active', FALSE, FALSE, "
             f"0, 0, 0, 0, 0, 0, 0, "
             f"NOW(), NOW()"
             f")"
         )
-        lines.append(
-            f"  ON CONFLICT (slug) DO NOTHING;"
-        )
+        lines.append("ON CONFLICT (slug) DO NOTHING;")
         lines.append("")
 
     lines += [
-        "END $$;",
-        "",
         "COMMIT;",
         "",
         f"-- Fin import : {len(establishments)} établissements traités.",
