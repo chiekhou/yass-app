@@ -1138,19 +1138,9 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
           ),
           child: Column(
             children: dayNames.entries.map((entry) {
-              final dayHours = hours[entry.key];
-              final isLast = entry.key == 'sunday';
-              String hoursText = context.l10n.closed;
-
-              if (dayHours != null && dayHours['is_closed'] != true) {
-                final open = dayHours['open'];
-                final close = dayHours['close'];
-                if (open != null && close != null) {
-                  hoursText = '$open - $close';
-                }
-              }
-
-              return _buildDayRow(entry.value, hoursText, isLast: isLast);
+              final dayHours = hours[entry.key] as Map<String, dynamic>?;
+              return _buildDayRow(entry.value, dayHours,
+                  isLast: entry.key == 'sunday');
             }).toList(),
           ),
         ),
@@ -1158,9 +1148,10 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
     );
   }
 
-  Widget _buildDayRow(String day, String hours, {bool isLast = false}) {
+  Widget _buildDayRow(String dayName, Map<String, dynamic>? dayHours,
+      {bool isLast = false}) {
     final now = DateTime.now();
-    final dayNames = [
+    final locDayNames = [
       context.l10n.monday,
       context.l10n.tuesday,
       context.l10n.wednesday,
@@ -1169,7 +1160,57 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
       context.l10n.saturday,
       context.l10n.sunday,
     ];
-    final isToday = dayNames[now.weekday - 1] == day;
+    final isToday = locDayNames[now.weekday - 1] == dayName;
+
+    final isClosed =
+        dayHours == null || dayHours['is_closed'] == true;
+    final open = dayHours?['open']?.toString();
+    final close = dayHours?['close']?.toString();
+    final breakStart = dayHours?['break_start']?.toString();
+    final breakEnd = dayHours?['break_end']?.toString();
+    final hasPause = !isClosed &&
+        open != null &&
+        close != null &&
+        breakStart != null &&
+        breakEnd != null;
+
+    Widget hoursWidget;
+    if (isClosed || (open == null || close == null)) {
+      hoursWidget = Text(
+        context.l10n.closed,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.error,
+            ),
+      );
+    } else if (hasPause) {
+      hoursWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            '$open - $breakStart',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+          ),
+          Text(
+            '$breakEnd - $close',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+          ),
+        ],
+      );
+    } else {
+      hoursWidget = Text(
+        '$open - $close',
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+      );
+    }
 
     return Column(
       children: [
@@ -1179,20 +1220,14 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                day,
+                dayName,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                      fontWeight:
+                          isToday ? FontWeight.bold : FontWeight.normal,
                       color: isToday ? AppColors.primaryGreen : null,
                     ),
               ),
-              Text(
-                hours,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color:
-                          hours == context.l10n.closed ? AppColors.error : null,
-                    ),
-              ),
+              hoursWidget,
             ],
           ),
         ),
@@ -3229,16 +3264,8 @@ class _EstablishmentDetailsPageState extends State<EstablishmentDetailsPage>
                     'sunday': context.l10n.sunday,
                   };
                   return dayNames.entries.map((entry) {
-                    final dayHours = hours[entry.key];
-                    String hoursText = context.l10n.closed;
-                    if (dayHours != null && dayHours['is_closed'] != true) {
-                      final open = dayHours['open'];
-                      final close = dayHours['close'];
-                      if (open != null && close != null) {
-                        hoursText = '$open - $close';
-                      }
-                    }
-                    return _buildDayRow(entry.value, hoursText,
+                    final dayHours = hours[entry.key] as Map<String, dynamic>?;
+                    return _buildDayRow(entry.value, dayHours,
                         isLast: entry.key == 'sunday');
                   }).toList();
                 })(),

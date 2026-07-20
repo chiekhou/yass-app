@@ -77,8 +77,11 @@ class _PartnerEstablishmentFormPageState
     'sunday': context.l10n.sunday,
   };
   late final Map<String, bool> _dayClosed;
+  late final Map<String, bool> _hasPause;
   late final Map<String, TextEditingController> _openCtrl;
   late final Map<String, TextEditingController> _closeCtrl;
+  late final Map<String, TextEditingController> _pauseStartCtrl;
+  late final Map<String, TextEditingController> _pauseEndCtrl;
 
   // State
   bool _isLoading = false;
@@ -112,8 +115,11 @@ class _PartnerEstablishmentFormPageState
   void initState() {
     super.initState();
     _dayClosed = {for (final d in _days) d: false};
+    _hasPause = {for (final d in _days) d: false};
     _openCtrl = {for (final d in _days) d: TextEditingController()};
     _closeCtrl = {for (final d in _days) d: TextEditingController()};
+    _pauseStartCtrl = {for (final d in _days) d: TextEditingController()};
+    _pauseEndCtrl = {for (final d in _days) d: TextEditingController()};
     _loadInitialData();
   }
 
@@ -146,6 +152,8 @@ class _PartnerEstablishmentFormPageState
     for (final d in _days) {
       _openCtrl[d]!.dispose();
       _closeCtrl[d]!.dispose();
+      _pauseStartCtrl[d]!.dispose();
+      _pauseEndCtrl[d]!.dispose();
     }
     super.dispose();
   }
@@ -222,6 +230,11 @@ class _PartnerEstablishmentFormPageState
           _dayClosed[day] = false;
           _openCtrl[day]!.text = (hours['open'] ?? '').toString();
           _closeCtrl[day]!.text = (hours['close'] ?? '').toString();
+          if (hours['break_start'] != null || hours['break_end'] != null) {
+            _hasPause[day] = true;
+            _pauseStartCtrl[day]!.text = (hours['break_start'] ?? '').toString();
+            _pauseEndCtrl[day]!.text = (hours['break_end'] ?? '').toString();
+          }
         } else {
           _dayClosed[day] = true;
         }
@@ -1239,10 +1252,19 @@ class _PartnerEstablishmentFormPageState
     final result = <String, Map<String, String>>{};
     for (final day in _days) {
       if (!_dayClosed[day]! && _openCtrl[day]!.text.isNotEmpty) {
-        result[day] = {
-          'open': _openCtrl[day]!.text,
-          'close': _closeCtrl[day]!.text,
-        };
+        if (_hasPause[day]!) {
+          result[day] = {
+            'open': _openCtrl[day]!.text,
+            'break_start': _pauseStartCtrl[day]!.text,
+            'break_end': _pauseEndCtrl[day]!.text,
+            'close': _closeCtrl[day]!.text,
+          };
+        } else {
+          result[day] = {
+            'open': _openCtrl[day]!.text,
+            'close': _closeCtrl[day]!.text,
+          };
+        }
       }
     }
     return result;
@@ -1283,6 +1305,11 @@ class _PartnerEstablishmentFormPageState
         ),
         const SizedBox(height: AppDimens.paddingL),
         _sectionTitle(context.l10n.openingHoursOptional),
+        const SizedBox(height: AppDimens.paddingXS),
+        Text(
+          'Activez "Pause" pour saisir des horaires matin / après-midi',
+          style: TextStyle(fontSize: 12, color: AppColors.grey500),
+        ),
         const SizedBox(height: AppDimens.paddingM),
         ..._days.map((day) => _buildDayRow(day)),
         const SizedBox(height: AppDimens.paddingL),
@@ -1393,83 +1420,242 @@ class _PartnerEstablishmentFormPageState
 
   Widget _buildDayRow(String day) {
     final isClosed = _dayClosed[day]!;
+    final hasPause = _hasPause[day]!;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.paddingM,
-          vertical: AppDimens.paddingS,
-        ),
+        padding: const EdgeInsets.all(AppDimens.paddingS),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          border: Border.all(color: AppColors.grey300),
+          border: Border.all(color: AppColors.grey200),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 78,
-              child: Text(
-                _getDayLabels(context)[day]!,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                  color: AppColors.grey800,
+            // ── Header: label + switch + badge pause ──
+            Row(
+              children: [
+                SizedBox(
+                  width: 78,
+                  child: Text(
+                    _getDayLabels(context)[day]!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: AppColors.scaffoldBackground,
+                    ),
+                  ),
                 ),
-              ),
+                Switch(
+                  value: !isClosed,
+                  onChanged: (v) => setState(() => _dayClosed[day] = !v),
+                  activeTrackColor: AppColors.primaryGreen,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                if (!isClosed) ...[
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => setState(() => _hasPause[day] = !hasPause),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: hasPause
+                            ? AppColors.accentOrange.withValues(alpha: 0.1)
+                            : AppColors.scaffoldBackground
+                                .withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: hasPause
+                              ? AppColors.accentOrange.withValues(alpha: 0.5)
+                              : AppColors.scaffoldBackground
+                                  .withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            hasPause
+                                ? Icons.coffee_outlined
+                                : Icons.add_rounded,
+                            size: 13,
+                            color: hasPause
+                                ? AppColors.accentOrange
+                                : AppColors.scaffoldBackground,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            hasPause ? 'Pause déj.' : 'Pause',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: hasPause
+                                  ? AppColors.accentOrange
+                                  : AppColors.scaffoldBackground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+                if (isClosed) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    context.l10n.closed,
+                    style: const TextStyle(
+                        color: AppColors.grey400,
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ],
             ),
-            Switch(
-              value: !isClosed,
-              onChanged: (v) => setState(() => _dayClosed[day] = !v),
-              activeTrackColor: AppColors.primaryGreen,
-            ),
+
+            // ── Time fields ──
             if (!isClosed) ...[
-              Expanded(
-                child: TextField(
-                  controller: _openCtrl[day],
-                  style: const TextStyle(
-                      color: AppColors.scaffoldBackground, fontSize: 13),
-                  decoration: _hoursDecoration(context.l10n.openAbbrev),
-                  keyboardType: TextInputType.datetime,
+              const SizedBox(height: 8),
+              if (!hasPause)
+                _buildTimeRow(
+                  leftCtrl: _openCtrl[day]!,
+                  leftLabel: context.l10n.openAbbrev,
+                  leftHint: '08:00',
+                  rightCtrl: _closeCtrl[day]!,
+                  rightLabel: context.l10n.closeAbbrev,
+                  rightHint: '18:00',
+                )
+              else ...[
+                // Matin
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        'Matin',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              AppColors.scaffoldBackground.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _buildTimeRow(
+                        leftCtrl: _openCtrl[day]!,
+                        leftLabel: context.l10n.openAbbrev,
+                        leftHint: '08:00',
+                        rightCtrl: _pauseStartCtrl[day]!,
+                        rightLabel: 'Pause',
+                        rightHint: '12:00',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: AppDimens.paddingXS),
-              Expanded(
-                child: TextField(
-                  controller: _closeCtrl[day],
-                  style: const TextStyle(
-                      color: AppColors.scaffoldBackground, fontSize: 13),
-                  decoration: _hoursDecoration(context.l10n.closeAbbrev),
-                  keyboardType: TextInputType.datetime,
+                const SizedBox(height: 6),
+                // Après-midi
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        'A-midi',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              AppColors.scaffoldBackground.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _buildTimeRow(
+                        leftCtrl: _pauseEndCtrl[day]!,
+                        leftLabel: 'Reprise',
+                        leftHint: '14:00',
+                        rightCtrl: _closeCtrl[day]!,
+                        rightLabel: context.l10n.closeAbbrev,
+                        rightHint: '18:00',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ] else
-              Expanded(
-                child: Text(
-                  context.l10n.closed,
-                  style: const TextStyle(
-                      color: AppColors.grey400, fontSize: 13),
-                ),
-              ),
+              ],
+            ],
           ],
         ),
       ),
     );
   }
 
-  InputDecoration _hoursDecoration(String label) {
+  Widget _buildTimeRow({
+    required TextEditingController leftCtrl,
+    required String leftLabel,
+    required String leftHint,
+    required TextEditingController rightCtrl,
+    required String rightLabel,
+    required String rightHint,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: leftCtrl,
+            style: const TextStyle(
+              color: AppColors.scaffoldBackground,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: _hoursDecoration(leftLabel, leftHint),
+            keyboardType: TextInputType.datetime,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Icon(Icons.arrow_forward_rounded,
+              size: 14, color: AppColors.grey300),
+        ),
+        Expanded(
+          child: TextField(
+            controller: rightCtrl,
+            style: const TextStyle(
+              color: AppColors.scaffoldBackground,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: _hoursDecoration(rightLabel, rightHint),
+            keyboardType: TextInputType.datetime,
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _hoursDecoration(String label, [String hint = '00:00']) {
     return InputDecoration(
       labelText: label,
-      hintText: '08:00',
+      labelStyle: const TextStyle(
+        color: AppColors.scaffoldBackground,
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+      ),
+      hintText: hint,
+      hintStyle: const TextStyle(color: AppColors.grey300, fontSize: 12),
       filled: true,
       fillColor: AppColors.grey50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderSide: const BorderSide(color: AppColors.grey200),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderSide: const BorderSide(color: AppColors.grey200),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusS),

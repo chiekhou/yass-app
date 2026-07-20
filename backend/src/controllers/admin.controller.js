@@ -558,6 +558,19 @@ class AdminController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/v1/admin/establishments/stats
+   */
+  async getEstablishmentStats(req, res, next) {
+    try {
+      const { status } = req.query;
+      const data = await adminService.getEstablishmentStats(status);
+      ApiResponse.success(data, "Establishment statistics retrieved").send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new AdminController();

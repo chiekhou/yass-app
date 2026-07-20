@@ -62,6 +62,18 @@ class AdminRepository {
     return AdminUser.fromJson(response.data['data']);
   }
 
+  // ==================== ESTABLISHMENT STATS ====================
+
+  Future<EstablishmentStatsData> getEstablishmentStats({
+    String status = 'all',
+  }) async {
+    final response = await _apiClient.get(
+      ApiConfig.adminEstablishmentStats,
+      queryParameters: {'status': status},
+    );
+    return EstablishmentStatsData.fromJson(response.data['data']);
+  }
+
   // ==================== PARTNER MANAGEMENT ====================
 
   Future<AdminPartnerPagination> getPartners({

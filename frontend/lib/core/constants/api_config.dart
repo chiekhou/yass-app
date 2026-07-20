@@ -149,6 +149,7 @@ class ApiConfig {
   static const String adminPartners = '$admin/partners';
   static const String adminPendingPartners = '$admin/partners/pending';
   static const String adminEstablishments = '$admin/establishments';
+  static const String adminEstablishmentStats = '$admin/establishments/stats';
   static String adminEstablishmentById(String id) => '$adminEstablishments/$id';
   static String adminFeatureEstablishment(String id) => '$adminEstablishments/$id/feature';
   static const String adminPendingEstablishments =

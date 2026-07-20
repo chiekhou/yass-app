@@ -147,6 +147,14 @@ router.post(
 router.get("/establishments", adminController.getEstablishments);
 
 /**
+ * @route   GET /api/v1/admin/establishments/stats
+ * @desc    Get establishment statistics (by category, top reviewed, top rated)
+ * @access  Admin
+ * @query   status (all|active|pending)
+ */
+router.get("/establishments/stats", adminController.getEstablishmentStats);
+
+/**
  * @route   GET /api/v1/admin/establishments/pending
  * @desc    Get pending establishments
  * @access  Admin

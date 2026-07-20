@@ -84,7 +84,7 @@ class CategoriesGrid extends StatelessWidget {
                     ? () => context.push(
                           '${AppRoutes.category.replaceFirst(':id', e.value.id)}?name=${Uri.encodeComponent(displayName)}',
                         )
-                    : null,
+                    : () => context.push(AppRoutes.allCategories, extra: categories),
               );
             }),
             _CategoryItem(
@@ -237,11 +237,7 @@ class _CategoryItem extends StatelessWidget {
             SizedBox(
               width: 70,
               child: Text(
-                isMore
-                    ? context.l10n.moreButton
-                    : isActive
-                        ? name
-                        : context.l10n.comingSoon,
+                isMore ? context.l10n.moreButton : name,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 11,
