@@ -269,6 +269,95 @@ class VisitStats extends Equatable {
   List<Object?> get props => [total, today, thisWeek, thisMonth];
 }
 
+// ==================== ESTABLISHMENT STATS ====================
+
+class EstablishmentCatStat extends Equatable {
+  final String categoryId;
+  final String categoryName;
+  final String categoryNameAr;
+  final int count;
+
+  const EstablishmentCatStat({
+    required this.categoryId,
+    required this.categoryName,
+    this.categoryNameAr = '',
+    required this.count,
+  });
+
+  factory EstablishmentCatStat.fromJson(Map<String, dynamic> json) {
+    return EstablishmentCatStat(
+      categoryId: json['category_id'] ?? '',
+      categoryName: json['category_name'] ?? 'Sans catégorie',
+      categoryNameAr: json['category_name_ar'] ?? '',
+      count: json['count'] ?? 0,
+    );
+  }
+
+  @override
+  List<Object?> get props => [categoryId, categoryName, count];
+}
+
+class EstablishmentRankItem extends Equatable {
+  final String id;
+  final String name;
+  final double averageRating;
+  final int totalReviews;
+  final String categoryName;
+  final String categoryNameAr;
+
+  const EstablishmentRankItem({
+    required this.id,
+    required this.name,
+    this.averageRating = 0,
+    this.totalReviews = 0,
+    this.categoryName = '',
+    this.categoryNameAr = '',
+  });
+
+  factory EstablishmentRankItem.fromJson(Map<String, dynamic> json) {
+    return EstablishmentRankItem(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0.0,
+      totalReviews: json['total_reviews'] ?? 0,
+      categoryName: json['category_name'] ?? '',
+      categoryNameAr: json['category_name_ar'] ?? '',
+    );
+  }
+
+  @override
+  List<Object?> get props => [id, name, averageRating, totalReviews];
+}
+
+class EstablishmentStatsData extends Equatable {
+  final List<EstablishmentCatStat> byCategory;
+  final List<EstablishmentRankItem> topReviewed;
+  final List<EstablishmentRankItem> topRated;
+
+  const EstablishmentStatsData({
+    this.byCategory = const [],
+    this.topReviewed = const [],
+    this.topRated = const [],
+  });
+
+  factory EstablishmentStatsData.fromJson(Map<String, dynamic> json) {
+    return EstablishmentStatsData(
+      byCategory: (json['byCategory'] as List? ?? [])
+          .map((e) => EstablishmentCatStat.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      topReviewed: (json['topReviewed'] as List? ?? [])
+          .map((e) => EstablishmentRankItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      topRated: (json['topRated'] as List? ?? [])
+          .map((e) => EstablishmentRankItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [byCategory, topReviewed, topRated];
+}
+
 class RecentActivity extends Equatable {
   final String id;
   final String type;

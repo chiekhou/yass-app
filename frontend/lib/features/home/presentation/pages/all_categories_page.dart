@@ -193,7 +193,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                               ),
                             ),
                             // ── Sous-catégories ──
-                            if (subs.isNotEmpty && cat.isActive) ...[
+                            if (subs.isNotEmpty) ...[
                               const Divider(
                                 height: 1,
                                 thickness: 1,
@@ -210,17 +210,18 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                                 return Column(
                                   children: [
                                     InkWell(
-                                      onTap: () => context.push(
-                                        AppRoutes.map,
-                                        extra: {
-                                          'subcategoryId': sub.id,
-                                          'query': sub.localizedName(langCode),
-                                        },
-                                      ),
+                                      onTap: cat.isActive
+                                          ? () => context.push(
+                                                AppRoutes.map,
+                                                extra: {
+                                                  'subcategoryId': sub.id,
+                                                  'query': sub.localizedName(langCode),
+                                                },
+                                              )
+                                          : null,
                                       borderRadius: BorderRadius.vertical(
                                         bottom: isLastOverall
-                                            ? const Radius.circular(
-                                                AppDimens.radiusL)
+                                            ? const Radius.circular(AppDimens.radiusL)
                                             : Radius.zero,
                                       ),
                                       child: Padding(
@@ -235,18 +236,46 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                                             Expanded(
                                               child: Text(
                                                 sub.localizedName(langCode),
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w400,
-                                                  color: Color(0xFF4A4A4A),
+                                                  color: cat.isActive
+                                                      ? const Color(0xFF4A4A4A)
+                                                      : AppColors.grey400,
                                                 ),
                                               ),
                                             ),
-                                            const Icon(
-                                              Icons.chevron_right_rounded,
-                                              color: AppColors.grey300,
-                                              size: 18,
-                                            ),
+                                            if (!cat.isActive)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 3,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.accentOrange
+                                                      .withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(20),
+                                                  border: Border.all(
+                                                    color: AppColors.accentOrange
+                                                        .withValues(alpha: 0.4),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: const Text(
+                                                  'Bientôt',
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.accentOrange,
+                                                  ),
+                                                ),
+                                              )
+                                            else
+                                              const Icon(
+                                                Icons.chevron_right_rounded,
+                                                color: AppColors.grey300,
+                                                size: 18,
+                                              ),
                                           ],
                                         ),
                                       ),
@@ -296,8 +325,7 @@ class _AllCategoriesPageState extends State<AllCategoriesPage> {
                                         const SizedBox(width: 4),
                                         AnimatedRotation(
                                           turns: isExpanded ? 0.5 : 0,
-                                          duration:
-                                              const Duration(milliseconds: 200),
+                                          duration: const Duration(milliseconds: 200),
                                           child: const Icon(
                                             Icons.keyboard_arrow_down_rounded,
                                             color: AppColors.primaryBlue,

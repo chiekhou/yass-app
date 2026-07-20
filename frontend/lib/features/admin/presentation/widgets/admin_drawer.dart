@@ -154,6 +154,14 @@ class _AdminDrawerState extends State<AdminDrawer> {
                         AppRoutes.adminPendingEstablishments,
                     badgeCount: _pendingEstablishments,
                   ),
+                  _buildMenuItem(
+                    context,
+                    icon: Iconsax.chart_2,
+                    title: 'Stats établissements',
+                    route: AppRoutes.adminEstablishmentStats,
+                    isSelected: widget.currentRoute ==
+                        AppRoutes.adminEstablishmentStats,
+                  ),
                   _buildSectionTitle(context, context.l10n.moderation),
                   _buildMenuItem(
                     context,

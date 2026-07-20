@@ -79,6 +79,7 @@ import 'features/suggestions/presentation/pages/my_suggestions_page.dart';
 import 'features/admin/presentation/pages/admin_suggestions_page.dart';
 import 'features/admin/presentation/pages/admin_wilayas_page.dart';
 import 'features/admin/presentation/pages/admin_categories_availability_page.dart';
+import 'features/admin/presentation/pages/admin_establishment_stats_page.dart';
 import 'features/profile/presentation/pages/privacy_policy_page.dart';
 import 'features/profile/presentation/pages/terms_of_service_page.dart';
 import 'features/profile/presentation/pages/about_page.dart';
@@ -141,6 +142,7 @@ class AppRoutes {
   static const String adminSuggestions = '/admin/suggestions';
   static const String adminWilayas = '/admin/wilayas';
   static const String adminCategoriesAvailability = '/admin/categories';
+  static const String adminEstablishmentStats = '/admin/establishment-stats';
 
   // Notifications
   static const String notifications = '/notifications';
@@ -355,7 +357,9 @@ class AppRouter {
         path: AppRoutes.allCategories,
         name: 'allCategories',
         builder: (context, state) {
-          final cats = state.extra as List<Category>?;
+          final extra = state.extra;
+          final List<Category>? cats =
+              extra is List ? extra.whereType<Category>().toList() : null;
           return AllCategoriesPage(initialCategories: cats);
         },
       ),
@@ -714,6 +718,11 @@ class AppRouter {
         path: AppRoutes.adminCategoriesAvailability,
         name: 'adminCategoriesAvailability',
         builder: (context, state) => const AdminCategoriesAvailabilityPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminEstablishmentStats,
+        name: 'adminEstablishmentStats',
+        builder: (context, state) => const AdminEstablishmentStatsPage(),
       ),
     ],
 

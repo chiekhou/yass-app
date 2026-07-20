@@ -9,6 +9,7 @@ import '../../../home/data/models/category_model.dart';
 import '../../../home/data/repositories/category_repository.dart';
 import '../../data/repositories/admin_repository.dart';
 import '../../data/models/admin_establishment_model.dart';
+import '../../data/models/admin_partner_model.dart';
 
 class AdminCreateEstablishmentPage extends StatefulWidget {
   final String partnerId;
@@ -55,6 +56,7 @@ class _AdminCreateEstablishmentPageState
   List<SubCategory> _subcategories = [];
   List<Wilaya> _wilayas = [];
   List<Commune> _communes = [];
+  List<AdminPartner> _partners = [];
 
   // Selected
   String? _selectedCategoryId;
@@ -62,6 +64,7 @@ class _AdminCreateEstablishmentPageState
   String? _selectedWilayaId;
   String? _selectedCommuneId;
   String? _selectedPriceRange;
+  String? _selectedPartnerId;
 
   // Services & amenities
   final List<String> _services = [];
@@ -89,8 +92,11 @@ class _AdminCreateEstablishmentPageState
     'sunday': 'Dimanche',
   };
   late final Map<String, bool> _dayClosed;
+  late final Map<String, bool> _hasPause;
   late final Map<String, TextEditingController> _openCtrl;
   late final Map<String, TextEditingController> _closeCtrl;
+  late final Map<String, TextEditingController> _pauseStartCtrl;
+  late final Map<String, TextEditingController> _pauseEndCtrl;
 
   bool _isLoadingData = true;
   bool _isSubmitting = false;
@@ -99,9 +105,13 @@ class _AdminCreateEstablishmentPageState
   @override
   void initState() {
     super.initState();
+    _selectedPartnerId = widget.partnerId.isNotEmpty ? widget.partnerId : null;
     _dayClosed = {for (final d in _days) d: false};
+    _hasPause = {for (final d in _days) d: false};
     _openCtrl = {for (final d in _days) d: TextEditingController()};
     _closeCtrl = {for (final d in _days) d: TextEditingController()};
+    _pauseStartCtrl = {for (final d in _days) d: TextEditingController()};
+    _pauseEndCtrl = {for (final d in _days) d: TextEditingController()};
     _loadInitialData();
   }
 
@@ -124,6 +134,8 @@ class _AdminCreateEstablishmentPageState
     for (final d in _days) {
       _openCtrl[d]!.dispose();
       _closeCtrl[d]!.dispose();
+      _pauseStartCtrl[d]!.dispose();
+      _pauseEndCtrl[d]!.dispose();
     }
     super.dispose();
   }
@@ -133,6 +145,8 @@ class _AdminCreateEstablishmentPageState
       final futures = <Future>[
         _categoryRepository.getAll(),
         _wilayaRepository.getAll(),
+        if (widget.partnerId.isEmpty)
+          _adminRepository.getPartners(status: 'approved', limit: 200),
         if (widget.isEditing)
           _adminRepository.getEstablishmentById(widget.establishmentId!),
       ];
@@ -140,8 +154,15 @@ class _AdminCreateEstablishmentPageState
       _categories = results[0] as List<Category>;
       _wilayas = results[1] as List<Wilaya>;
 
-      if (widget.isEditing && results.length > 2) {
-        _populateForm(results[2] as AdminEstablishment);
+      int offset = 2;
+      if (widget.partnerId.isEmpty) {
+        final pagination = results[offset] as AdminPartnerPagination;
+        _partners = pagination.partners;
+        offset++;
+      }
+
+      if (widget.isEditing && results.length > offset) {
+        _populateForm(results[offset] as AdminEstablishment);
       }
 
       setState(() => _isLoadingData = false);
@@ -214,16 +235,29 @@ class _AdminCreateEstablishmentPageState
       _showError('Veuillez sélectionner une sous-catégorie');
       return;
     }
+    if (!widget.isEditing && _selectedPartnerId == null) {
+      _showError('Veuillez sélectionner un partenaire');
+      return;
+    }
 
     setState(() => _isSubmitting = true);
     try {
       final openingHours = <String, Map<String, String>>{};
       for (final day in _days) {
         if (!_dayClosed[day]! && _openCtrl[day]!.text.isNotEmpty) {
-          openingHours[day] = {
-            'open': _openCtrl[day]!.text,
-            'close': _closeCtrl[day]!.text,
-          };
+          if (_hasPause[day]!) {
+            openingHours[day] = {
+              'open': _openCtrl[day]!.text,
+              'break_start': _pauseStartCtrl[day]!.text,
+              'break_end': _pauseEndCtrl[day]!.text,
+              'close': _closeCtrl[day]!.text,
+            };
+          } else {
+            openingHours[day] = {
+              'open': _openCtrl[day]!.text,
+              'close': _closeCtrl[day]!.text,
+            };
+          }
         }
       }
 
@@ -265,7 +299,7 @@ class _AdminCreateEstablishmentPageState
         await _adminRepository.updateEstablishment(
             widget.establishmentId!, data);
       } else {
-        data['partner_id'] = widget.partnerId;
+        data['partner_id'] = _selectedPartnerId;
         await _adminRepository.createEstablishment(data);
       }
 
@@ -355,34 +389,59 @@ class _AdminCreateEstablishmentPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Partner info banner (create mode only)
+            // Partner section (create mode only)
             if (!widget.isEditing) ...[
-              Container(
-                padding: const EdgeInsets.all(AppDimens.paddingM),
-                decoration: BoxDecoration(
-                  color: AppColors.scaffoldBackground.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(AppDimens.radiusM),
-                  border: Border.all(
-                      color:
-                          AppColors.scaffoldBackground.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Iconsax.briefcase,
-                        color: AppColors.scaffoldBackground, size: 20),
-                    const SizedBox(width: AppDimens.paddingS),
-                    Expanded(
-                      child: Text(
-                        'Partenaire : ${widget.partnerName}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.scaffoldBackground,
+              if (widget.partnerId.isNotEmpty)
+                // Pre-selected partner — simple info banner
+                Container(
+                  padding: const EdgeInsets.all(AppDimens.paddingM),
+                  decoration: BoxDecoration(
+                    color: AppColors.scaffoldBackground.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    border: Border.all(
+                        color: AppColors.scaffoldBackground.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Iconsax.briefcase,
+                          color: AppColors.scaffoldBackground, size: 20),
+                      const SizedBox(width: AppDimens.paddingS),
+                      Expanded(
+                        child: Text(
+                          'Partenaire : ${widget.partnerName}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.scaffoldBackground,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                )
+              else
+                // No partner pre-selected — show dropdown
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedPartnerId,
+                  decoration: _dropdownDecoration('Partenaire *'),
+                  style: const TextStyle(color: AppColors.scaffoldBackground),
+                  hint: const Text('Sélectionner un partenaire',
+                      style: TextStyle(color: AppColors.grey400)),
+                  selectedItemBuilder: (_) => _partners
+                      .map((p) => Text(p.companyName,
+                          style: const TextStyle(
+                              color: AppColors.scaffoldBackground)))
+                      .toList(),
+                  items: _partners
+                      .map((p) => DropdownMenuItem(
+                            value: p.id,
+                            child: Text(p.companyName,
+                                style: const TextStyle(color: AppColors.white)),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedPartnerId = v),
+                  validator: (v) =>
+                      v == null ? 'Veuillez sélectionner un partenaire' : null,
                 ),
-              ),
               const SizedBox(height: AppDimens.paddingL),
             ],
 
@@ -642,6 +701,7 @@ class _AdminCreateEstablishmentPageState
               onChanged: (v) => setState(() => _selectedPriceRange = v),
             ),
             const SizedBox(height: AppDimens.paddingL),
+
             _sectionTitle('Services (optionnel)'),
             const SizedBox(height: AppDimens.paddingM),
             _buildTagInput(
@@ -652,6 +712,7 @@ class _AdminCreateEstablishmentPageState
               onRemove: (v) => setState(() => _services.remove(v)),
             ),
             const SizedBox(height: AppDimens.paddingL),
+
             _sectionTitle('Équipements (optionnel)'),
             const SizedBox(height: AppDimens.paddingM),
             _buildTagInput(
@@ -662,7 +723,15 @@ class _AdminCreateEstablishmentPageState
               onRemove: (v) => setState(() => _amenities.remove(v)),
             ),
             const SizedBox(height: AppDimens.paddingL),
+
             _sectionTitle('Horaires d\'ouverture (optionnel)'),
+            const SizedBox(height: AppDimens.paddingXS),
+            Text(
+              'Activez "Pause" pour saisir des horaires matin / après-midi',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.grey500,
+                  ),
+            ),
             const SizedBox(height: AppDimens.paddingM),
             ..._days.map((day) => _buildDayRow(day)),
             const SizedBox(height: AppDimens.paddingXL),
@@ -715,8 +784,13 @@ class _AdminCreateEstablishmentPageState
             Expanded(
               child: TextField(
                 controller: controller,
+                style: const TextStyle(
+                  color: AppColors.scaffoldBackground,
+                  fontSize: 14,
+                ),
                 decoration: InputDecoration(
                   hintText: hint,
+                  hintStyle: TextStyle(color: AppColors.grey400, fontSize: 13),
                   filled: true,
                   fillColor: AppColors.white,
                   border: OutlineInputBorder(
@@ -726,6 +800,11 @@ class _AdminCreateEstablishmentPageState
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppDimens.radiusM),
                     borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                    borderSide: const BorderSide(
+                        color: AppColors.scaffoldBackground, width: 1.5),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppDimens.paddingM,
@@ -762,7 +841,10 @@ class _AdminCreateEstablishmentPageState
             runSpacing: AppDimens.paddingXS,
             children: items
                 .map((item) => Chip(
-                      label: Text(item, style: const TextStyle(fontSize: 12)),
+                      label: Text(item,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.scaffoldBackground)),
                       deleteIcon: const Icon(Iconsax.close_circle, size: 14),
                       onDeleted: () => onRemove(item),
                       backgroundColor:
@@ -779,69 +861,245 @@ class _AdminCreateEstablishmentPageState
 
   Widget _buildDayRow(String day) {
     final isClosed = _dayClosed[day]!;
+    final hasPause = _hasPause[day]!;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimens.paddingS),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              _dayLabels[day]!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.grey800,
+      child: Container(
+        padding: const EdgeInsets.all(AppDimens.paddingS),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppDimens.radiusS),
+          border: Border.all(color: const Color(0xFFF0F0F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header row: label + switch + pause badge ──
+            Row(
+              children: [
+                SizedBox(
+                  width: 76,
+                  child: Text(
+                    _dayLabels[day]!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: AppColors.scaffoldBackground,
+                    ),
                   ),
+                ),
+                Switch(
+                  value: !isClosed,
+                  onChanged: (v) => setState(() => _dayClosed[day] = !v),
+                  activeTrackColor: AppColors.primaryGreen,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                if (!isClosed) ...[
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => setState(() => _hasPause[day] = !hasPause),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: hasPause
+                            ? AppColors.accentOrange.withValues(alpha: 0.1)
+                            : AppColors.scaffoldBackground.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: hasPause
+                              ? AppColors.accentOrange.withValues(alpha: 0.5)
+                              : AppColors.scaffoldBackground.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            hasPause
+                                ? Icons.coffee_outlined
+                                : Icons.add_rounded,
+                            size: 13,
+                            color: hasPause
+                                ? AppColors.accentOrange
+                                : AppColors.scaffoldBackground,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            hasPause ? 'Pause déj.' : 'Pause',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: hasPause
+                                  ? AppColors.accentOrange
+                                  : AppColors.scaffoldBackground,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+                if (isClosed) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    'Fermé',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.grey400,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ),
-          Switch(
-            value: !isClosed,
-            onChanged: (v) => setState(() => _dayClosed[day] = !v),
-            activeThumbColor: AppColors.primaryGreen,
-          ),
-          if (!isClosed) ...[
-            Expanded(
-              child: TextField(
-                controller: _openCtrl[day],
-                decoration: _hoursDecoration('Ouv.'),
-                keyboardType: TextInputType.datetime,
-              ),
-            ),
-            const SizedBox(width: AppDimens.paddingXS),
-            Expanded(
-              child: TextField(
-                controller: _closeCtrl[day],
-                decoration: _hoursDecoration('Ferm.'),
-                keyboardType: TextInputType.datetime,
-              ),
-            ),
-          ] else
-            Expanded(
-              child: Text(
-                'Fermé',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: AppColors.scaffoldBackground),
-              ),
-            ),
-        ],
+
+            // ── Time fields ──
+            if (!isClosed) ...[
+              const SizedBox(height: 8),
+              if (!hasPause)
+                // Simple: ouverture → fermeture
+                _buildTimeRow(
+                  leftCtrl: _openCtrl[day]!,
+                  leftLabel: 'Ouv.',
+                  leftHint: '08:00',
+                  rightCtrl: _closeCtrl[day]!,
+                  rightLabel: 'Ferm.',
+                  rightHint: '18:00',
+                )
+              else ...[
+                // Matin
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 54,
+                      child: Text(
+                        'Matin',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.scaffoldBackground.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _buildTimeRow(
+                        leftCtrl: _openCtrl[day]!,
+                        leftLabel: 'Ouv.',
+                        leftHint: '08:00',
+                        rightCtrl: _pauseStartCtrl[day]!,
+                        rightLabel: 'Pause',
+                        rightHint: '12:00',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // Après-midi
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 54,
+                      child: Text(
+                        'A-midi',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.scaffoldBackground.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: _buildTimeRow(
+                        leftCtrl: _pauseEndCtrl[day]!,
+                        leftLabel: 'Reprise',
+                        leftHint: '14:00',
+                        rightCtrl: _closeCtrl[day]!,
+                        rightLabel: 'Ferm.',
+                        rightHint: '18:00',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  InputDecoration _hoursDecoration(String label) {
+  Widget _buildTimeRow({
+    required TextEditingController leftCtrl,
+    required String leftLabel,
+    required String leftHint,
+    required TextEditingController rightCtrl,
+    required String rightLabel,
+    required String rightHint,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: leftCtrl,
+            style: const TextStyle(
+              color: AppColors.scaffoldBackground,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: _hoursDecoration(leftLabel, leftHint),
+            keyboardType: TextInputType.datetime,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Icon(Icons.arrow_forward_rounded,
+              size: 14, color: AppColors.grey300),
+        ),
+        Expanded(
+          child: TextField(
+            controller: rightCtrl,
+            style: const TextStyle(
+              color: AppColors.scaffoldBackground,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: _hoursDecoration(rightLabel, rightHint),
+            keyboardType: TextInputType.datetime,
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _hoursDecoration(String label, [String hint = '00:00']) {
     return InputDecoration(
       labelText: label,
-      hintText: '08:00',
+      labelStyle: const TextStyle(
+        color: AppColors.scaffoldBackground,
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+      ),
+      hintText: hint,
+      hintStyle: TextStyle(color: AppColors.grey300, fontSize: 12),
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: AppColors.grey50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderSide: const BorderSide(color: AppColors.grey200),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppDimens.radiusS),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderSide: const BorderSide(color: AppColors.grey200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimens.radiusS),
+        borderSide:
+            const BorderSide(color: AppColors.scaffoldBackground, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppDimens.paddingS,

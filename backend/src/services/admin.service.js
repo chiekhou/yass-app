@@ -1,7 +1,7 @@
-const { User, Partner, Establishment, Review, Favorite, Promotion, RefreshToken, SubCategory, Commune, Wilaya, AppSession } = require("../models");
+const { User, Partner, Establishment, Review, Favorite, Promotion, RefreshToken, SubCategory, Commune, Wilaya, AppSession, Category, sequelize } = require("../models");
 const invoiceService = require("./invoice.service");
 const ApiError = require("../utils/ApiError");
-const { Op, literal } = require("sequelize");
+const { Op, literal, fn, col } = require("sequelize");
 const emailService = require("./email.service");
 const { generateSlug, generateUniqueSlug } = require("../utils/helpers");
 const notificationService = require("./notification.service");
@@ -981,6 +981,97 @@ class AdminService {
 
   async cancelManualPayment(invoiceId, adminId) {
     return invoiceService.cancelManualPayment(invoiceId, adminId);
+  }
+
+  /**
+   * Get establishment statistics: by category, top reviewed, top rated
+   * GET /api/v1/admin/establishments/stats
+   */
+  async getEstablishmentStats(status) {
+    const where = {};
+    if (status && status !== "all") where.status = status;
+
+    const [byCategory, topReviewed, topRated] = await Promise.all([
+      // Count by category
+      Establishment.findAll({
+        attributes: [
+          "category_id",
+          [fn("COUNT", col("Establishment.id")), "count"],
+        ],
+        include: [
+          {
+            model: Category,
+            as: "category",
+            attributes: ["id", "name", "name_ar"],
+          },
+        ],
+        where,
+        group: ["Establishment.category_id", "category.id"],
+        order: [[fn("COUNT", col("Establishment.id")), "DESC"]],
+      }),
+
+      // Top 10 most reviewed
+      Establishment.findAll({
+        attributes: ["id", "name", "average_rating", "total_reviews"],
+        include: [
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "name_ar"],
+          },
+        ],
+        where: { ...where, total_reviews: { [Op.gt]: 0 } },
+        order: [["total_reviews", "DESC"]],
+        limit: 10,
+      }),
+
+      // Top 10 best rated (min 3 reviews)
+      Establishment.findAll({
+        attributes: ["id", "name", "average_rating", "total_reviews"],
+        include: [
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "name_ar"],
+          },
+        ],
+        where: {
+          ...where,
+          average_rating: { [Op.not]: null },
+          total_reviews: { [Op.gte]: 3 },
+        },
+        order: [
+          ["average_rating", "DESC"],
+          ["total_reviews", "DESC"],
+        ],
+        limit: 10,
+      }),
+    ]);
+
+    return {
+      byCategory: byCategory.map((e) => ({
+        category_id: e.category_id,
+        category_name: e.category?.name || "Sans catégorie",
+        category_name_ar: e.category?.name_ar || "",
+        count: parseInt(e.dataValues.count) || 0,
+      })),
+      topReviewed: topReviewed.map((e) => ({
+        id: e.id,
+        name: e.name,
+        average_rating: parseFloat(e.average_rating) || 0,
+        total_reviews: e.total_reviews || 0,
+        category_name: e.category?.name || "",
+        category_name_ar: e.category?.name_ar || "",
+      })),
+      topRated: topRated.map((e) => ({
+        id: e.id,
+        name: e.name,
+        average_rating: parseFloat(e.average_rating) || 0,
+        total_reviews: e.total_reviews || 0,
+        category_name: e.category?.name || "",
+        category_name_ar: e.category?.name_ar || "",
+      })),
+    };
   }
 }
 

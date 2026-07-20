@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:win_app/features/home/data/models/category_model.dart';
 import 'photo_category.dart';
@@ -50,6 +52,29 @@ double? _parseDouble(dynamic value) {
   if (value == null) return null;
   if (value is num) return value.toDouble();
   if (value is String) return double.tryParse(value);
+  return null;
+}
+
+List<T>? _parseJsonList<T>(dynamic raw, T Function(dynamic) mapper) {
+  if (raw == null) return null;
+  if (raw is List) return raw.map(mapper).toList();
+  if (raw is String) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) return decoded.map(mapper).toList();
+    } catch (_) {}
+  }
+  return null;
+}
+
+Map<String, dynamic>? _parseJsonMap(dynamic raw) {
+  if (raw is Map) return Map<String, dynamic>.from(raw);
+  if (raw is String) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {}
+  }
   return null;
 }
 
@@ -207,9 +232,7 @@ class Establishment extends Equatable {
       descriptionAr: json['description_ar'],
       logo: json['logo'],
       coverImage: json['cover_image'],
-      images: json['images'] != null
-          ? (json['images'] as List).map((e) => PhotoItem.fromJson(e)).toList()
-          : null,
+      images: _parseJsonList(json['images'], (e) => PhotoItem.fromJson(e)),
       address: json['address'] ?? '',
       addressAr: json['address_ar'],
       latitude: _parseDouble(json['latitude']),
@@ -223,16 +246,11 @@ class Establishment extends Equatable {
       instagram: json['instagram'],
       tiktok: json['tiktok'],
       snapchat: json['snapchat'],
-      openingHours: json['opening_hours'] is Map
-          ? Map<String, dynamic>.from(json['opening_hours'])
-          : null,
+      openingHours: _parseJsonMap(json['opening_hours']),
       priceRange: json['price_range'],
-      services:
-          json['services'] != null ? List<String>.from(json['services']) : null,
-      amenities: json['amenities'] != null
-          ? List<String>.from(json['amenities'])
-          : null,
-      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
+      services: _parseJsonList(json['services'], (e) => e.toString()),
+      amenities: _parseJsonList(json['amenities'], (e) => e.toString()),
+      tags: _parseJsonList(json['tags'], (e) => e.toString()),
       averageRating: _parseDouble(json['average_rating']) ?? 0,
       totalReviews: json['total_reviews'] ?? 0,
       totalViews: json['total_views'] ?? 0,
@@ -422,45 +440,36 @@ class OpeningHoursHelper {
 
     final now = DateTime.now();
     final dayNames = [
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-      'sunday'
+      'monday', 'tuesday', 'wednesday', 'thursday',
+      'friday', 'saturday', 'sunday',
     ];
-    final todayName = dayNames[now.weekday - 1];
-    final todayHours = openingHours[todayName];
+    final todayHours = openingHours[dayNames[now.weekday - 1]];
 
     if (todayHours == null) return false;
     if (todayHours['is_closed'] == true) return false;
 
     final openTime = todayHours['open'];
     final closeTime = todayHours['close'];
-
     if (openTime == null || closeTime == null) return false;
 
-    final openParts = openTime.split(':');
-    final closeParts = closeTime.split(':');
+    DateTime todt(String t) {
+      final p = t.split(':');
+      return DateTime(now.year, now.month, now.day, int.parse(p[0]), int.parse(p[1]));
+    }
 
-    final openDateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(openParts[0]),
-      int.parse(openParts[1]),
-    );
+    final openDT = todt(openTime);
+    final closeDT = todt(closeTime);
 
-    final closeDateTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(closeParts[0]),
-      int.parse(closeParts[1]),
-    );
+    final breakStart = todayHours['break_start'];
+    final breakEnd = todayHours['break_end'];
+    if (breakStart != null && breakEnd != null) {
+      final breakStartDT = todt(breakStart);
+      final breakEndDT = todt(breakEnd);
+      return (now.isAfter(openDT) && now.isBefore(breakStartDT)) ||
+             (now.isAfter(breakEndDT) && now.isBefore(closeDT));
+    }
 
-    return now.isAfter(openDateTime) && now.isBefore(closeDateTime);
+    return now.isAfter(openDT) && now.isBefore(closeDT);
   }
 
   static String? getTodayHours(Map<String, dynamic>? openingHours) {
@@ -468,24 +477,23 @@ class OpeningHoursHelper {
 
     final now = DateTime.now();
     final dayNames = [
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-      'sunday'
+      'monday', 'tuesday', 'wednesday', 'thursday',
+      'friday', 'saturday', 'sunday',
     ];
-    final todayName = dayNames[now.weekday - 1];
-    final todayHours = openingHours[todayName];
+    final todayHours = openingHours[dayNames[now.weekday - 1]];
 
     if (todayHours == null) return null;
     if (todayHours['is_closed'] == true) return 'Fermé';
 
     final openTime = todayHours['open'];
     final closeTime = todayHours['close'];
-
     if (openTime == null || closeTime == null) return null;
+
+    final breakStart = todayHours['break_start'];
+    final breakEnd = todayHours['break_end'];
+    if (breakStart != null && breakEnd != null) {
+      return '$openTime-$breakStart · $breakEnd-$closeTime';
+    }
 
     return '$openTime - $closeTime';
   }
