@@ -21,6 +21,17 @@ const app = express();
 // Trust proxy (for rate limiting behind reverse proxy)
 app.set("trust proxy", 1);
 
+// Public pages — served before helmet to avoid CSP blocking inline styles/scripts
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
+});
+app.get("/support", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/support.html"));
+});
+app.get("/privacy", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/privacy.html"));
+});
+
 // Security middleware
 app.use(helmet());
 
