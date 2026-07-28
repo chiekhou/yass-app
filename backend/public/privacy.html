@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Politique de confidentialité — Win وِين</title>
+  <style>
+    /* ── Tokens ─────────────────────────────────────────── */
+    :root {
+      --blue:        #1A4DCC;
+      --klein:       #002FA7;
+      --lime:        #70E010;
+      --orange:      #FF6530;
+
+      --ink:         #0C1530;
+      --ink-mid:     #3A4666;
+      --ink-muted:   #6B7A99;
+      --ink-faint:   #AAB4C8;
+
+      --bg:          #F5F7FF;
+      --surface:     #FFFFFF;
+      --border:      #DDE3F5;
+      --sidebar-bg:  #FFFFFF;
+
+      --header-bg:   #002FA7;
+      --header-text: #FFFFFF;
+      --header-sub:  rgba(255,255,255,0.6);
+
+      --tag-bg:      #EEF2FD;
+      --tag-text:    #1A4DCC;
+
+      --radius:      6px;
+      --sidebar-w:   240px;
+      --content-max: 720px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink:         #E8ECF8;
+        --ink-mid:     #B0BCDA;
+        --ink-muted:   #7A8BAD;
+        --ink-faint:   #445070;
+        --bg:          #080E22;
+        --surface:     #0E1835;
+        --border:      #1C2B50;
+        --sidebar-bg:  #0A1228;
+        --header-bg:   #001880;
+        --header-text: #FFFFFF;
+        --header-sub:  rgba(255,255,255,0.5);
+        --tag-bg:      #0F1F55;
+        --tag-text:    #6B9EFF;
+      }
+    }
+
+    :root[data-theme="light"] {
+      --ink: #0C1530; --ink-mid: #3A4666; --ink-muted: #6B7A99; --ink-faint: #AAB4C8;
+      --bg: #F5F7FF; --surface: #FFFFFF; --border: #DDE3F5; --sidebar-bg: #FFFFFF;
+      --header-bg: #002FA7; --tag-bg: #EEF2FD; --tag-text: #1A4DCC;
+    }
+
+    :root[data-theme="dark"] {
+      --ink: #E8ECF8; --ink-mid: #B0BCDA; --ink-muted: #7A8BAD; --ink-faint: #445070;
+      --bg: #080E22; --surface: #0E1835; --border: #1C2B50; --sidebar-bg: #0A1228;
+      --header-bg: #001880; --tag-bg: #0F1F55; --tag-text: #6B9EFF;
+    }
+
+    /* ── Reset & Base ───────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.72;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ─────────────────────────────────────────── */
+    .site-header {
+      background: var(--header-bg);
+      padding: 28px 40px 24px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-mark {
+      width: 44px; height: 44px;
+      background: var(--lime);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-mark svg { display: block; }
+    .brand-text-top { font-size: 20px; font-weight: 700; color: var(--header-text); letter-spacing: -0.3px; }
+    .brand-text-sub { font-size: 12px; color: var(--header-sub); margin-top: 1px; letter-spacing: 0.3px; }
+    .header-meta { text-align: right; flex-shrink: 0; }
+    .header-meta .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--header-sub); }
+    .header-meta .version { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 2px; }
+    .header-meta .eff-date { font-size: 12px; color: var(--header-sub); margin-top: 2px; }
+
+    /* ── Layout ─────────────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: calc(100vh - 92px);
+      align-items: start;
+    }
+
+    /* ── Sidebar ────────────────────────────────────────── */
+    .sidebar {
+      position: sticky; top: 0; height: 100vh;
+      overflow-y: auto;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 28px 0 40px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .sidebar-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.4px;
+      text-transform: uppercase; color: var(--ink-faint);
+      padding: 0 20px 10px;
+    }
+    .toc-list { list-style: none; }
+    .toc-item a {
+      display: flex; align-items: baseline; gap: 9px;
+      padding: 7px 20px 7px 16px;
+      text-decoration: none; font-size: 12.5px;
+      color: var(--ink-muted);
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      line-height: 1.4;
+    }
+    .toc-item a:hover { color: var(--ink); background: rgba(26,77,204,0.04); }
+    .toc-item a.active {
+      color: var(--blue); border-left-color: var(--lime);
+      background: rgba(112,224,16,0.06); font-weight: 600;
+    }
+    :root[data-theme="dark"] .toc-item a.active { color: #6B9EFF; background: rgba(26,77,204,0.12); }
+    .toc-num { font-size: 10px; font-variant-numeric: tabular-nums; color: var(--ink-faint); flex-shrink: 0; min-width: 16px; }
+    .toc-item a.active .toc-num { color: var(--lime); }
+
+    /* ── Main content ───────────────────────────────────── */
+    .content { padding: 48px 56px 80px 56px; max-width: var(--content-max); }
+
+    /* ── Intro ───────────────────────────────────────────── */
+    .intro-block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 28px; margin-bottom: 48px;
+      display: flex; gap: 16px;
+    }
+    .intro-block .icon {
+      width: 36px; height: 36px; background: var(--tag-bg);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; font-size: 18px;
+    }
+    .intro-block p { font-size: 14px; color: var(--ink-mid); line-height: 1.65; margin-bottom: 0; }
+    .intro-block p strong { color: var(--ink); }
+
+    /* ── Sections ────────────────────────────────────────── */
+    .policy-section { margin-bottom: 56px; scroll-margin-top: 32px; }
+    .section-header {
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      color: var(--lime); background: rgba(112,224,16,0.12);
+      padding: 3px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+    :root[data-theme="dark"] .section-num { color: #8AF535; background: rgba(112,224,16,0.1); }
+    .section-title { font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: -0.3px; line-height: 1.3; text-wrap: balance; }
+
+    /* ── Content elements ────────────────────────────────── */
+    p { margin-bottom: 14px; color: var(--ink-mid); }
+    p:last-child { margin-bottom: 0; }
+    .policy-section p strong { color: var(--ink); }
+    h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--blue); margin: 24px 0 10px; }
+    :root[data-theme="dark"] h3 { color: #6B9EFF; }
+    ul, ol { padding-left: 20px; margin-bottom: 14px; }
+    li { color: var(--ink-mid); margin-bottom: 5px; padding-left: 4px; }
+    li::marker { color: var(--ink-faint); }
+
+    /* ── Data table ──────────────────────────────────────── */
+    .data-grid-wrap { overflow-x: auto; }
+    .data-grid {
+      width: 100%; border-collapse: collapse; font-size: 13.5px;
+      margin: 20px 0; overflow: hidden; border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .data-grid th {
+      background: var(--tag-bg); color: var(--tag-text); font-size: 11px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+      padding: 10px 14px; text-align: left;
+    }
+    .data-grid td {
+      padding: 11px 14px; color: var(--ink-mid);
+      border-top: 1px solid var(--border); vertical-align: top; line-height: 1.5;
+    }
+    .data-grid tr:nth-child(even) td { background: rgba(0,0,0,0.015); }
+    :root[data-theme="dark"] .data-grid tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .data-grid td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+
+    /* ── Tags ────────────────────────────────────────────── */
+    .tag { display: inline-block; background: var(--tag-bg); color: var(--tag-text); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.3px; }
+    .tag-orange { background: rgba(255,101,48,0.1); color: #E04820; }
+    :root[data-theme="dark"] .tag-orange { color: #FF8C64; background: rgba(255,101,48,0.15); }
+
+    /* ── Boxes ───────────────────────────────────────────── */
+    .info-box { background: var(--tag-bg); border-left: 3px solid var(--blue); border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 18px; margin: 16px 0; }
+    .info-box p { color: var(--ink-mid); margin-bottom: 0; font-size: 14px; }
+    .warn-box { background: rgba(255,101,48,0.07); border-left: 3px solid var(--orange); border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 18px; margin: 16px 0; }
+    .warn-box p { color: var(--ink-mid); margin-bottom: 0; font-size: 14px; }
+
+    /* ── Contact card ────────────────────────────────────── */
+    .contact-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 28px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    .contact-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-faint); margin-bottom: 4px; }
+    .contact-item .value { font-size: 14px; color: var(--ink); font-weight: 500; }
+    .contact-item a { color: var(--blue); text-decoration: none; }
+    .contact-item a:hover { text-decoration: underline; }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      background: var(--header-bg);
+      padding: 24px 40px;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    }
+    footer p { font-size: 12px; color: var(--header-sub); margin-bottom: 0; }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; }
+    footer a:hover { color: var(--lime); }
+    .footer-links { display: flex; gap: 20px; }
+
+    /* ── Theme toggle ────────────────────────────────────── */
+    .theme-toggle {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      transition: transform 0.15s; z-index: 100;
+    }
+    .theme-toggle:hover { transform: scale(1.08); }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; }
+      .toc-list { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 16px; }
+      .toc-item a { border-left: none; border-radius: 20px; padding: 5px 12px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; }
+      .toc-item a.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+      .toc-num { display: none; }
+      .content { padding: 32px 20px 60px; }
+      .site-header { padding: 20px; flex-direction: column; gap: 12px; }
+      .header-meta { text-align: left; }
+      .contact-card { grid-template-columns: 1fr; }
+      footer { flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px; }
+      .footer-links { flex-wrap: wrap; gap: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L3 8.5V15.5L12 21L21 15.5V8.5L12 3Z" fill="#002FA7"/>
+        <path d="M12 7L7 10V14L12 17L17 14V10L12 7Z" fill="#70E010"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-text-top">Win — وِين</div>
+      <div class="brand-text-sub">Politique de confidentialité</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="label">Version</div>
+    <div class="version">1.0</div>
+    <div class="eff-date">En vigueur : 1er août 2026</div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Table des matières">
+    <div class="sidebar-label">Sommaire</div>
+    <ul class="toc-list" id="toc">
+      <li class="toc-item"><a href="#s1"><span class="toc-num">01</span>À propos</a></li>
+      <li class="toc-item"><a href="#s2"><span class="toc-num">02</span>Responsable</a></li>
+      <li class="toc-item"><a href="#s3"><span class="toc-num">03</span>Données collectées</a></li>
+      <li class="toc-item"><a href="#s4"><span class="toc-num">04</span>Finalités</a></li>
+      <li class="toc-item"><a href="#s5"><span class="toc-num">05</span>Partage</a></li>
+      <li class="toc-item"><a href="#s6"><span class="toc-num">06</span>Conservation</a></li>
+      <li class="toc-item"><a href="#s7"><span class="toc-num">07</span>Vos droits</a></li>
+      <li class="toc-item"><a href="#s8"><span class="toc-num">08</span>Sécurité</a></li>
+      <li class="toc-item"><a href="#s9"><span class="toc-num">09</span>Mineurs</a></li>
+      <li class="toc-item"><a href="#s10"><span class="toc-num">10</span>Modifications</a></li>
+      <li class="toc-item"><a href="#s11"><span class="toc-num">11</span>Contact</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+
+    <div class="intro-block">
+      <div class="icon">🔒</div>
+      <div>
+        <p>Cette politique explique <strong>quelles données nous collectons, pourquoi, et comment vous pouvez les contrôler</strong> lorsque vous utilisez l'application Win — وِين. Prenez le temps de la lire ; votre vie privée est notre engagement.</p>
+      </div>
+    </div>
+
+    <!-- S1 -->
+    <section class="policy-section" id="s1">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2 class="section-title">À propos de cette politique</h2>
+      </div>
+      <p>La présente politique de confidentialité s'applique à l'application mobile <strong>Win — وِين</strong> (ci-après « l'Application »), disponible sur l'App Store d'Apple et sur Google Play, ainsi qu'à l'ensemble des services associés (site web, API, espace partenaires).</p>
+      <p>En téléchargeant, en installant ou en utilisant l'Application, vous reconnaissez avoir pris connaissance de cette politique. Si vous n'acceptez pas les conditions décrites, veuillez ne pas utiliser l'Application.</p>
+      <p>Cette politique est rédigée en français. En cas de contradiction entre la version française et toute traduction, la version française prévaut.</p>
+    </section>
+
+    <!-- S2 -->
+    <section class="policy-section" id="s2">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2 class="section-title">Responsable du traitement</h2>
+      </div>
+      <p>Le responsable du traitement de vos données personnelles est :</p>
+      <div class="contact-card" style="margin-top:16px;">
+        <div class="contact-item">
+          <div class="label">Société</div>
+          <div class="value">Win Technologies SARL</div>
+        </div>
+        <div class="contact-item">
+          <div class="label">Pays</div>
+          <div class="value">Algérie</div>
+        </div>
+        <div class="contact-item">
+          <div class="label">Email</div>
+          <div class="value"><a href="mailto:privacy@win-app.dz">privacy@win-app.dz</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="label">Registre de commerce</div>
+          <div class="value">RC Alger — 2025/XXX</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S3 -->
+    <section class="policy-section" id="s3">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2 class="section-title">Données que nous collectons</h2>
+      </div>
+      <h3>Données que vous nous fournissez</h3>
+      <div class="data-grid-wrap">
+        <table class="data-grid">
+          <thead>
+            <tr><th>Catégorie</th><th>Données</th><th>Obligatoire</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Compte utilisateur</td>
+              <td>Nom, prénom, adresse e-mail, numéro de téléphone, mot de passe (haché)</td>
+              <td><span class="tag">Oui</span></td>
+            </tr>
+            <tr>
+              <td>Profil</td>
+              <td>Photo de profil, langue préférée, wilayas favorites</td>
+              <td><span class="tag-orange tag">Optionnel</span></td>
+            </tr>
+            <tr>
+              <td>Avis &amp; notes</td>
+              <td>Texte de l'avis, note, photos jointes, sous-notations</td>
+              <td><span class="tag-orange tag">Optionnel</span></td>
+            </tr>
+            <tr>
+              <td>Compte partenaire</td>
+              <td>Raison sociale, numéro RC, documents de vérification, coordonnées bancaires</td>
+              <td><span class="tag">Oui (partenaires)</span></td>
+            </tr>
+            <tr>
+              <td>Support</td>
+              <td>Messages envoyés à notre service client, signalements d'avis</td>
+              <td><span class="tag-orange tag">Selon besoin</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Données collectées automatiquement</h3>
+      <ul>
+        <li><strong>Localisation :</strong> coordonnées GPS approximatives ou précises (selon votre autorisation) pour afficher les établissements à proximité. Vous pouvez désactiver cet accès dans les paramètres de votre appareil à tout moment.</li>
+        <li><strong>Données d'utilisation :</strong> pages consultées, recherches effectuées, établissements vus ou mis en favoris, clics et durée de session.</li>
+        <li><strong>Données techniques :</strong> modèle de l'appareil, système d'exploitation, version de l'app, identifiant publicitaire (IDFA/GAID) si autorisé, adresse IP, langue du système.</li>
+        <li><strong>Journaux (logs) :</strong> journaux d'erreurs et de crashs pour assurer la stabilité de l'Application.</li>
+      </ul>
+
+      <h3>Données provenant de tiers</h3>
+      <p>Si vous vous connectez via un service tiers (Apple Sign In, Google), nous recevons uniquement les informations que vous avez autorisées : nom, adresse e-mail et identifiant unique. Nous ne recevons jamais votre mot de passe.</p>
+    </section>
+
+    <!-- S4 -->
+    <section class="policy-section" id="s4">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2 class="section-title">Finalités du traitement</h2>
+      </div>
+      <p>Nous utilisons vos données exclusivement pour les finalités suivantes :</p>
+      <h3>Fonctionnement du service</h3>
+      <ul>
+        <li>Créer et gérer votre compte utilisateur ou partenaire</li>
+        <li>Afficher les établissements selon votre localisation et vos préférences</li>
+        <li>Publier et modérer vos avis</li>
+        <li>Permettre aux partenaires de répondre à vos avis</li>
+        <li>Gérer vos favoris et l'historique de navigation</li>
+      </ul>
+      <h3>Amélioration et sécurité</h3>
+      <ul>
+        <li>Analyser l'utilisation de l'Application pour améliorer nos fonctionnalités</li>
+        <li>Détecter et prévenir les fraudes, abus et comportements non conformes</li>
+        <li>Résoudre les bugs et incidents techniques</li>
+        <li>Assurer la sécurité des comptes (détection de connexions suspectes)</li>
+      </ul>
+      <h3>Communication</h3>
+      <ul>
+        <li>Vous envoyer des notifications push relatives à votre activité (réponse à un avis, validation de compte)</li>
+        <li>Communiquer les mises à jour importantes du service</li>
+        <li>Répondre à vos demandes de support</li>
+      </ul>
+      <div class="info-box">
+        <p>Nous ne vendons pas vos données personnelles à des tiers et nous n'utilisons pas vos données à des fins de publicité ciblée par des plateformes externes.</p>
+      </div>
+    </section>
+
+    <!-- S5 -->
+    <section class="policy-section" id="s5">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2 class="section-title">Partage et divulgation</h2>
+      </div>
+      <p>Vos données ne sont jamais vendues. Elles peuvent être partagées uniquement dans les cas suivants :</p>
+      <h3>Partenaires de l'Application</h3>
+      <p>Votre nom d'affichage et vos avis sont visibles par les partenaires propriétaires des établissements concernés. Ces partenaires n'ont accès à aucune autre donnée personnelle.</p>
+      <h3>Prestataires techniques</h3>
+      <p>Nous faisons appel à des sous-traitants pour héberger et exploiter l'Application. Ces prestataires traitent vos données uniquement sur nos instructions et ne peuvent pas les utiliser à leurs propres fins :</p>
+      <ul>
+        <li><strong>Hébergement :</strong> serveurs localisés en Union Européenne ou en Algérie</li>
+        <li><strong>Notifications push :</strong> Firebase Cloud Messaging (Google) et Apple Push Notification Service</li>
+        <li><strong>Analyse de crashs :</strong> service anonymisé de suivi d'erreurs</li>
+      </ul>
+      <h3>Obligations légales</h3>
+      <p>Nous pouvons divulguer des données si la loi l'exige, notamment sur réquisition judiciaire des autorités algériennes compétentes, ou pour protéger nos droits légaux et la sécurité de nos utilisateurs.</p>
+      <h3>Transferts d'entreprise</h3>
+      <p>En cas de fusion, acquisition ou cession d'actifs, vos données peuvent être transférées. Vous en serez informé au préalable par notification dans l'Application.</p>
+    </section>
+
+    <!-- S6 -->
+    <section class="policy-section" id="s6">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2 class="section-title">Conservation des données</h2>
+      </div>
+      <div class="data-grid-wrap">
+        <table class="data-grid">
+          <thead>
+            <tr><th>Type de donnée</th><th>Durée de conservation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Données de compte actif</td><td>Pendant toute la durée d'activité du compte</td></tr>
+            <tr><td>Avis publiés</td><td>Durée d'activité du compte + 12 mois après suppression</td></tr>
+            <tr><td>Données de connexion / logs</td><td>12 mois glissants</td></tr>
+            <tr><td>Données partenaires</td><td>Durée du contrat + 5 ans (obligations comptables et légales)</td></tr>
+            <tr><td>Après suppression du compte</td><td>Anonymisation immédiate ; les avis passent en mode anonyme</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Les données anonymisées ou agrégées (statistiques générales) ne sont pas soumises à ces durées et peuvent être conservées indéfiniment.</p>
+    </section>
+
+    <!-- S7 -->
+    <section class="policy-section" id="s7">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <h2 class="section-title">Vos droits</h2>
+      </div>
+      <p>Conformément aux lois applicables en matière de protection des données, vous disposez des droits suivants :</p>
+      <h3>Droits accessibles depuis l'Application</h3>
+      <ul>
+        <li><strong>Accès :</strong> consultez et exportez l'ensemble de vos données depuis Paramètres → Mon compte → Mes données.</li>
+        <li><strong>Rectification :</strong> modifiez vos informations personnelles à tout moment depuis votre profil.</li>
+        <li><strong>Suppression :</strong> supprimez définitivement votre compte depuis Paramètres → Mon compte → Supprimer mon compte. Toutes vos données personnelles sont effacées sous 30 jours.</li>
+        <li><strong>Localisation :</strong> révoquez l'accès à votre position dans les paramètres de votre appareil (iOS : Réglages → Confidentialité ; Android : Paramètres → Autorisations).</li>
+        <li><strong>Notifications :</strong> gérez vos préférences de notification dans Paramètres → Notifications.</li>
+      </ul>
+      <h3>Droits à exercer par e-mail</h3>
+      <ul>
+        <li><strong>Opposition :</strong> vous opposer à certains traitements non essentiels au service</li>
+        <li><strong>Portabilité :</strong> recevoir vos données dans un format structuré et lisible par machine</li>
+        <li><strong>Limitation :</strong> demander la suspension du traitement de vos données</li>
+      </ul>
+      <div class="info-box">
+        <p>Pour exercer ces droits, contactez-nous à <strong>privacy@win-app.dz</strong>. Nous répondrons sous 30 jours ouvrables. Une pièce d'identité peut être demandée pour confirmer votre identité.</p>
+      </div>
+    </section>
+
+    <!-- S8 -->
+    <section class="policy-section" id="s8">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <h2 class="section-title">Sécurité des données</h2>
+      </div>
+      <p>Nous mettons en œuvre des mesures techniques et organisationnelles adaptées pour protéger vos données contre l'accès non autorisé, la perte ou la divulgation :</p>
+      <ul>
+        <li><strong>Chiffrement en transit :</strong> toutes les communications entre l'Application et nos serveurs sont chiffrées via HTTPS (TLS 1.3).</li>
+        <li><strong>Stockage sécurisé :</strong> les mots de passe ne sont jamais stockés en clair — ils sont hachés avec bcrypt.</li>
+        <li><strong>Contrôle d'accès :</strong> l'accès aux données est restreint aux membres de l'équipe qui en ont besoin pour l'exécution de leur mission.</li>
+        <li><strong>Audits :</strong> des revues de sécurité sont effectuées régulièrement sur notre infrastructure.</li>
+        <li><strong>Détection d'intrusion :</strong> nous surveillons nos systèmes pour détecter toute activité anormale.</li>
+      </ul>
+      <div class="warn-box">
+        <p>Aucun système n'est infaillible. En cas de violation de données susceptible de vous affecter, nous vous en informerons dans les meilleurs délais conformément aux obligations légales applicables.</p>
+      </div>
+    </section>
+
+    <!-- S9 -->
+    <section class="policy-section" id="s9">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <h2 class="section-title">Confidentialité des mineurs</h2>
+      </div>
+      <p>L'Application Win — وِين est destinée aux personnes âgées de <strong>16 ans et plus</strong>. Nous ne collectons pas sciemment de données personnelles concernant des enfants de moins de 16 ans.</p>
+      <p>Si vous êtes parent ou tuteur légal et que vous pensez que votre enfant nous a fourni des données personnelles sans votre consentement, contactez-nous immédiatement à <a href="mailto:privacy@win-app.dz" style="color:var(--blue)">privacy@win-app.dz</a>. Nous supprimerons ces données dans les meilleurs délais.</p>
+    </section>
+
+    <!-- S10 -->
+    <section class="policy-section" id="s10">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <h2 class="section-title">Modifications de cette politique</h2>
+      </div>
+      <p>Nous pouvons mettre à jour cette politique de temps à autre pour refléter des changements dans nos pratiques, dans l'Application ou dans la réglementation applicable.</p>
+      <p>En cas de modification substantielle, vous serez informé par :</p>
+      <ul>
+        <li>Une notification push dans l'Application</li>
+        <li>Un message visible lors de votre prochaine connexion</li>
+        <li>Un e-mail envoyé à l'adresse associée à votre compte</li>
+      </ul>
+      <p>La date de « Dernière mise à jour » en haut de cette page indique toujours la version en vigueur. En continuant à utiliser l'Application après la date d'entrée en vigueur, vous acceptez la politique révisée.</p>
+    </section>
+
+    <!-- S11 -->
+    <section class="policy-section" id="s11">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <h2 class="section-title">Nous contacter</h2>
+      </div>
+      <p>Pour toute question relative à cette politique ou à la gestion de vos données personnelles :</p>
+      <div class="contact-card" style="margin-top:16px;">
+        <div class="contact-item">
+          <div class="label">E-mail (données personnelles)</div>
+          <div class="value"><a href="mailto:privacy@win-app.dz">privacy@win-app.dz</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="label">Support général</div>
+          <div class="value"><a href="mailto:support@win-app.dz">support@win-app.dz</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="label">Adresse</div>
+          <div class="value">Win Technologies SARL<br>Alger, Algérie</div>
+        </div>
+        <div class="contact-item">
+          <div class="label">Délai de réponse</div>
+          <div class="value">30 jours ouvrables maximum</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>© 2026 Win Technologies SARL — Tous droits réservés</p>
+  <div class="footer-links">
+    <a href="#">Conditions d'utilisation</a>
+    <a href="mailto:privacy@win-app.dz">Contact</a>
+    <a href="#">عربي</a>
+  </div>
+</footer>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Changer le thème" title="Changer le thème">☀️</button>
+
+<script>
+  (function() {
+    var root = document.documentElement;
+    var btn  = document.getElementById('themeToggle');
+    var mq   = window.matchMedia('(prefers-color-scheme: dark)');
+    function isDark() {
+      var t = root.getAttribute('data-theme');
+      if (t === 'dark') return true;
+      if (t === 'light') return false;
+      return mq.matches;
+    }
+    function setTheme(dark) {
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+      btn.textContent = dark ? '☀️' : '🌙';
+    }
+    setTheme(isDark());
+    btn.addEventListener('click', function() { setTheme(!isDark()); });
+  })();
+
+  (function() {
+    var sections = document.querySelectorAll('.policy-section[id]');
+    var links    = document.querySelectorAll('#toc .toc-item a');
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function(l) { l.classList.remove('active'); });
+          var link = document.querySelector('#toc a[href="#' + entry.target.id + '"]');
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s) { obs.observe(s); });
+  })();
+</script>
+
+</body>
+</html>

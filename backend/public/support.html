@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistance — Win وِين</title>
+  <style>
+    :root {
+      --blue: #1A4DCC; --klein: #002FA7; --lime: #70E010; --orange: #FF6530;
+      --ink: #0C1530; --ink-mid: #3A4666; --ink-muted: #6B7A99; --ink-faint: #AAB4C8;
+      --bg: #F5F7FF; --surface: #FFFFFF; --border: #DDE3F5;
+      --header-bg: #002FA7; --header-sub: rgba(255,255,255,0.6);
+      --tag-bg: #EEF2FD; --tag-text: #1A4DCC;
+      --radius: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #E8ECF8; --ink-mid: #B0BCDA; --ink-muted: #7A8BAD; --ink-faint: #445070;
+        --bg: #080E22; --surface: #0E1835; --border: #1C2B50;
+        --header-bg: #001880; --tag-bg: #0F1F55; --tag-text: #6B9EFF;
+      }
+    }
+    :root[data-theme="light"] {
+      --ink: #0C1530; --ink-mid: #3A4666; --ink-muted: #6B7A99; --ink-faint: #AAB4C8;
+      --bg: #F5F7FF; --surface: #FFFFFF; --border: #DDE3F5;
+      --header-bg: #002FA7; --tag-bg: #EEF2FD; --tag-text: #1A4DCC;
+    }
+    :root[data-theme="dark"] {
+      --ink: #E8ECF8; --ink-mid: #B0BCDA; --ink-muted: #7A8BAD; --ink-faint: #445070;
+      --bg: #080E22; --surface: #0E1835; --border: #1C2B50;
+      --header-bg: #001880; --tag-bg: #0F1F55; --tag-text: #6B9EFF;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.7; color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+
+    /* Header */
+    .site-header { background: var(--header-bg); padding: 28px 40px 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-mark { width: 44px; height: 44px; background: var(--lime); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .brand-text-top { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .brand-text-sub { font-size: 12px; color: var(--header-sub); margin-top: 1px; }
+    .header-nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .header-nav a { font-size: 12px; color: rgba(255,255,255,0.7); text-decoration: none; padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); transition: background 0.15s, color 0.15s; }
+    .header-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .header-nav a.active { background: var(--lime); color: #002FA7; border-color: var(--lime); font-weight: 600; }
+
+    /* Hero */
+    .hero {
+      background: var(--klein);
+      padding: 56px 40px 48px;
+      text-align: center;
+    }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(112,224,16,0.15); color: var(--lime); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 20px; }
+    .hero h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; color: #fff; letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 14px; text-wrap: balance; }
+    .hero p { font-size: 16px; color: rgba(255,255,255,0.7); max-width: 500px; margin: 0 auto 32px; line-height: 1.6; }
+
+    /* Quick contacts */
+    .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 700px; margin: 0 auto; }
+    .quick-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius); padding: 18px 16px; text-align: center; text-decoration: none; transition: background 0.15s, transform 0.15s; cursor: pointer; }
+    .quick-card:hover { background: rgba(255,255,255,0.14); transform: translateY(-2px); }
+    .quick-card .qc-icon { font-size: 24px; margin-bottom: 8px; }
+    .quick-card .qc-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+    .quick-card .qc-sub { font-size: 11px; color: rgba(255,255,255,0.55); }
+
+    /* Main layout */
+    .main-wrap { max-width: 860px; margin: 0 auto; padding: 52px 24px 80px; }
+
+    /* Category tabs */
+    .cat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 36px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .cat-tab { padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--ink-muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s; border-radius: 4px 4px 0 0; }
+    .cat-tab:hover { color: var(--ink); }
+    .cat-tab.active { color: var(--blue); border-bottom-color: var(--lime); font-weight: 600; }
+    :root[data-theme="dark"] .cat-tab.active { color: #6B9EFF; }
+
+    /* FAQ panels */
+    .faq-panel { display: none; }
+    .faq-panel.active { display: block; }
+
+    .faq-section-title { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; margin-top: 28px; }
+    .faq-section-title:first-child { margin-top: 0; }
+
+    /* Accordion */
+    .faq-item { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; background: var(--surface); overflow: hidden; }
+    .faq-q { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; cursor: pointer; user-select: none; }
+    .faq-q:hover { background: var(--tag-bg); }
+    .faq-q-text { font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.4; }
+    .faq-chevron { flex-shrink: 0; width: 20px; height: 20px; color: var(--ink-faint); transition: transform 0.2s; }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-item.open .faq-q { background: var(--tag-bg); }
+    .faq-item.open .faq-q-text { color: var(--blue); }
+    :root[data-theme="dark"] .faq-item.open .faq-q-text { color: #6B9EFF; }
+    .faq-a { display: none; padding: 0 20px 18px; font-size: 14px; color: var(--ink-mid); line-height: 1.7; border-top: 1px solid var(--border); padding-top: 14px; }
+    .faq-a a { color: var(--blue); text-decoration: none; }
+    .faq-a a:hover { text-decoration: underline; }
+    .faq-item.open .faq-a { display: block; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
+    .step { display: flex; gap: 12px; align-items: flex-start; }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    :root[data-theme="dark"] .step-num { background: #1A4DCC; }
+    .step-text { font-size: 13.5px; color: var(--ink-mid); line-height: 1.5; }
+
+    /* Contact section */
+    .contact-section { margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border); }
+    .contact-section h2 { font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .contact-section > p { color: var(--ink-muted); font-size: 14px; margin-bottom: 28px; }
+    .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 20px; text-align: center; text-decoration: none; display: block; transition: transform 0.15s, box-shadow 0.15s; }
+    .contact-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,47,167,0.08); }
+    .contact-card .cc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 20px; }
+    .cc-blue { background: var(--tag-bg); }
+    .cc-lime { background: rgba(112,224,16,0.12); }
+    .cc-orange { background: rgba(255,101,48,0.1); }
+    .contact-card .cc-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+    .contact-card .cc-sub { font-size: 12px; color: var(--ink-muted); line-height: 1.4; }
+    .contact-card .cc-link { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--blue); font-weight: 600; }
+    :root[data-theme="dark"] .contact-card .cc-link { color: #6B9EFF; }
+
+    /* Info box */
+    .info-box { background: var(--tag-bg); border-left: 3px solid var(--blue); border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 16px; margin: 12px 0; font-size: 13.5px; color: var(--ink-mid); }
+
+    /* Footer */
+    footer { background: var(--header-bg); padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    footer p { font-size: 12px; color: var(--header-sub); }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 12px; }
+    footer a:hover { color: var(--lime); }
+    .footer-links { display: flex; gap: 20px; }
+
+    /* Theme toggle */
+    .theme-toggle { position: fixed; bottom: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); z-index: 100; }
+
+    @media (max-width: 700px) {
+      .quick-grid { grid-template-columns: 1fr 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .hero { padding: 36px 20px 32px; }
+      .site-header { padding: 20px; flex-direction: column; gap: 12px; }
+      .main-wrap { padding: 32px 16px 60px; }
+      footer { flex-direction: column; align-items: flex-start; padding: 20px; }
+    }
+    @media (max-width: 480px) {
+      .quick-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L3 8.5V15.5L12 21L21 15.5V8.5L12 3Z" fill="#002FA7"/>
+        <path d="M12 7L7 10V14L12 17L17 14V10L12 7Z" fill="#70E010"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-text-top">Win — وِين</div>
+      <div class="brand-text-sub">Centre d'assistance</div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <a href="/">Accueil</a>
+    <a href="/support" class="active">Assistance</a>
+    <a href="/privacy">Confidentialité</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#70E010" stroke-width="1.5"/><path d="M6 4v3M6 8.5v.5" stroke="#70E010" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Support Win
+  </div>
+  <h1>Comment pouvons-nous<br>vous aider ?</h1>
+  <p>Trouvez rapidement des réponses à vos questions ou contactez notre équipe directement.</p>
+  <div class="quick-grid">
+    <a class="quick-card" href="#compte">
+      <div class="qc-icon">👤</div>
+      <div class="qc-title">Mon compte</div>
+      <div class="qc-sub">Connexion, profil, suppression</div>
+    </a>
+    <a class="quick-card" href="#etablissements">
+      <div class="qc-icon">🏪</div>
+      <div class="qc-title">Établissements</div>
+      <div class="qc-sub">Trouver, signaler, favoris</div>
+    </a>
+    <a class="quick-card" href="#avis">
+      <div class="qc-icon">⭐</div>
+      <div class="qc-title">Avis & notes</div>
+      <div class="qc-sub">Publier, modifier, signaler</div>
+    </a>
+  </div>
+</section>
+
+<!-- Main -->
+<div class="main-wrap">
+
+  <!-- Tabs -->
+  <div class="cat-tabs" role="tablist">
+    <button class="cat-tab active" role="tab" data-panel="panel-compte" onclick="switchTab(this)">Mon compte</button>
+    <button class="cat-tab" role="tab" data-panel="panel-etablissements" onclick="switchTab(this)">Établissements</button>
+    <button class="cat-tab" role="tab" data-panel="panel-avis" onclick="switchTab(this)">Avis & notes</button>
+    <button class="cat-tab" role="tab" data-panel="panel-partenaires" onclick="switchTab(this)">Partenaires</button>
+    <button class="cat-tab" role="tab" data-panel="panel-technique" onclick="switchTab(this)">Technique</button>
+  </div>
+
+  <!-- Panel : Compte -->
+  <div class="faq-panel active" id="panel-compte">
+
+    <div class="faq-section-title">Inscription et connexion</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment créer un compte Win ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">Téléchargez l'application sur l'App Store ou Google Play.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text">Appuyez sur <strong>« S'inscrire »</strong> sur l'écran d'accueil.</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text">Entrez votre nom, adresse e-mail et créez un mot de passe.</div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-text">Confirmez votre e-mail via le lien reçu dans votre boîte de réception.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">J'ai oublié mon mot de passe, que faire ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Sur l'écran de connexion, appuyez sur <strong>« Mot de passe oublié »</strong>. Entrez votre adresse e-mail et vous recevrez un lien de réinitialisation dans les minutes qui suivent. Vérifiez vos spams si vous ne le recevez pas.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Puis-je me connecter avec Apple ou Google ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Oui. Sur l'écran de connexion, appuyez sur <strong>« Continuer avec Apple »</strong> ou <strong>« Continuer avec Google »</strong>. Si c'est votre première connexion via ce service, un compte Win est créé automatiquement.
+      </div>
+    </div>
+
+    <div class="faq-section-title">Profil et paramètres</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment modifier mes informations personnelles ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Allez dans <strong>Paramètres → Mon profil</strong>. Vous pouvez modifier votre nom, photo de profil, numéro de téléphone et langue préférée. Les modifications sont enregistrées automatiquement.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment changer la langue de l'application ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Allez dans <strong>Paramètres → Langue</strong>. Win est disponible en français, arabe, anglais, allemand, espagnol, italien et néerlandais. Le changement est immédiat.
+      </div>
+    </div>
+
+    <div class="faq-section-title">Suppression de compte</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment supprimer définitivement mon compte ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">Allez dans <strong>Paramètres → Mon compte</strong>.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text">Appuyez sur <strong>« Supprimer mon compte »</strong> en bas de page.</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text">Confirmez votre mot de passe et validez la suppression.</div></div>
+        </div>
+        <div class="info-box" style="margin-top:12px;">Toutes vos données personnelles sont effacées sous 30 jours. Vos avis publiés passent en mode anonyme et restent visibles sans lien avec votre identité.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panel : Établissements -->
+  <div class="faq-panel" id="panel-etablissements">
+
+    <div class="faq-section-title">Trouver un établissement</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment trouver des établissements près de moi ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Autorisez l'accès à votre localisation lorsque l'application le demande. La carte et la liste sur la page d'accueil affichent automatiquement les établissements autour de vous. Vous pouvez aussi filtrer par wilaya, catégorie ou distance.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment ajouter un établissement à mes favoris ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Sur la page de l'établissement, appuyez sur l'icône ♡ en haut à droite. L'établissement est ajouté à vos favoris, accessibles depuis l'onglet <strong>Favoris</strong> de l'application.
+      </div>
+    </div>
+
+    <div class="faq-section-title">Signaler un problème</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment signaler une information incorrecte sur un établissement ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Sur la page de l'établissement, appuyez sur les <strong>trois points (⋯)</strong> en haut à droite, puis <strong>« Signaler une erreur »</strong>. Décrivez le problème (horaires incorrects, mauvaise adresse, photos inappropriées…). Notre équipe vérifie et corrige sous 48 heures.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Je voudrais suggérer un établissement qui n'existe pas encore.</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Utilisez la fonctionnalité <strong>Suggérer un établissement</strong> accessible depuis le menu. Indiquez le nom, l'adresse, la catégorie et les coordonnées de contact. Notre équipe examinera la suggestion et contactera l'établissement pour l'inviter à rejoindre la plateforme.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panel : Avis -->
+  <div class="faq-panel" id="panel-avis">
+
+    <div class="faq-section-title">Publier et gérer ses avis</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment laisser un avis sur un établissement ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">Ouvrez la page de l'établissement.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text">Appuyez sur <strong>« Laisser un avis »</strong>.</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text">Attribuez une note globale et remplissez les sous-critères (ambiance, service, qualité…).</div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-text">Rédigez votre commentaire et appuyez sur <strong>« Publier »</strong>.</div></div>
+        </div>
+        <div class="info-box" style="margin-top:12px;">Votre avis est soumis à modération. Il apparaît généralement dans les 24 heures suivant sa publication.</div>
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Puis-je modifier ou supprimer un avis que j'ai publié ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Oui. Allez dans <strong>Profil → Mes avis</strong>, puis appuyez sur l'avis concerné. Vous pouvez le modifier ou le supprimer à tout moment. La suppression est définitive.
+      </div>
+    </div>
+
+    <div class="faq-section-title">Signalement</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment signaler un avis inapproprié ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Sous l'avis concerné, appuyez sur <strong>« Signaler »</strong> (icône drapeau). Sélectionnez la raison (contenu offensant, faux avis, spam…). Notre équipe de modération examine tous les signalements sous 48 heures.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Mon avis a été rejeté, pourquoi ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Les avis sont refusés s'ils contiennent des propos offensants, des informations fausses, des liens externes ou sont hors sujet. Vous recevez une notification avec la raison du rejet. Vous pouvez le modifier et le resoumettre depuis <strong>Profil → Mes avis</strong>.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panel : Partenaires -->
+  <div class="faq-panel" id="panel-partenaires">
+
+    <div class="faq-section-title">Rejoindre la plateforme</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment inscrire mon établissement sur Win ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Contactez-nous à <a href="mailto:yassine-o@hotmail.fr">yassine-o@hotmail.fr</a> avec le nom de votre établissement, sa catégorie et son adresse. Notre équipe commerciale vous recontactera sous 2 jours ouvrables pour vous présenter les offres partenaires.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment répondre aux avis de mes clients ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Connectez-vous à votre espace partenaire, allez dans <strong>Avis</strong> et appuyez sur <strong>« Répondre »</strong> sous l'avis souhaité. Votre réponse sera visible publiquement sous l'avis du client. Une seule réponse est possible par avis.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment mettre à jour les informations de mon établissement ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Depuis votre espace partenaire, sélectionnez l'établissement à modifier. Vous pouvez mettre à jour les horaires, l'adresse, les photos, les services proposés et la description à tout moment. Les modifications sont soumises à validation et publiées sous 24 heures.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Panel : Technique -->
+  <div class="faq-panel" id="panel-technique">
+
+    <div class="faq-section-title">Problèmes courants</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">L'application ne se lance pas ou plante.</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-text">Fermez complètement l'application et relancez-la.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-text">Vérifiez que votre version de l'app est à jour (App Store / Google Play).</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-text">Redémarrez votre appareil.</div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-text">Si le problème persiste, désinstallez et réinstallez l'application. Vos données de compte sont conservées.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">La localisation ne fonctionne pas.</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Vérifiez que Win a l'autorisation d'accéder à votre position. Sur <strong>iOS</strong> : Réglages → Confidentialité et sécurité → Service de localisation → Win → « Lors de l'utilisation ». Sur <strong>Android</strong> : Paramètres → Applications → Win → Autorisations → Position.
+      </div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Je ne reçois pas les notifications.</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Vérifiez que les notifications sont activées pour Win dans les réglages de votre appareil. Vérifiez également vos préférences de notification dans <strong>Win → Paramètres → Notifications</strong>.
+      </div>
+    </div>
+
+    <div class="faq-section-title">Signaler un bug</div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">
+        <span class="faq-q-text">Comment signaler un bug ou un problème technique ?</span>
+        <svg class="faq-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7.5l5 5 5-5"/></svg>
+      </div>
+      <div class="faq-a">
+        Envoyez un e-mail à <a href="mailto:yassine-o@hotmail.fr">yassine-o@hotmail.fr</a> en indiquant : le modèle de votre appareil, la version de l'OS, la version de Win (visible dans Paramètres → À propos) et une description détaillée du problème. Des captures d'écran sont les bienvenues.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Contact -->
+  <div class="contact-section">
+    <h2>Vous n'avez pas trouvé votre réponse ?</h2>
+    <p>Notre équipe est disponible pour vous aider. Choisissez le canal qui vous convient le mieux.</p>
+    <div class="contact-grid">
+      <a class="contact-card" href="mailto:yassine-o@hotmail.fr">
+        <div class="cc-icon cc-blue">📧</div>
+        <div class="cc-title">E-mail</div>
+        <div class="cc-sub">Réponse sous 24 heures ouvrables</div>
+        <div class="cc-link">yassine-o@hotmail.fr</div>
+      </a>
+      <a class="contact-card" href="mailto:yassine-o@hotmail.frz">
+        <div class="cc-icon cc-lime">🤝</div>
+        <div class="cc-title">Partenaires</div>
+        <div class="cc-sub">Questions commerciales et établissements</div>
+        <div class="cc-link">yassine-o@hotmail.fr</div>
+      </a>
+      <a class="contact-card" href="mailto:yassine-o@hotmail.fr">
+        <div class="cc-icon cc-orange">🔒</div>
+        <div class="cc-title">Données personnelles</div>
+        <div class="cc-sub">Droit d'accès, suppression, portabilité</div>
+        <div class="cc-link">yassine-o@hotmail.fr</div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2026 Win Technologies SARL</p>
+  <div class="footer-links">
+    <a href="/">Accueil</a>
+    <a href="/privacy">Confidentialité</a>
+    <a href="mailto:yassine-o@hotmail.fr">Contact</a>
+  </div>
+</footer>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Thème">☀️</button>
+
+<script>
+  function switchTab(btn) {
+    document.querySelectorAll('.cat-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.faq-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.panel).classList.add('active');
+  }
+
+  function toggleFaq(item) {
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(function(i) { i.classList.remove('open'); });
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  (function() {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function isDark() { var t = root.getAttribute('data-theme'); return t === 'dark' ? true : t === 'light' ? false : mq.matches; }
+    function setTheme(dark) { root.setAttribute('data-theme', dark ? 'dark' : 'light'); btn.textContent = dark ? '☀️' : '🌙'; }
+    setTheme(isDark());
+    btn.addEventListener('click', function() { setTheme(!isDark()); });
+  })();
+
+  // Anchor tab switching from hero quick links
+  window.addEventListener('DOMContentLoaded', function() {
+    var hash = window.location.hash;
+    var map = { '#compte': 'panel-compte', '#etablissements': 'panel-etablissements', '#avis': 'panel-avis' };
+    if (map[hash]) {
+      var panel = map[hash];
+      document.querySelectorAll('.cat-tab').forEach(function(t) {
+        if (t.dataset.panel === panel) switchTab(t);
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
