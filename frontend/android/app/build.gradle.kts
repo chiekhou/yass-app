@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,6 +7,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     // Firebase / Google Services
     id("com.google.gms.google-services")
+}
+
+// Lecture du fichier key.properties (ne pas committer ce fichier)
+val keyPropertiesFile = rootProject.file("key.properties")
+val keyProperties = Properties()
+if (keyPropertiesFile.exists()) {
+    keyPropertiesFile.inputStream().use { keyProperties.load(it) }
 }
 
 android {
@@ -22,6 +31,15 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias      = keyProperties.getProperty("keyAlias")
+            keyPassword   = keyProperties.getProperty("keyPassword")
+            storeFile     = keyProperties.getProperty("storeFile")?.let { file(it) }
+            storePassword = keyProperties.getProperty("storePassword")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.dz.win.app"
         minSdk = flutter.minSdkVersion  // Mapbox Maps SDK v11 requiert minSdk 21
@@ -32,9 +50,10 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (keyPropertiesFile.exists())
+                signingConfigs.getByName("release")
+            else
+                signingConfigs.getByName("debug")
         }
     }
 }
