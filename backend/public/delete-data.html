@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suppression de données — Win وِين</title>
+  <style>
+    :root {
+      --blue: #1A4DCC; --klein: #002FA7; --lime: #70E010; --orange: #FF6530;
+      --ink: #0C1530; --ink-mid: #3A4666; --ink-muted: #6B7A99; --ink-faint: #AAB4C8;
+      --bg: #F5F7FF; --surface: #FFFFFF; --border: #DDE3F5;
+      --header-bg: #002FA7; --header-sub: rgba(255,255,255,0.6);
+      --tag-bg: #EEF2FD; --tag-text: #1A4DCC;
+      --error: #E53935; --error-bg: #FFEBEE;
+      --success: #2E7D32; --success-bg: #E8F5E9;
+      --radius: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #E8ECF8; --ink-mid: #B0BCDA; --ink-muted: #7A8BAD; --ink-faint: #445070;
+        --bg: #080E22; --surface: #0E1835; --border: #1C2B50;
+        --header-bg: #001880; --tag-bg: #0F1F55; --tag-text: #6B9EFF;
+        --error-bg: #1a0505; --success-bg: #051a0a;
+      }
+    }
+    :root[data-theme="light"] {
+      --ink: #0C1530; --ink-mid: #3A4666; --ink-muted: #6B7A99; --ink-faint: #AAB4C8;
+      --bg: #F5F7FF; --surface: #FFFFFF; --border: #DDE3F5;
+      --header-bg: #002FA7; --tag-bg: #EEF2FD; --tag-text: #1A4DCC;
+      --error-bg: #FFEBEE; --success-bg: #E8F5E9;
+    }
+    :root[data-theme="dark"] {
+      --ink: #E8ECF8; --ink-mid: #B0BCDA; --ink-muted: #7A8BAD; --ink-faint: #445070;
+      --bg: #080E22; --surface: #0E1835; --border: #1C2B50;
+      --header-bg: #001880; --tag-bg: #0F1F55; --tag-text: #6B9EFF;
+      --error-bg: #1a0505; --success-bg: #051a0a;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px; line-height: 1.65;
+      color: var(--ink); background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .site-header {
+      background: var(--header-bg);
+      padding: 24px 40px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-mark { width: 40px; height: 40px; background: var(--lime); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .brand-text-top { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .brand-text-sub { font-size: 11px; color: var(--header-sub); margin-top: 1px; }
+    .header-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .header-nav a { font-size: 12px; color: rgba(255,255,255,0.7); text-decoration: none; padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); transition: background 0.15s, color 0.15s; }
+    .header-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* Main */
+    .main { max-width: 600px; margin: 0 auto; padding: 52px 24px 80px; }
+
+    /* Page title */
+    .page-title-block { margin-bottom: 36px; }
+    .page-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--orange); margin-bottom: 8px; }
+    .page-title { font-size: 28px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 10px; }
+    .page-sub { font-size: 14px; color: var(--ink-muted); line-height: 1.65; }
+
+    /* Info banner */
+    .info-banner {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: var(--tag-bg); border: 1px solid var(--border);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 16px; margin-bottom: 32px;
+    }
+    .info-banner-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .info-banner p { font-size: 13.5px; color: var(--ink-mid); line-height: 1.6; }
+    .info-banner p strong { color: var(--ink); }
+
+    /* Form */
+    .form-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 32px 28px;
+    }
+
+    .field { margin-bottom: 20px; }
+    .field:last-of-type { margin-bottom: 0; }
+
+    label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--ink); margin-bottom: 6px;
+    }
+    label .req { color: var(--orange); margin-left: 2px; }
+
+    input[type="text"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%; padding: 11px 14px;
+      font-size: 14px; color: var(--ink);
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit; line-height: 1.5;
+      appearance: none; -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,77,204,0.1);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7A99' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .field-hint { font-size: 12px; color: var(--ink-faint); margin-top: 5px; }
+
+    /* Checkbox confirm */
+    .confirm-block { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .checkbox-row { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+    .checkbox-row input[type="checkbox"] {
+      width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;
+      accent-color: var(--blue); cursor: pointer;
+    }
+    .checkbox-label { font-size: 13.5px; color: var(--ink-mid); line-height: 1.55; }
+    .checkbox-label strong { color: var(--ink); }
+
+    /* Submit button */
+    .submit-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 24px;
+      padding: 14px 24px; border-radius: var(--radius);
+      background: var(--orange); color: #fff;
+      font-size: 15px; font-weight: 700; font-family: inherit;
+      border: none; cursor: pointer;
+      transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 14px rgba(255,101,48,0.3);
+    }
+    .submit-btn:hover:not(:disabled) { background: #E04820; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,101,48,0.4); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .submit-btn svg { width: 18px; height: 18px; }
+
+    /* Success state */
+    .success-card {
+      display: none;
+      background: var(--success-bg);
+      border: 1px solid rgba(46,125,50,0.3);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      text-align: center;
+    }
+    .success-card .s-icon { font-size: 48px; margin-bottom: 16px; }
+    .success-card h2 { font-size: 20px; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+    .success-card p { font-size: 14px; color: var(--ink-mid); line-height: 1.65; }
+    .success-card p strong { color: var(--ink); }
+
+    /* Timeline */
+    .timeline { margin-top: 36px; }
+    .timeline h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 16px; }
+    .tl-items { display: flex; flex-direction: column; gap: 0; }
+    .tl-item { display: flex; gap: 14px; align-items: flex-start; position: relative; }
+    .tl-item:not(:last-child)::before {
+      content: ''; position: absolute;
+      left: 10px; top: 22px;
+      width: 1px; height: calc(100% + 4px);
+      background: var(--border);
+    }
+    .tl-dot { width: 21px; height: 21px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 9px; z-index: 1; }
+    .tl-item.active .tl-dot { border-color: var(--blue); background: var(--blue); color: #fff; font-weight: 700; }
+    .tl-body { padding-bottom: 20px; }
+    .tl-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .tl-desc { font-size: 12.5px; color: var(--ink-muted); margin-top: 2px; line-height: 1.5; }
+
+    /* Alternatives */
+    .alternatives { margin-top: 32px; }
+    .alternatives h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+    .alt-item { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .alt-item:last-child { border-bottom: none; }
+    .alt-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .alt-text { font-size: 13px; color: var(--ink-mid); line-height: 1.5; }
+    .alt-text strong { color: var(--ink); display: block; margin-bottom: 2px; }
+    .alt-text a { color: var(--blue); text-decoration: none; }
+    .alt-text a:hover { text-decoration: underline; }
+
+    /* Footer */
+    footer { background: var(--header-bg); padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    footer p { font-size: 12px; color: var(--header-sub); }
+    .footer-links { display: flex; gap: 16px; }
+    .footer-links a { font-size: 12px; color: rgba(255,255,255,0.6); text-decoration: none; }
+    .footer-links a:hover { color: var(--lime); }
+
+    /* Theme toggle */
+    .theme-toggle { position: fixed; bottom: 24px; right: 24px; width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); z-index: 100; }
+
+    @media (max-width: 640px) {
+      .site-header { padding: 18px 20px; flex-direction: column; align-items: flex-start; gap: 12px; }
+      .main { padding: 32px 16px 60px; }
+      .form-card { padding: 24px 18px; }
+      footer { flex-direction: column; align-items: flex-start; padding: 18px 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="/">
+    <div class="brand-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L3 8.5V15.5L12 21L21 15.5V8.5L12 3Z" fill="#002FA7"/>
+        <path d="M12 7L7 10V14L12 17L17 14V10L12 7Z" fill="#70E010"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-text-top">Win — وِين</div>
+      <div class="brand-text-sub">Suppression de données</div>
+    </div>
+  </a>
+  <nav class="header-nav">
+    <a href="/">Accueil</a>
+    <a href="/support">Assistance</a>
+    <a href="/privacy">Confidentialité</a>
+  </nav>
+</header>
+
+<main class="main">
+
+  <div class="page-title-block">
+    <div class="page-eyebrow">Droit à l'effacement</div>
+    <h1 class="page-title">Demande de suppression<br>de vos données</h1>
+    <p class="page-sub">Conformément à la législation en vigueur, vous pouvez demander la suppression de l'ensemble des données personnelles associées à votre compte Win.</p>
+  </div>
+
+  <div class="info-banner">
+    <div class="info-banner-icon">ℹ️</div>
+    <p>Vous pouvez également supprimer votre compte directement depuis l'application : <strong>Paramètres → Mon compte → Supprimer mon compte</strong>. La suppression est immédiate.</p>
+  </div>
+
+  <!-- Form -->
+  <div class="form-card" id="formCard">
+    <form id="deleteForm" novalidate>
+
+      <div class="field">
+        <label for="firstName">Prénom <span class="req">*</span></label>
+        <input type="text" id="firstName" name="firstName" placeholder="Votre prénom" autocomplete="given-name" required>
+      </div>
+
+      <div class="field">
+        <label for="lastName">Nom <span class="req">*</span></label>
+        <input type="text" id="lastName" name="lastName" placeholder="Votre nom" autocomplete="family-name" required>
+      </div>
+
+      <div class="field">
+        <label for="email">Adresse e-mail du compte <span class="req">*</span></label>
+        <input type="email" id="email" name="email" placeholder="email@exemple.com" autocomplete="email" required>
+        <div class="field-hint">L'adresse utilisée pour vous connecter à Win</div>
+      </div>
+
+      <div class="field">
+        <label for="reason">Motif de la demande</label>
+        <select id="reason" name="reason">
+          <option value="">Sélectionnez un motif (optionnel)</option>
+          <option value="Je n'utilise plus l'application">Je n'utilise plus l'application</option>
+          <option value="Préoccupations liées à la vie privée">Préoccupations liées à la vie privée</option>
+          <option value="Je souhaite créer un nouveau compte">Je souhaite créer un nouveau compte</option>
+          <option value="Autre motif">Autre motif</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="message">Informations complémentaires</label>
+        <textarea id="message" name="message" placeholder="Précisez votre demande si nécessaire (numéro de téléphone associé, date de création du compte…)"></textarea>
+      </div>
+
+      <div class="confirm-block">
+        <label class="checkbox-row">
+          <input type="checkbox" id="confirm" name="confirm" required>
+          <span class="checkbox-label">Je comprends que la suppression de mon compte est <strong>définitive et irréversible</strong>. Toutes mes données personnelles, avis et favoris seront effacés.</span>
+        </label>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+        Envoyer la demande de suppression
+      </button>
+
+    </form>
+  </div>
+
+  <!-- Success state -->
+  <div class="success-card" id="successCard">
+    <div class="s-icon">✅</div>
+    <h2>Demande envoyée</h2>
+    <p>Votre demande de suppression a bien été transmise à notre équipe à l'adresse <strong>yassine-o@hotmail.fr</strong>.<br><br>
+    Nous traiterons votre demande sous <strong>30 jours</strong> et vous enverrons une confirmation à l'adresse e-mail indiquée.</p>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    <h3>Que se passe-t-il après votre demande ?</h3>
+    <div class="tl-items">
+      <div class="tl-item active">
+        <div class="tl-dot">1</div>
+        <div class="tl-body">
+          <div class="tl-title">Réception de la demande</div>
+          <div class="tl-desc">Notre équipe reçoit votre demande et en accuse réception par e-mail sous 48h.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">2</div>
+        <div class="tl-body">
+          <div class="tl-title">Vérification de l'identité</div>
+          <div class="tl-desc">Nous pouvons vous contacter pour confirmer que vous êtes bien le titulaire du compte.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">3</div>
+        <div class="tl-body">
+          <div class="tl-title">Suppression des données</div>
+          <div class="tl-desc">Vos données personnelles sont effacées dans un délai maximum de 30 jours. Vos avis passent en mode anonyme.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot">4</div>
+        <div class="tl-body">
+          <div class="tl-title">Confirmation par e-mail</div>
+          <div class="tl-desc">Vous recevez un e-mail de confirmation attestant que vos données ont été supprimées.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alternatives -->
+  <div class="alternatives">
+    <h3>Autres options</h3>
+    <div class="alt-item">
+      <div class="alt-icon">📱</div>
+      <div class="alt-text">
+        <strong>Supprimer depuis l'application (immédiat)</strong>
+        Paramètres → Mon compte → Supprimer mon compte. La suppression est instantanée.
+      </div>
+    </div>
+    <div class="alt-item">
+      <div class="alt-icon">📧</div>
+      <div class="alt-text">
+        <strong>Par e-mail direct</strong>
+        Écrivez directement à <a href="mailto:yassine-o@hotmail.fr">yassine-o@hotmail.fr</a> avec l'objet « Suppression de données » et votre adresse e-mail de compte.
+      </div>
+    </div>
+    <div class="alt-item">
+      <div class="alt-icon">🔒</div>
+      <div class="alt-text">
+        <strong>En savoir plus sur vos droits</strong>
+        Consultez notre <a href="/privacy#s7">politique de confidentialité — section Vos droits</a>.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>© 2026 Win Technologies SARL</p>
+  <div class="footer-links">
+    <a href="/privacy">Confidentialité</a>
+    <a href="/support">Assistance</a>
+    <a href="mailto:yassine-o@hotmail.fr">Contact</a>
+  </div>
+</footer>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">☀️</button>
+
+<script>
+  /* Theme */
+  (function() {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function isDark() { var t = root.getAttribute('data-theme'); return t === 'dark' ? true : t === 'light' ? false : mq.matches; }
+    function setTheme(dark) { root.setAttribute('data-theme', dark ? 'dark' : 'light'); btn.textContent = dark ? '☀️' : '🌙'; }
+    setTheme(isDark());
+    btn.addEventListener('click', function() { setTheme(!isDark()); });
+  })();
+
+  /* Disable submit until checkbox is checked */
+  var confirmBox = document.getElementById('confirm');
+  var submitBtn  = document.getElementById('submitBtn');
+  confirmBox.addEventListener('change', function() {
+    submitBtn.disabled = !this.checked;
+  });
+
+  /* Form submit — mailto */
+  document.getElementById('deleteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var firstName = document.getElementById('firstName').value.trim();
+    var lastName  = document.getElementById('lastName').value.trim();
+    var email     = document.getElementById('email').value.trim();
+    var reason    = document.getElementById('reason').value;
+    var message   = document.getElementById('message').value.trim();
+
+    if (!firstName || !lastName || !email) {
+      alert('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+
+    var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(email)) {
+      alert('Veuillez saisir une adresse e-mail valide.');
+      return;
+    }
+
+    var body = [
+      'Demande de suppression de données personnelles',
+      '================================================',
+      '',
+      'Prénom     : ' + firstName,
+      'Nom        : ' + lastName,
+      'E-mail     : ' + email,
+      'Motif      : ' + (reason || 'Non précisé'),
+      '',
+      'Informations complémentaires :',
+      message || 'Aucune',
+      '',
+      '------------------------------------------------',
+      'Demande soumise via win-app.dz/delete-data',
+    ].join('\n');
+
+    var subject = encodeURIComponent('Suppression de données — ' + firstName + ' ' + lastName);
+    var mailBody = encodeURIComponent(body);
+    var mailto = 'mailto:yassine-o@hotmail.fr?subject=' + subject + '&body=' + mailBody;
+
+    window.location.href = mailto;
+
+    /* Show success */
+    setTimeout(function() {
+      document.getElementById('formCard').style.display = 'none';
+      var s = document.getElementById('successCard');
+      s.style.display = 'block';
+      s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 800);
+  });
+</script>
+
+</body>
+</html>

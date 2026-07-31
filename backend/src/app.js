@@ -31,6 +31,9 @@ app.get("/support", (req, res) => {
 app.get("/privacy", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/privacy.html"));
 });
+app.get("/delete-data", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/delete-data.html"));
+});
 
 // Security middleware
 app.use(helmet());
